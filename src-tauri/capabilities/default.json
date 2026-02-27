@@ -1,0 +1,18 @@
+{
+  "identifier": "default",
+  "description": "Main window capability",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:allow-set-size",
+    "core:window:allow-center",
+    "core:window:allow-maximize",
+    "core:window:allow-unmaximize",
+    "dialog:default",
+    "fs:write-files",
+    "fs:allow-write-file",
+    "fs:read-files"
+  ]
+}

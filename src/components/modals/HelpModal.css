@@ -1,0 +1,136 @@
+[data-theme="dark"] .help-modal {
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.08));
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 
+    0 8px 32px rgba(0,0,0,0.3),
+    0 2px 8px rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.help-modal__content {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.help-modal__heading {
+  margin: 12px 0 8px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--button-bg), #6495ED);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.help-modal__instructions {
+  margin: 0 20px 16px;
+  padding-left: 20px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.help-modal__instructions li {
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.help-modal__description {
+  margin: 0 0 12px;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.help-modal__download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  width: 100%;
+  height: 35px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Helvetica', sans-serif;
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 12px;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.2));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.15);
+  box-shadow: 
+    0 2px 8px rgba(0,0,0,0.1),
+    0 1px 3px rgba(0,0,0,0.05),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+}
+
+[data-theme="dark"] .help-modal__download-btn {
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 
+    0 2px 8px rgba(0,0,0,0.2),
+    0 1px 3px rgba(0,0,0,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.help-modal__download-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 4px 12px rgba(0,0,0,0.15),
+    0 2px 4px rgba(0,0,0,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+[data-theme="dark"] .help-modal__download-btn:hover {
+  box-shadow: 
+    0 4px 12px rgba(0,0,0,0.25),
+    0 2px 4px rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+}
+
+@media (max-width: 480px) {
+  .help-modal {
+    width: 280px;
+    padding: 20px;
+  }
+  
+  .help-modal__heading {
+    font-size: 0.9rem;
+  }
+  
+  .help-modal__instructions {
+    font-size: 11px;
+  }
+  
+  .help-modal__download-btn {
+    font-size: 10px;
+    height: 32px;
+  }
+}
+
+/* === Фолбэк если backdrop-filter не поддерживается === */
+@supports not (backdrop-filter: blur(20px)) {
+  .help-modal {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: none;
+  }
+  
+  [data-theme="dark"] .help-modal {
+    background: rgba(30, 30, 30, 0.85);
+  }
+}
+
+@supports not (backdrop-filter: blur(12px)) {
+  .help-modal__download-btn {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: none;
+  }
+  
+  [data-theme="dark"] .help-modal__download-btn {
+    background: rgba(30, 30, 30, 0.85);
+  }
+}

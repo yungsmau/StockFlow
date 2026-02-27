@@ -1,0 +1,82 @@
+.header-buttons {
+  position: absolute;
+  right: 24px;
+  top: 21px;
+  display: flex;
+  gap: 12px;
+  width: auto;
+}
+
+.header-button {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.header-button:hover {
+  background: var(--upload-hover-bg);
+}
+
+[data-theme="dark"] .header-button svg {
+  filter: brightness(0) invert(1);
+}
+
+[data-theme="dark"] .header-button:hover {
+  background: var(--back-button-light-bg);
+}
+
+.back-button {
+  display: flex;
+  gap: 4px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  background: var(--back-button-bg);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  min-width: 72px;
+  height: auto;
+  transition: background transform 0.2s;
+}
+
+.back-button:hover {
+  background: var(--back-button-hover);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .back-button {
+  background: var(--back-button-bg);
+}
+
+[data-theme="dark"] .back-button:hover {
+  background: var(--back-button-hover);
+}
+
+.notifications-button {
+  position: relative;
+}
+
+.notification-indicator {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-primary);
+  background: var(--notif-yellow);
+}
+
+.notification-indicator--major {
+  background: var(--notif-red);
+}

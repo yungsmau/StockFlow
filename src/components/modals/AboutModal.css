@@ -1,0 +1,120 @@
+[data-theme="dark"] .about-modal {
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.08));
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 
+    0 8px 32px rgba(0,0,0,0.3),
+    0 2px 8px rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.about-modal__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.about-modal__icon-container {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-modal__icon-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 20%;
+  background: linear-gradient(135deg, var(--button-bg), #6495ED);
+  opacity: 0.2;
+  z-index: 1;
+}
+
+.about-modal__image {
+  width: 70px;
+  height: 70px;
+  z-index: 2;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.about-modal__info {
+  text-align: center;
+  margin: 0;
+}
+
+.about-modal__app-name {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, var(--button-bg), #6495ED);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.about-modal__version {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Описание */
+.about-modal__description {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding: 0 12px;
+}
+
+/* Футер */
+.about-modal__footer {
+  text-align: center;
+  width: 100%;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 8px;
+}
+
+.about-modal__copyright {
+  margin: 0 0 4px 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  .about-modal {
+    width: 280px;
+    padding: 20px;
+  }
+  
+  .about-modal__app-name {
+    font-size: 16px;
+  }
+  
+  .about-modal__version {
+    font-size: 13px;
+  }
+  
+  .about-modal__description {
+    font-size: 12px;
+  }
+}
+
+/* === Фолбэк если backdrop-filter не поддерживается === */
+@supports not (backdrop-filter: blur(20px)) {
+  .about-modal {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: none;
+  }
+  
+  [data-theme="dark"] .about-modal {
+    background: rgba(30, 30, 30, 0.85);
+  }
+}
