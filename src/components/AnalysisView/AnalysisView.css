@@ -92,8 +92,8 @@
   background: transparent;
   color: var(--text-primary);
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   transition: all 0.2s ease;
   white-space: nowrap;
   position: relative;
@@ -142,8 +142,8 @@
   background: transparent;
   color: var(--text-primary);
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   transition: all 0.2s ease;
   white-space: nowrap;
   position: relative;

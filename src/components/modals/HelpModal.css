@@ -17,7 +17,7 @@
   margin: 12px 0 8px;
   color: var(--text-primary);
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 400;
   background: linear-gradient(135deg, var(--button-bg), #6495ED);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -28,7 +28,8 @@
   margin: 0 20px 16px;
   padding-left: 20px;
   font-size: 12px;
-  line-height: 1.4;
+  font-weight: 300;
+  line-height: 1.3;
 }
 
 .help-modal__instructions li {
@@ -51,11 +52,9 @@
   height: 35px;
   border-radius: 8px;
   cursor: pointer;
-  font-family: 'Helvetica', sans-serif;
-  font-weight: 500;
-  font-size: 11px;
+  font-weight: 300;
+  font-size: 13px;
   line-height: 12px;
-  text-transform: uppercase;
   color: var(--text-primary);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.2));
