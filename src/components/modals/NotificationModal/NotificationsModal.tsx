@@ -1,6 +1,6 @@
 import { open } from '@tauri-apps/plugin-shell';
-import Modal from './Modal';
-import './Modal.css'
+import Modal from '../Modal';
+import '../Modal.css'
 import './NotificationModal.css'
 
 interface NotificationsModalProps {
