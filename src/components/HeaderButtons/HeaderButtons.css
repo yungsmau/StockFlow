@@ -66,6 +66,14 @@
   position: relative;
 }
 
+.help-button path {
+  stroke-width: 1.9;
+}
+
+.dark-mode-button path {
+  stroke-width: 2.5;
+}
+
 .notification-indicator {
   position: absolute;
   top: -2px;

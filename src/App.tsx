@@ -9,7 +9,7 @@ import NotificationsModal from './components/modals/NotificationsModal';
 import AboutModal from './components/modals/AboutModal';
 
 import { useUpdateCheck } from './hooks/useUpdateCheck';
-import { AnalysisProvider, useAnalysis } from './context/AnalysisContext'; // ← добавлен импорт
+import { AnalysisProvider, useAnalysis } from './context/AnalysisContext';
 
 import './App.css';
 import './styles/theme.css';
@@ -27,14 +27,12 @@ export interface ExportItem {
 
 type AppPage = 'upload' | 'analysis' | 'export';
 
-// Отдельный компонент для основного контента
 function AppContent() {
   const { update } = useUpdateCheck();
   const [activeModal, setActiveModal] = useState<'help' | 'notifications' | 'about' | null>(null);
   const [currentPage, setCurrentPage] = useState<AppPage>('upload');
   const [exportData, setExportData] = useState<ExportItem[]>([]);
 
-  // Получаем данные из контекста
   const { uploadedFiles, setUploadedFiles } = useAnalysis();
 
   const toggleModal = (modalType: 'help' | 'notifications' | 'about') => {
