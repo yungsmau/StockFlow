@@ -33,7 +33,7 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
       <div className="about-modal__content">
         <div className="about-modal__icon-container">
           <div className="about-modal__icon-bg"></div>
-          <img src="src-tauri/icons/icon.svg" alt="" className="about-modal__image" />
+          <img src="/icon.svg" alt="App icon" className="about-modal__image" />
         </div>
         
         <div className="about-modal__info">

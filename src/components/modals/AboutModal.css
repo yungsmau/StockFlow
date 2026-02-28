@@ -58,9 +58,10 @@
 
 .about-modal__version {
   margin: 0;
-  font-size: 14px;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-family: 'Rubik';
+  font-size: 14px;
+  font-weight: 400;
 }
 
 /* Описание */

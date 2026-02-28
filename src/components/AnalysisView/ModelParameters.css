@@ -62,7 +62,7 @@
 
 .param-label {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text-primary);
   white-space: nowrap;
   min-width: 80px;
@@ -77,8 +77,9 @@
   border-radius: 6px;
   background: var(--bg-primary);
   color: var(--text-primary);
+  font-family: 'Rubik';
   font-size: 14px;
-  font-family: 'Helvetica', sans-serif;
+  font-weight: 200;
   transition: all 0.2s ease;
   min-width: 0;
   text-align: center;

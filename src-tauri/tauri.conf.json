@@ -1,6 +1,6 @@
 {
   "productName": "StockFlow",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "com.aleksejsmolic.stockflow",
   "build": {
     "beforeDevCommand": "npm run dev",

@@ -8,6 +8,7 @@
 .export-header h2 {
   margin: 0 0 8px 0;
   font-size: 20px;
+  font-weight: 400;
   color: var(--text-primary);
 }
 
@@ -16,6 +17,7 @@
   margin-bottom: 16px;
   color: var(--text-secondary);
   font-size: 14px;
+  font-weight: 200;
 }
 
 .export-empty {
@@ -84,11 +86,16 @@
 
 .export-table th {
   background: var(--bg-primary);
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text-primary);
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+.export-table td {
+  font-family: 'Rubik';
+  font-weight: 200;
 }
 
 .export-table th:not(:last-child),

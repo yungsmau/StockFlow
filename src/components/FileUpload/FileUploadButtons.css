@@ -10,12 +10,13 @@
 .upload-field__analyze-button,
 .upload-field__cancel-button {
   flex: 1;
-  padding: 10px 25px;
+  padding: 8px 20px;
   max-width: 160px;
   height: 35px;
   border-radius: 6px;
-  font-weight: 600;
-  text-transform: uppercase;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 300;
   cursor: pointer;
   outline: none;
   position: relative;
