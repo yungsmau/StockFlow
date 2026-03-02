@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import Papa from "papaparse";
 import { validateHeaders } from "./fileValidation";
 
 export type RowData = {
@@ -38,22 +39,32 @@ export async function parseExcel(file: File): Promise<RowData[]> {
   const validation = validateHeaders(headers);
   if (!validation.valid) throw new Error(validation.error);
 
-  // Получаем маппинг заголовков
   const headerMap = validation.headerMap!;
   const normalizedHeaders = headers.map((h) => h.trim().toLowerCase());
 
-  // Находим индексы по маппингу
-  const nomenclatureIdx = normalizedHeaders.findIndex(
-    (h) => headerMap[h] === "nomenclature",
+  const nomenclatureKey = Object.keys(headerMap).find(
+    (k) => headerMap[k] === "nomenclature",
   );
-  const dateIdx = normalizedHeaders.findIndex((h) => headerMap[h] === "date");
-  const incomeIdx = normalizedHeaders.findIndex(
-    (h) => headerMap[h] === "income",
+  const dateKey = Object.keys(headerMap).find((k) => headerMap[k] === "date");
+  const incomeKey = Object.keys(headerMap).find(
+    (k) => headerMap[k] === "income",
   );
-  const expenseIdx = normalizedHeaders.findIndex(
-    (h) => headerMap[h] === "expense",
+  const expenseKey = Object.keys(headerMap).find(
+    (k) => headerMap[k] === "expense",
   );
-  const stockIdx = normalizedHeaders.findIndex((h) => headerMap[h] === "stock");
+  const stockKey = Object.keys(headerMap).find((k) => headerMap[k] === "stock");
+
+  if (!nomenclatureKey || !dateKey || !incomeKey || !expenseKey || !stockKey) {
+    throw new Error("Не удалось сопоставить все обязательные колонки");
+  }
+
+  const nomenclatureIdx = normalizedHeaders.indexOf(
+    nomenclatureKey.toLowerCase(),
+  );
+  const dateIdx = normalizedHeaders.indexOf(dateKey.toLowerCase());
+  const incomeIdx = normalizedHeaders.indexOf(incomeKey.toLowerCase());
+  const expenseIdx = normalizedHeaders.indexOf(expenseKey.toLowerCase());
+  const stockIdx = normalizedHeaders.indexOf(stockKey.toLowerCase());
 
   worksheet.eachRow((row, idx) => {
     if (idx === 1) return;
@@ -77,44 +88,77 @@ export async function parseExcel(file: File): Promise<RowData[]> {
 }
 
 export async function parseCSV(file: File): Promise<RowData[]> {
-  const text = await file.text();
-  const lines = text.split("\n").filter((line) => line.trim() !== "");
+  return new Promise((resolve, reject) => {
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      encoding: "UTF-8",
+      dynamicTyping: false,
+      complete: (results) => {
+        if (results.errors.length > 0) {
+          const criticalErrors = results.errors.filter(
+            (e) => e.type !== "FieldMismatch",
+          );
+          if (criticalErrors.length > 0) {
+            reject(
+              new Error(`Ошибка парсинга CSV: ${criticalErrors[0].message}`),
+            );
+            return;
+          }
+        }
 
-  if (lines.length < 2) {
-    throw new Error(
-      "Файл слишком короткий. Нужны заголовки и хотя бы одна строка данных.",
-    );
-  }
+        const headers = results.meta.fields || [];
+        if (headers.length === 0) {
+          reject(new Error("Файл CSV не содержит заголовков"));
+          return;
+        }
 
-  const headers = lines[0].split(",").map((h) => h.trim());
-  const validation = validateHeaders(headers);
-  if (!validation.valid) throw new Error(validation.error);
+        const validation = validateHeaders(headers);
+        if (!validation.valid) {
+          reject(new Error(validation.error));
+          return;
+        }
 
-  const headerMap = validation.headerMap!;
-  const normalizedHeaders = headers.map((h) => h.trim().toLowerCase());
+        const typeToHeader: Record<string, string> = {};
+        const normalizedHeaders = headers.map((h) => h.trim().toLowerCase());
 
-  const nomenclatureIdx = normalizedHeaders.findIndex(
-    (h) => headerMap[h] === "nomenclature",
-  );
-  const dateIdx = normalizedHeaders.findIndex((h) => headerMap[h] === "date");
-  const incomeIdx = normalizedHeaders.findIndex(
-    (h) => headerMap[h] === "income",
-  );
-  const expenseIdx = normalizedHeaders.findIndex(
-    (h) => headerMap[h] === "expense",
-  );
-  const stockIdx = normalizedHeaders.findIndex((h) => headerMap[h] === "stock");
+        for (let i = 0; i < headers.length; i++) {
+          const origHeader = headers[i];
+          const normHeader = normalizedHeaders[i];
+          const fieldType = validation.headerMap[normHeader];
+          if (fieldType) {
+            typeToHeader[fieldType] = origHeader;
+          }
+        }
 
-  const data = lines.slice(1).map((line) => {
-    const cols = line.split(",").map((col) => col.trim());
-    return {
-      nomenclature: toStringSafe(cols[nomenclatureIdx]),
-      date: toStringSafe(cols[dateIdx]),
-      income: toNumberSafe(cols[incomeIdx]),
-      expense: toNumberSafe(cols[expenseIdx]),
-      stock: toNumberSafe(cols[stockIdx]),
-    };
+        const data: RowData[] = [];
+
+        for (const row of results.data as any[]) {
+          try {
+            const mappedRow: RowData = {
+              nomenclature: toStringSafe(row[typeToHeader["nomenclature"]]),
+              date: toStringSafe(row[typeToHeader["date"]]),
+              income: toNumberSafe(row[typeToHeader["income"]]),
+              expense: toNumberSafe(row[typeToHeader["expense"]]),
+              stock: toNumberSafe(row[typeToHeader["stock"]]),
+            };
+            data.push(mappedRow);
+          } catch (e) {
+            reject(new Error(`Ошибка обработки строки данных: ${e}`));
+            return;
+          }
+        }
+
+        if (data.length === 0) {
+          reject(new Error("Файл не содержит данных"));
+          return;
+        }
+
+        resolve(data);
+      },
+      error: (error) => {
+        reject(new Error(`Ошибка чтения CSV: ${error.message}`));
+      },
+    });
   });
-
-  return data;
 }
