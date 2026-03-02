@@ -1,5 +1,6 @@
-import Modal from './Modal';
-import './Modal.css'
+import { open } from '@tauri-apps/plugin-shell';
+import Modal from '../Modal';
+import '../Modal.css'
 import './NotificationModal.css'
 
 interface NotificationsModalProps {
@@ -46,14 +47,12 @@ export default function NotificationsModal({
               {updateNotification.releaseNotes}
             </p>
           )}
-          <a 
-            href={updateNotification.downloadUrl}
+          <button
             className="notifications-modal__update-link"
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={() => open(updateNotification.downloadUrl.trim())}
           >
             Скачать обновление
-          </a>
+          </button>
           {updateNotification.isMajorUpdate && (
             <p className="notifications-modal__update-warning">
               Загрузка файлов временно недоступна до обновления.

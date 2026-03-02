@@ -153,7 +153,6 @@
 .export-table-delete-btn {
   background: none;
   border: none;
-  color: #dc3545;
   cursor: pointer;
   padding: 2px;
   border-radius: 4px;
@@ -194,4 +193,63 @@
   .export-table td {
     padding: 6px;
   }
+}
+
+.export-save-wrapper {
+  overflow: visible;
+  position: relative;
+}
+
+.export-save-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.export-format-menu {
+  position: absolute;
+  bottom: 100%;
+  left: -20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--bg-primary);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  min-width: 100px;
+  max-width: 300px;
+  overflow: hidden;
+  padding: 10px;
+  pointer-events: auto;
+  white-space: normal;
+}
+
+.export-format-option {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 400; 
+  text-transform: uppercase;
+}
+
+.export-format-option--csv {
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+
+.export-format-option--xlsx {
+  background: #f3e5f5;
+  color: #4a148c;
+}
+
+.export-format-option:hover {
+  background: var(--upload-hover-bg);
+}
+
+/* Поддержка тёмной темы */
+[data-theme="dark"] .export-format-menu {
+  border-color: #444;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }

@@ -1,10 +1,103 @@
+import { useState } from 'react';
 import { writeFile } from '@tauri-apps/plugin-fs';
 import { save } from '@tauri-apps/plugin-dialog';
-
 import ExcelJS from 'exceljs';
 import type { ExportItem } from "../../App";
-
 import "./ExportView.css";
+
+async function exportToExcel(data: ExportItem[]): Promise<void> {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('Результаты моделирования');
+
+  sheet.columns = [
+    { header: 'Номенклатура', key: 'product', width: 25 },
+    { header: 'Поставка', key: 'initialStock', width: 12 },
+    { header: 'Порог', key: 'threshold', width: 12 },
+    { header: 'Дней доставки', key: 'deliveryDays', width: 15 },
+    { header: 'Цена, руб/ед', key: 'unitCost', width: 15 },
+    { header: 'Эффективность, %', key: 'efficiency', width: 18 },
+    { header: 'Средний остаток (модель)', key: 'avgStock', width: 25 },
+    { header: 'Средний остаток (факт)', key: 'actualAvgStock', width: 25 }
+  ];
+
+  const rows = data.map(item => ({
+    product: item.product,
+    initialStock: item.initialStock,
+    threshold: item.threshold,
+    deliveryDays: item.deliveryDays,
+    unitCost: item.unitCost,
+    efficiency: item.efficiency,
+    avgStock: Math.round(item.avgStock),
+    actualAvgStock: Math.round(item.actualAvgStock)
+  }));
+
+  sheet.addRows(rows);
+
+  sheet.getRow(1).eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F77B4' } };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+  });
+
+  sheet.getColumn('efficiency').numFmt = '0.0';
+  ['initialStock', 'threshold', 'deliveryDays', 'avgStock', 'actualAvgStock'].forEach(colKey => {
+    sheet.getColumn(colKey).numFmt = '#,##0';
+  });
+  sheet.getColumn('unitCost').numFmt = '#,##0.00';
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const filePath = await save({
+    filters: [{ name: 'Excel файл', extensions: ['xlsx'] }],
+    defaultPath: 'Результаты_моделирования.xlsx'
+  });
+
+  if (filePath) {
+    await writeFile(filePath, new Uint8Array(buffer));
+  }
+}
+
+function escapeCsvValue(value: string): string {
+  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
+async function exportToCSV(data: ExportItem[]): Promise<void> {
+  const headers = [
+    'Номенклатура',
+    'Поставка',
+    'Порог',
+    'Дней доставки',
+    'Цена, руб/ед',
+    'Эффективность, %',
+    'Средний остаток (модель)',
+    'Средний остаток (факт)'
+  ].map(escapeCsvValue);
+
+  const rows = data.map(item =>
+    [
+      escapeCsvValue(item.product),
+      item.initialStock,
+      item.threshold,
+      item.deliveryDays,
+      item.unitCost.toFixed(2),
+      item.efficiency.toFixed(1),
+      Math.round(item.avgStock),
+      Math.round(item.actualAvgStock)
+    ].join(',')
+  );
+
+  const csvContent = [headers.join(','), ...rows].join('\n');
+  const filePath = await save({
+    filters: [{ name: 'CSV файл', extensions: ['csv'] }],
+    defaultPath: 'Результаты_моделирования.csv'
+  });
+
+  if (filePath) {
+    await writeFile(filePath, new TextEncoder().encode(csvContent));
+  }
+}
 
 interface ExportViewProps {
   data: ExportItem[];
@@ -12,85 +105,21 @@ interface ExportViewProps {
   onRemoveItem?: (index: number) => void;
 }
 
-export default function ExportView({ 
-  data, 
-  onClear, 
-  onRemoveItem
-}: ExportViewProps) {
-  const handleExport = async () => {
+export default function ExportView({ data, onClear, onRemoveItem }: ExportViewProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleExport = async (format: 'xlsx' | 'csv') => {
+    if (data.length === 0) return;
+
     try {
-      const workbook = new ExcelJS.Workbook();
-      const sheet = workbook.addWorksheet('Результаты моделирования');
-
-      sheet.columns = [
-        { header: 'Номенклатура', key: 'product', width: 25 },
-        { header: 'Поставка', key: 'initialStock', width: 12 },
-        { header: 'Порог', key: 'threshold', width: 12 },
-        { header: 'Дней доставки', key: 'deliveryDays', width: 15 },
-        { header: 'Цена, руб/ед', key: 'unitCost', width: 15 },
-        { header: 'Эффективность, %', key: 'efficiency', width: 18 },
-        { header: 'Средний остаток (модель)', key: 'avgStock', width: 25 },
-        { header: 'Средний остаток (факт)', key: 'actualAvgStock', width: 25 }
-      ];
-
-      const rows = data.map(item => ({
-        product: item.product,
-        initialStock: item.initialStock,
-        threshold: item.threshold,
-        deliveryDays: item.deliveryDays,
-        unitCost: item.unitCost,
-        efficiency: item.efficiency,
-        avgStock: Math.round(item.avgStock),
-        actualAvgStock: Math.round(item.actualAvgStock)
-      }));
-
-      sheet.addRows(rows);
-
-      sheet.getRow(1).eachCell((cell) => {
-        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FF1F77B4' }
-        };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      });
-
-      const efficiencyColumn = sheet.getColumn('efficiency');
-      efficiencyColumn.numFmt = '0.0';
-
-      ['initialStock', 'threshold', 'deliveryDays', 'avgStock', 'actualAvgStock'].forEach(colKey => {
-        const column = sheet.getColumn(colKey);
-        column.numFmt = '#,##0';
-      });
-
-      const priceColumn = sheet.getColumn('unitCost');
-      priceColumn.numFmt = '#,##0.00';
-
-      sheet.columns.forEach(column => {
-        if (column.header) {
-          const maxLength = Math.max(
-            column.header.toString().length,
-            ...rows.map(row => row[column.key as keyof typeof rows[0]]?.toString().length || 0)
-          );
-          column.width = Math.min(maxLength + 2, 30);
-        }
-      });
-
-      const buffer = await workbook.xlsx.writeBuffer();
-
-      const filePath = await save({
-        filters: [{ name: 'Excel файл', extensions: ['xlsx'] }],
-        defaultPath: 'Результаты_моделирования.xlsx'
-      });
-
-      if (filePath) {
-        await writeFile(filePath, new Uint8Array(buffer));
-        console.log('Файл успешно сохранён:', filePath);
+      if (format === 'xlsx') {
+        await exportToExcel(data);
+      } else {
+        await exportToCSV(data);
       }
     } catch (error) {
-      console.error('Ошибка при экспорте Excel-файла:', error);
-      alert('Произошла ошибка при сохранении файла. Проверьте консоль для подробностей.');
+      console.error(`Ошибка при экспорте в ${format}:`, error);
+      alert(`Не удалось сохранить файл в формате ${format.toUpperCase()}`);
     }
   };
 
@@ -131,7 +160,7 @@ export default function ExportView({
                       <td>{item.threshold}</td>
                       <td>{item.deliveryDays}</td>
                       <td>{item.unitCost}</td>
-                      <td>{(item.efficiency).toFixed(1)}%</td>
+                      <td>{item.efficiency.toFixed(1)}%</td>
                       <td>{Math.round(item.avgStock)}</td>
                       <td>{Math.round(item.actualAvgStock)}</td>
                       <td>
@@ -156,9 +185,38 @@ export default function ExportView({
             <button onClick={onClear} className="export-clear-btn">
               Очистить всё
             </button>
-            <button onClick={handleExport} className="export-save-btn">
-              Сохранить таблицу
-            </button>
+            <div className="export-save-wrapper">
+              <div
+                className="export-save-dropdown"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+              >
+                {/* 👇 Добавьте onClick сюда */}
+                <button
+                  className="export-save-btn"
+                  onClick={() => handleExport('xlsx')}
+                >
+                  Сохранить
+                </button>
+
+                {isHovered && (
+                  <div className="export-format-menu">
+                    <button
+                      onClick={() => handleExport('xlsx')}
+                      className="export-format-option export-format-option--xlsx"
+                    >
+                      xlsx
+                    </button>
+                    <button
+                      onClick={() => handleExport('csv')}
+                      className="export-format-option export-format-option--csv"
+                    >
+                      csv
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </>
       )}

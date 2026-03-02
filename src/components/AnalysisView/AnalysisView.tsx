@@ -1,12 +1,12 @@
 import { useState } from "react";
 import "./AnalysisView.css";
 
-import ProductSelector from "./ProductSelector";
-import ModelParameters from "./ModelParameters";
-import MetricsSummary from "./MetricsSummary";
+import ProductSelector from "./ProductSelector/ProductSelector";
+import ModelParameters from "./ModelParameters/ModelParameters";
+import MetricsSummary from "./Metrics/MetricsSummary";
 import StockSimulationPlot from "./Plots/StockSimulationPlot";
 import ActualDataPlot from "./Plots/ActualDataPlot";
-import ErrorDisplay from "./ErrorDisplay";
+import ErrorDisplay from "./ErrorDisplay/ErrorDisplay";
 
 import { useAnalysis } from '../../context/AnalysisContext';
 
@@ -65,6 +65,20 @@ export default function AnalysisView({
     }
   };
 
+  const handleModelChange = (newData: {
+    initialStock: number;
+    threshold: number;
+    deliveryDays: number;
+    unitCost: number;
+  }) => {
+    updateParameter({
+      initialStock: newData.initialStock,
+      threshold: newData.threshold,
+      deliveryDays: newData.deliveryDays,
+      unitCost: newData.unitCost,
+    });
+  };
+
   if (uploadedFiles.flatMap(f => f.data).length === 0) {
     return <div>Нет доступных данных</div>;
   }
@@ -99,10 +113,7 @@ export default function AnalysisView({
             deliveryDays={state.deliveryDays}
             unitCost={state.unitCost}
             recommendedThreshold={state.result?.recommended_threshold}
-            onInitialStockChange={(value) => updateParameter({ initialStock: value })}
-            onThresholdChange={(value) => updateParameter({ threshold: value })}
-            onDeliveryDaysChange={(value) => updateParameter({ deliveryDays: value })}
-            onUnitCostChange={(value) => updateParameter({ unitCost: value })}
+            onChange={handleModelChange}
           />
         </div>
       </div>

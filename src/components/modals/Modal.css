@@ -22,7 +22,6 @@
   width: 320px;
   border-radius: 16px;
   padding: 24px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.3));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(0,0,0,0.15);
@@ -35,7 +34,6 @@
 [data-theme="dark"] .help-modal,
 [data-theme="dark"] .notifications-modal,
 [data-theme="dark"] .about-modal {
-  background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.08));
   border: 1px solid rgba(255,255,255,0.25);
   box-shadow: 
     0 8px 32px rgba(0,0,0,0.3),
@@ -59,7 +57,10 @@
   font-weight: 400;
 }
 
-.modal-header button {
+.modal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   background: none;
   cursor: pointer;
@@ -67,14 +68,15 @@
   font-size: 1.2rem;
   width: 24px;
   height: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   border-radius: 4px;
   padding: 0;
 }
 
-.modal-header button:hover {
+[data-theme="dark"] .modal-close-btn path {
+  stroke: var(--text-primary);
+}
+
+.modal-close-btn:hover {
   color: var(--text-primary);
   background: var(--upload-hover-bg);
 }

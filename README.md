@@ -1,7 +1,54 @@
-# Tauri + React + Typescript
+<br>
+<div align="center">
+    <a href="https://macmousefix.com/">
+        <img src="public/icon.svg" width="200" height="auto">
+    </a>
+    <h1>StockFlow</h1>  
+    <p>Система анализа и моделирования запасов</p>
+    <br>
+</div>
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+StockFlow помогает подбирать оптимальные параметры управления запасами:  
+объем поставки, порог срабатывания заказа и период доставки — на основе реальных данных о расходе и остатках.
 
-## Recommended IDE Setup
+### Текущая версия
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+**v0.1.2** (февраль 2026)
+
+- Полноценный анализ и моделирование складских запасов
+- Поддержка Windows, macOS (Apple Silicon & Intel)
+- Экспорт результатов в Excel
+- Автоматический расчет рекомендуемого порога
+
+### Возможности
+
+- Анализ исторических данных по остаткам, приходу и расходу
+- Автоматический расчет **рекомендуемого порога** на основе модели спроса
+- Визуализация: сравнение моделируемых и фактических данных
+- Поддержка загрузки данных из Excel (.xlsx, .xls), CSV (.csv)
+- Экспорт результатов в Excel с форматированием
+- Кроссплатформенное приложение (Windows, macOS, Linux)
+-️ Офлайн-работа — данные не покидают ваш компьютер
+
+### Экспорт
+
+Результаты можно сохранить в Excel-файл с колонками:
+
+- Номенклатура
+- Поставка
+- Порог
+- Дней доставки
+- Цена
+- Эффективность (%)
+- Средний остаток (модель / факт)
+
+### Поддерживаемые платформы
+
+- Windows (.msi)
+- macOS (.dmg, Apple Silicon & Intel)
+
+### Поддержка
+
+Нашли баг? Хотите предложить улучшение?  
+→ Откройте [Issue](https://github.com/yungsmau/StockFlow/issues  )  
+→ Или отправьте Pull Request!

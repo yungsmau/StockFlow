@@ -1,4 +1,16 @@
-export function validateHeaders(headers: string[]) {
+type ValidationSuccess = {
+  valid: true;
+  headerMap: Record<string, string>;
+};
+
+type ValidationError = {
+  valid: false;
+  error: string;
+};
+
+export function validateHeaders(
+  headers: string[],
+): ValidationSuccess | ValidationError {
   const headerMap: Record<string, string> = {
     номенклатура: "nomenclature",
     название: "nomenclature",

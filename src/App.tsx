@@ -4,9 +4,9 @@ import FileUploadSection from './components/FileUpload/FileUploadSection';
 import AnalysisView from './components/AnalysisView/AnalysisView';
 import ExportView from './components/ExportView/ExportView';
 import HeaderButtons from './components/HeaderButtons/HeaderButtons';
-import HelpModal from './components/modals/HelpModal';
-import NotificationsModal from './components/modals/NotificationsModal';
-import AboutModal from './components/modals/AboutModal';
+import HelpModal from './components/Modals/HelpModal/HelpModal';
+import NotificationsModal from './components/Modals/NotificationModal/NotificationsModal';
+import AboutModal from './components/Modals/AboutModal/AboutModal';
 
 import { useUpdateCheck } from './hooks/useUpdateCheck';
 import { AnalysisProvider, useAnalysis } from './context/AnalysisContext';

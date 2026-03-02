@@ -10,6 +10,10 @@ fn calculate_actual_metrics(
     product: &str,
     unit_cost: f64,
 ) -> (f64, f64) {
+    if !unit_cost.is_finite() || unit_cost < 0.0 {
+        return (0.0, 0.0);
+    }
+
     let mut total_stock = 0.0;
     let mut count = 0;
 
@@ -33,17 +37,11 @@ fn calculate_actual_metrics(
 }
 
 fn calculate_actual_deliveries(uploaded_files: &[UploadedFile], product: &str) -> i32 {
-    let mut deliveries = 0;
-
-    for file in uploaded_files {
-        for row in &file.data {
-            if row.nomenclature == product && row.income > 0.0 {
-                deliveries += 1;
-            }
-        }
-    }
-
-    deliveries
+    uploaded_files
+        .iter()
+        .flat_map(|f| &f.data)
+        .filter(|r| r.nomenclature == product && r.income > 0.0)
+        .count() as i32
 }
 
 fn calculate_recommended_threshold(
@@ -65,9 +63,7 @@ fn calculate_recommended_threshold(
                     Ok(date) => {
                         *date_to_expense.entry(date).or_insert(0.0) += r.expense;
                     }
-                    Err(_) => {
-                        continue;
-                    }
+                    Err(_) => continue,
                 }
             }
         }
@@ -96,12 +92,33 @@ fn calculate_recommended_threshold(
 }
 
 pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
-    // === ВАЛИДАЦИЯ ВХОДНЫХ ПАРАМЕТРОВ ===
-    const MAX_INITIAL_STOCK: i32 = 10_000_000;
-    const MAX_THRESHOLD: i32 = 10_000_000;
+    const MAX_INITIAL_STOCK: i32 = 5_000_000;
+    const MAX_THRESHOLD: i32 = 5_000_000;
     const MAX_DELIVERY_DAYS: i32 = 365;
     const MAX_UNIT_COST: f64 = 1_000_000.0;
     const MIN_UNIT_COST: f64 = 0.0;
+
+    if req.initial_stock <= 0 {
+        let err = DetailedError {
+            file: "Параметры модели".to_string(),
+            row: 0,
+            column: "Поставка".to_string(),
+            error_type: "Ошибка валидации".to_string(),
+            message: "Поставка должна быть больше 0".to_string(),
+        };
+        return Err(err.to_string());
+    }
+
+    if req.delivery_days <= 0 {
+        let err = DetailedError {
+            file: "Параметры модели".to_string(),
+            row: 0,
+            column: "Дней доставки".to_string(),
+            error_type: "Ошибка валидации".to_string(),
+            message: "Дни доставки должны быть больше 0".to_string(),
+        };
+        return Err(err.to_string());
+    }
 
     if req.initial_stock > MAX_INITIAL_STOCK {
         let err = DetailedError {
@@ -142,9 +159,8 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
         return Err(err.to_string());
     }
 
-    if req.unit_cost.unwrap_or(0.0) > MAX_UNIT_COST
-        || req.unit_cost.unwrap_or(MAX_UNIT_COST + 1.0) < MIN_UNIT_COST
-    {
+    let unit_cost = req.unit_cost.unwrap_or(0.0);
+    if !unit_cost.is_finite() || unit_cost < MIN_UNIT_COST || unit_cost > MAX_UNIT_COST {
         let err = DetailedError {
             file: "Параметры модели".to_string(),
             row: 0,
@@ -158,7 +174,6 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
         return Err(err.to_string());
     }
 
-    // === ОСТАЛЬНАЯ ЛОГИКА БЕЗ ИЗМЕНЕНИЙ ===
     let mut has_product = false;
     for file in &req.uploaded_files {
         if file.data.iter().any(|r| r.nomenclature == req.product) {
@@ -246,17 +261,16 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
     let avg_stock = if starting_stock.is_empty() {
         0.0
     } else {
-        starting_stock.iter().sum::<i32>() as f64 / starting_stock.len() as f64
+        let total_stock_i64: i64 = starting_stock.iter().map(|&x| x as i64).sum();
+        total_stock_i64 as f64 / starting_stock.len() as f64
     };
 
-    let unit_cost = req.unit_cost.unwrap_or(0.0);
     let total_price = avg_stock * unit_cost;
 
     let (actual_avg_stock, actual_total_price) =
         calculate_actual_metrics(&req.uploaded_files, &req.product, unit_cost);
 
     let actual_deliveries = calculate_actual_deliveries(&req.uploaded_files, &req.product);
-
     let deliveries_count = incoming.iter().filter(|&&x| x > 0).count() as i32;
 
     let efficiency = if actual_total_price > 0.0 {

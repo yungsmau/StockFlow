@@ -1,7 +1,7 @@
 {
   "name": "stockflow",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,13 +16,17 @@
     "@tauri-apps/plugin-dialog": "^2.6.0",
     "@tauri-apps/plugin-fs": "^2.4.5",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-shell": "^2.3.5",
     "exceljs": "^4.4.0",
+    "papaparse": "^5.5.3",
     "plotly.js": "^3.3.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-dropzone": "^15.0.0",
+    "react-number-format": "^5.4.4",
     "react-plotly.js": "^2.6.0",
-    "react-router-dom": "^7.13.0"
+    "react-router-dom": "^7.13.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
@@ -30,6 +34,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/exceljs": "^0.5.3",
     "@types/jest": "^30.0.0",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@types/react-plotly.js": "^2.6.4",
