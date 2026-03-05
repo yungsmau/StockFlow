@@ -3,6 +3,7 @@ import { useState } from 'react';
 import FileUploadSection from './components/FileUpload/FileUploadSection';
 import AnalysisView from './components/AnalysisView/AnalysisView';
 import ExportView from './components/ExportView/ExportView';
+import HistoryView from './components/HistoryView/HistoryView';
 import HeaderButtons from './components/HeaderButtons/HeaderButtons';
 import HelpModal from './components/modals/HelpModal/HelpModal';
 import NotificationsModal from './components/modals/NotificationModal/NotificationsModal';
@@ -25,7 +26,7 @@ export interface ExportItem {
   actualAvgStock: number;
 }
 
-type AppPage = 'upload' | 'analysis' | 'export';
+type AppPage = 'upload' | 'analysis' | 'export' | 'history';
 
 function AppContent() {
   const { update } = useUpdateCheck();
@@ -68,6 +69,7 @@ function AppContent() {
           >
             Загрузка 
           </button>
+
           <button 
             className={currentPage === 'analysis' ? 'active' : ''}
             onClick={() => canAccessAnalysis && setCurrentPage('analysis')}
@@ -76,6 +78,7 @@ function AppContent() {
           >
             Анализ 
           </button>
+
           <button 
             className={currentPage === 'export' ? 'active' : ''}
             onClick={() => canAccessExport && setCurrentPage('export')}
@@ -83,6 +86,13 @@ function AppContent() {
             title={!canAccessExport ? "Сначала добавьте данные в экспорт" : ""}
           >
             Экспорт
+          </button>
+
+          <button 
+            className={currentPage === 'history' ? 'active' : ''}
+            onClick={() => setCurrentPage('history')}
+          >
+            История
           </button>
         </nav>
         
@@ -120,12 +130,14 @@ function AppContent() {
             uploadedFiles={uploadedFiles}
             onAddToExport={handleAddToExport}
           />
-        ) : (
+        ) : currentPage === 'export' ? (
           <ExportView
             data={exportData}
             onClear={handleClearExport}
             onRemoveItem={handleRemoveFromExport}
           />
+        ) : (
+          <HistoryView />
         )}
       </main>
 
@@ -140,7 +152,6 @@ function AppContent() {
   );
 }
 
-// Основной App с провайдером
 export default function App() {
   return (
     <AnalysisProvider>

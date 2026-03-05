@@ -1,0 +1,254 @@
+.history-view {
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.history-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--text-primary);
+}
+
+.history-header p {
+  margin: 0;
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 200;
+}
+
+.history-empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+}
+
+.history-empty p {
+  margin: 0 0 16px 0;
+}
+
+.history-empty button {
+  margin-top: 16px;
+  padding: 8px 16px;
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.history-table-container {
+  overflow-x: auto;
+  margin-bottom: 24px;
+  flex: 1;
+  min-height: 0;
+}
+
+.history-table-wrapper {
+  height: 100%;
+  overflow-y: auto;
+  border-radius: 8px;
+  
+  scrollbar-width: thin;
+  scrollbar-color: var(--button-bg) var(--bg-secondary);
+}
+
+.history-table-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.history-table-wrapper::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+.history-table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--button-bg);
+  border-radius: 4px;
+}
+
+.history-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--upload-hover-bg);
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-secondary);
+}
+
+.history-table th,
+.history-table td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 12px;
+}
+
+.history-table th {
+  background: var(--bg-primary);
+  font-weight: 400;
+  color: var(--text-primary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.history-table td {
+  font-family: 'Rubik';
+  font-weight: 200;
+}
+
+.history-table th:not(:last-child),
+.history-table td:not(:last-child) {
+  border-right: 1px solid rgba(210, 208, 208, 0.544);
+}
+
+.history-table tr:last-child td {
+  border-bottom: none;
+}
+
+.history-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: auto;
+}
+
+.clear-history-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  background: #dc3545;
+  color: white;
+}
+
+.clear-history-btn:hover {
+  opacity: 0.9;
+}
+
+.clear-history-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Эффективность */
+.efficiency-positive {
+  color: #4caf50;
+}
+
+.efficiency-negative {
+  color: #f44336;
+}
+
+/* Модальное окно подтверждения */
+.history-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.history-confirm-modal {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.history-confirm-modal h3 {
+  margin: 0 0 16px 0;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.history-confirm-modal p {
+  margin: 0 0 24px 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-weight: 200;
+}
+
+.history-confirm-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.history-confirm-cancel,
+.history-confirm-confirm {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  font-weight: 500;
+}
+
+.history-confirm-cancel {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.history-confirm-cancel:hover:not(:disabled) {
+  background: var(--upload-hover-bg);
+}
+
+.history-confirm-confirm {
+  background: #dc3545;
+  color: white;
+}
+
+.history-confirm-confirm:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.history-confirm-cancel:disabled,
+.history-confirm-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Тёмная тема */
+[data-theme="dark"] .history-confirm-modal {
+  border-color: #444;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .history-table {
+    font-size: 12px;
+  }
+  
+  .history-table th,
+  .history-table td {
+    padding: 6px;
+  }
+  
+  .history-confirm-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .history-confirm-cancel,
+  .history-confirm-confirm {
+    width: 100%;
+  }
+}

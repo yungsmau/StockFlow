@@ -1,4 +1,5 @@
 import "./MetricsSummary.css";
+import { formatNumber, formatCurrency, formatPercentage } from "../../../utils/formatNumber";
 
 interface ComputeResponse {
   avg_stock: number;
@@ -18,19 +19,6 @@ interface MetricsSummaryProps {
   data: ComputeResponse | null;
   isLoading?: boolean;
 }
-
-const formatNumber = (num: number): string => {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-};
-
-const formatCurrency = (num: number): string => {
-  return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-};
-
-const formatPercentage = (num: number): string => {
-  if (isNaN(num) || !isFinite(num)) return "0%";
-  return `${num.toFixed(1)}%`;
-};
 
 const getEfficiencyColor = (value: number): 'positive' | 'negative' | 'neutral' => {
   if (value < 0) return 'negative';

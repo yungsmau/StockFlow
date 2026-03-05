@@ -107,10 +107,6 @@
   border-bottom: none;
 }
 
-.export-table tr:hover {
-  background: #3d3d3d31;
-}
-
 .export-table th:last-child {
   width: 50px;
 }

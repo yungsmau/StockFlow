@@ -8,7 +8,10 @@ import StockSimulationPlot from "./Plots/StockSimulationPlot";
 import ActualDataPlot from "./Plots/ActualDataPlot";
 import ErrorDisplay from "./ErrorDisplay/ErrorDisplay";
 
+import { saveHistoryItem } from '../../utils/historyService';
+
 import { useAnalysis } from '../../context/AnalysisContext';
+
 
 interface ExportItem {
   product: string;
@@ -54,7 +57,7 @@ export default function AnalysisView({
   const [chartMode, setChartMode] = useState<'comparison' | 'actual' | 'simulation'>('comparison');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const handleAddToExport = () => {
+  const handleAddToExport = async () => {
     if (state.result && state.selectedProduct) {
       const exportItem: ExportItem = {
         product: state.selectedProduct,
@@ -66,6 +69,24 @@ export default function AnalysisView({
         avgStock: state.result.avg_stock,
         actualAvgStock: state.result.actual_avg_stock,
       };
+
+      // Сохраняем в историю через сервис
+      try {
+        await saveHistoryItem(
+          exportItem.product,
+          exportItem.initialStock,
+          exportItem.threshold,
+          exportItem.deliveryDays,
+          exportItem.unitCost,
+          exportItem.efficiency,
+          exportItem.avgStock,
+          exportItem.actualAvgStock
+        );
+      } catch (error) {
+        console.error('Failed to save to history:', error);
+      }
+
+      // Добавляем в экспорт
       onAddToExport(exportItem);
     }
   };

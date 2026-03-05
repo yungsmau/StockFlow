@@ -4,6 +4,7 @@ import { save } from '@tauri-apps/plugin-dialog';
 import ExcelJS from 'exceljs';
 import type { ExportItem } from "../../App";
 import "./ExportView.css";
+import { formatNumber, formatCurrency } from '../../utils/formatNumber';
 
 async function exportToExcel(data: ExportItem[]): Promise<void> {
   const workbook = new ExcelJS.Workbook();
@@ -123,6 +124,13 @@ export default function ExportView({ data, onClear, onRemoveItem }: ExportViewPr
     }
   };
 
+  // Определяем класс для цветовой индикации эффективности
+  const getEfficiencyClass = (value: number): string => {
+    if (value > 0) return 'efficiency-positive';
+    if (value < 0) return 'efficiency-negative';
+    return 'efficiency-neutral';
+  };
+
   return (
     <div className="export-view">
       <div className="export-header">
@@ -156,13 +164,17 @@ export default function ExportView({ data, onClear, onRemoveItem }: ExportViewPr
                   {data.map((item, index) => (
                     <tr key={index}>
                       <td>{item.product}</td>
-                      <td>{item.initialStock}</td>
-                      <td>{item.threshold}</td>
-                      <td>{item.deliveryDays}</td>
-                      <td>{item.unitCost}</td>
-                      <td>{item.efficiency.toFixed(1)}%</td>
-                      <td>{Math.round(item.avgStock)}</td>
-                      <td>{Math.round(item.actualAvgStock)}</td>
+                      <td>{formatNumber(item.initialStock)}</td>
+                      <td>{formatNumber(item.threshold)}</td>
+                      <td>{formatNumber(item.deliveryDays)}</td>
+                      <td>{formatCurrency(item.unitCost)}</td>
+                      <td>
+                        <span className={getEfficiencyClass(item.efficiency)}>
+                          {item.efficiency.toFixed(1)}%
+                        </span>
+                      </td>
+                      <td>{formatNumber(Math.round(item.avgStock))}</td>
+                      <td>{formatNumber(Math.round(item.actualAvgStock))}</td>
                       <td>
                         <button 
                           className="export-table-delete-btn"
@@ -191,7 +203,6 @@ export default function ExportView({ data, onClear, onRemoveItem }: ExportViewPr
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
               >
-                {/* 👇 Добавьте onClick сюда */}
                 <button
                   className="export-save-btn"
                   onClick={() => handleExport('xlsx')}
