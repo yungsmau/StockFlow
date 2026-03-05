@@ -12,12 +12,14 @@ interface ActualDataPoint {
 interface ActualDataPlotProps {
   data: ActualDataPoint[];
   product: string;
+  threshold: number;
   heightPercent?: number;
 }
 
 const ActualDataPlot = ({ 
   data, 
   product,
+  threshold,
   heightPercent = 30
 }: ActualDataPlotProps) => {
   const { theme, colors } = useTheme();
@@ -44,7 +46,7 @@ const ActualDataPlot = ({
   const tooltipBg = theme === 'dark' ? '#2d2d2d' : '#ffffff';
   const tooltipBorder = theme === 'dark' ? '#444' : '#ddd';
 
-  const plotKey = `${theme}-${product}-${data.length}-${data[0]?.date}-${data[data.length - 1]?.date}`;
+  const plotKey = `${theme}-${product}-${threshold}-${data.length}-${data[0]?.date}-${data[data.length - 1]?.date}`;
 
   return (
     <div className="plot-container" style={{ height: `${heightPercent}vh` }}>
@@ -91,6 +93,22 @@ const ActualDataPlot = ({
             marker: { color: "green" },
             textposition: "outside",
             hovertemplate: `Приход: %{y}`,
+            hoverlabel: { 
+              bgcolor: tooltipBg, 
+              bordercolor: tooltipBorder, 
+              font: { color: textColor, size: 12 },
+              namelength: 0
+            }
+          },
+          // === Линия порога ===
+          {
+            x: dates,
+            y: dates.map(() => threshold),
+            type: "scatter",
+            mode: "lines",
+            name: "Порог",
+            line: { color: "red", dash: "dash", width: 2 },
+            hovertemplate: `Порог: %{y}`,
             hoverlabel: { 
               bgcolor: tooltipBg, 
               bordercolor: tooltipBorder, 

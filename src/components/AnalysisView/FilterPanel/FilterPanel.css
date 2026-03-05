@@ -1,0 +1,95 @@
+.product-selector-container {
+  margin-bottom: 10px;
+}
+
+.model-parameters-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-overlay {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-top: 80px;
+}
+
+.filter-panel {
+  position: fixed;
+  top: 70px;
+  left: 24px;
+  width: 300px;
+  height: calc(110vh - 300px);
+  
+  /* Liquid Glass эффект */
+  background: rgba(255, 255, 255, 0.45); /* полупрозрачный белый */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(12px);
+  
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 16px;
+  box-sizing: border-box;
+  z-index: 101;
+}
+
+/* Поддержка тёмной темы */
+[data-theme="dark"] .filter-panel {
+  background: rgba(30, 30, 30, 0.65); /* более тёмный фон для контраста */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.filter-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--text-primary);
+}
+
+.filter-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  padding: 0;
+}
+
+[data-theme="dark"] .filter-close-btn path {
+  stroke: var(--text-primary);
+}
+
+.filter-close-btn:hover {
+  color: var(--text-primary);
+  background: var(--upload-hover-bg);
+}
+

@@ -118,9 +118,7 @@ function AppContent() {
         ) : currentPage === 'analysis' ? (
           <AnalysisView
             uploadedFiles={uploadedFiles}
-            exportData={exportData}
             onAddToExport={handleAddToExport}
-            onViewExport={() => setCurrentPage('export')}
           />
         ) : (
           <ExportView

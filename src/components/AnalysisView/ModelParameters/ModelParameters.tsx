@@ -1,11 +1,12 @@
 import ParameterField from "./ParameterField";
-import RecommendationCard from "./RecommendationCard";
+import RecommendationField from "./RecommendationField";
 import { useModelForm } from "../../../hooks/useModelForm";
 import { ModelData } from "../../../model/modelSchema";
 import './ModelParameters.css';
 
 interface Props extends ModelData {
   recommendedThreshold?: number;
+  avgExpense?: number;
   onChange: (data: ModelData) => void;
 }
 
@@ -15,6 +16,7 @@ export default function ModelParameters({
   deliveryDays,
   unitCost,
   recommendedThreshold,
+  avgExpense,
   onChange,
 }: Props) {
   const { values, errors, updateField, commit } = useModelForm({
@@ -24,6 +26,13 @@ export default function ModelParameters({
     unitCost,
   });
 
+  const recommendedMax = recommendedThreshold !== undefined 
+    ? Math.max(100, Math.ceil(recommendedThreshold * 1.1)) 
+    : 5_000_000;
+
+  const maxInitialStock = recommendedMax;
+  const maxThreshold = recommendedMax;
+
   return (
     <>
       <ParameterField
@@ -32,7 +41,7 @@ export default function ModelParameters({
         error={errors.initialStock}
         type="integer"
         min={1}
-        max={5_000_000}
+        max={maxInitialStock}
         onInput={(v) => updateField("initialStock", v)}
         onConfirm={() => commit(onChange)}
       />
@@ -43,7 +52,7 @@ export default function ModelParameters({
         error={errors.threshold}
         type="integer"
         min={1}
-        max={5_000_000}
+        max={maxThreshold}
         onInput={(v) => updateField("threshold", v)}
         onConfirm={() => commit(onChange)}
       />
@@ -67,7 +76,19 @@ export default function ModelParameters({
       />
 
       {recommendedThreshold !== undefined && (
-        <RecommendationCard recommendedThreshold={recommendedThreshold} />
+        <RecommendationField
+          label="Рекомендуемый порог"
+          value={recommendedThreshold}
+          type="integer"
+        />
+      )}
+
+      {avgExpense !== undefined && (
+        <RecommendationField
+          label="Средний расход"
+          value={avgExpense}
+          type="integer" 
+        />
       )}
     </>
   );

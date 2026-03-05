@@ -1,88 +1,59 @@
-.params-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
-}
+/* === Параметры и рекомендации === */
 
-.product-search-card {
-  grid-column: span 2;
+.param-card-parameters,
+.param-recommendation {
+  padding: 5px;
 }
 
 .param-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 10px;
-  transition: all 0.2s ease;
-  position: relative;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--upload-hover-bg);
 }
 
-.param-card:hover {
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-}
-
-[data-theme="dark"] .param-card:hover {
-  box-shadow: 0 3px 8px rgba(170, 169, 169, 0.3);
-}
-
-.hint-icon {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background-color: #dfdddd;
-  color: var(--bg-primary);
-  font-size: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 2;
-}
-
-[data-theme="dark"] .hint-icon {
-  background-color: #666565;
-}
-
-.hint-icon:hover {
-  background: var(--button-bg);
+/* Тёмная тема: граница */
+[data-theme="dark"] .param-card {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
 .param-content {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
+  flex-direction: column;
 }
 
 .param-label {
-  font-size: 12px;
-  font-weight: 400;
+  font-size: 14px;
+  font-weight: 300;
+  margin-bottom: 5px;
   color: var(--text-primary);
-  white-space: nowrap;
-  min-width: 80px;
-  text-align: center;
+}
+
+/* Тёмная тема: метка */
+[data-theme="dark"] .param-label {
+  color: var(--text-primary);
 }
 
 .param-input,
 .recommendation-value-display {
-  flex: 1;
-  padding: 8px 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: 'Rubik';
+  font-family: 'Rubik', sans-serif;
   font-size: 14px;
   font-weight: 200;
-  transition: all 0.2s ease;
-  min-width: 0;
+  padding: 5px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
   text-align: center;
+}
+
+/* Тёмная тема: инпут и значение */
+[data-theme="dark"] .param-input,
+[data-theme="dark"] .recommendation-value-display {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.param-input {
+  max-width: 100px;
 }
 
 .param-input:focus {
@@ -95,41 +66,12 @@
   box-shadow: 0 0 0 2px rgba(15, 145, 210, 0.4);
 }
 
-.param-input:hover:not(:focus) {
-  border-color: var(--text-secondary);
-}
-
-.param-hint-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 4px;
+.param-input::placeholder {
   color: var(--text-secondary);
-  font-size: 12px;
-  line-height: 1.4;
-  white-space: pre-wrap;
-  cursor: pointer;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
 }
 
-.param-hint-overlay:hover {
-  background: var(--upload-hover-bg);
-  color: var(--text-primary);
-}
-
-.param-recommendation {
-  background: var(--upload-hover-bg);
-  border: 1px solid var(--border-color);
-  position: relative;
+[data-theme="dark"] .param-input::placeholder {
+  color: var(--text-secondary);
 }
 
 .param-card-error {
@@ -157,4 +99,40 @@
     font-size: 10px;
     padding: 1px 3px;
   }
+}
+
+/* Стили для rc-slider */
+.param-slider .rc-slider {
+  width: 100%;
+  height: 2px;
+  margin-top: 8px;
+  padding: 0 4px;
+}
+
+.param-slider .rc-slider-track {
+  background-color: var(--button-hover-bg);
+  height: 4px;
+}
+
+.rc-slider-rail {
+  background: var(--upload-hover-bg);
+}
+
+.param-slider .rc-slider-handle {
+  border-color: var(--button-bg);
+  background-color: white;
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
+  cursor: grab;
+}
+
+.param-slider .rc-slider-handle:active {
+  cursor: grabbing;
+}
+
+/* Тёмная тема (если нужно) */
+[data-theme="dark"] .param-slider .rc-slider-handle {
+  background-color: #2a2a2a;
+  border-color: var(--button-bg);
 }

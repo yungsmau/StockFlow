@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { NumericFormat } from 'react-number-format';
+import Slider from 'rc-slider';
+import 'rc-slider/assets/index.css';
+
+import "./ModelParameters.css";
 
 interface Props {
   label: string;
@@ -23,9 +27,14 @@ export default function ParameterField({
   max = Infinity,
 }: Props) {
   const [inputValue, setInputValue] = useState(String(value));
+  const [sliderValue, setSliderValue] = useState(value);
+
+  const sliderMin = isFinite(min) ? min : 0;
+  const sliderMax = isFinite(max) ? max : 100;
 
   useEffect(() => {
     setInputValue(String(value));
+    setSliderValue(value);
   }, [value]);
 
   const handleValueChange = (values: { value: string }) => {
@@ -45,10 +54,32 @@ export default function ParameterField({
     }
   };
 
+  const handleSliderChange = (newValue: number | number[]) => {
+    const numValue = Array.isArray(newValue) ? newValue[0] : newValue;
+    const formatted = type === 'integer' 
+      ? Math.round(numValue) 
+      : parseFloat(numValue.toFixed(2));
+    
+    setSliderValue(formatted);
+    setInputValue(String(formatted));
+    onInput(String(formatted));
+  };
+
+  const handleSliderAfterChange = (newValue: number | number[]) => {
+    const numValue = Array.isArray(newValue) ? newValue[0] : newValue;
+    const formatted = type === 'integer' 
+      ? Math.round(numValue) 
+      : parseFloat(numValue.toFixed(2));
+    
+    onConfirm(String(formatted));
+  };
+
   return (
-    <div className={`param-card ${error ? "param-card-error" : ""}`}>
+    <div className={`param-card param-card-parameters ${error ? "param-card-error" : ""}`}>
       <div className="param-content">
         <span className="param-label">{label}</span>
+        
+        {/* Числовой инпут */}
         <NumericFormat
           className="param-input"
           value={inputValue}
@@ -65,6 +96,20 @@ export default function ParameterField({
             return floatValue === undefined || (floatValue >= min && floatValue <= max);
           }}
         />
+
+        {/* Ползунок */}
+        {isFinite(min) && isFinite(max) && (
+          <div className="param-slider">
+            <Slider
+              min={sliderMin}
+              max={sliderMax}
+              value={sliderValue}
+              onChange={handleSliderChange}
+              onChangeComplete={handleSliderAfterChange}
+              step={type === 'integer' ? 1 : 0.01}
+            />
+          </div>
+        )}
       </div>
       {error && <div className="param-error-message">{error}</div>}
     </div>

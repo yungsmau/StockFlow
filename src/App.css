@@ -217,7 +217,7 @@ body {
   border-color: transparent;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1000px) {
   .main-navigation {
     margin: 0 12px;
     padding: 2px;

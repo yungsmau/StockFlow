@@ -30,7 +30,10 @@ interface ComputeResponse {
   actual_deliveries: number;
   efficiency: number;
   efficiency_abs: number;
+  avg_expense: number;
   recommended_threshold: number;
+  avg_delivery_interval_actual: number;
+  avg_delivery_interval_model: number;
 }
 
 interface ActualDataPoint {

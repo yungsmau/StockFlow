@@ -16,5 +16,8 @@ pub struct ComputeResponse {
     pub actual_deliveries: i32,
     pub efficiency: f64,
     pub efficiency_abs: f64,
+    pub avg_expense: f64,
     pub recommended_threshold: i32,
+    pub avg_delivery_interval_actual: f64,
+    pub avg_delivery_interval_model: f64,
 }
