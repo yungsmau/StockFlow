@@ -13,6 +13,10 @@
     "dialog:default",
     "fs:write-files",
     "fs:allow-write-file",
-    "fs:read-files"
+    "fs:read-files",
+    "sql:default",
+    "sql:default",
+    "sql:allow-execute",
+    "sql:allow-select"
   ]
 }

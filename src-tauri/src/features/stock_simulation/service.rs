@@ -1,7 +1,6 @@
-use crate::errors::detailed_error::DetailedError;
-use crate::models::request::{ComputeRequest, UploadedFile};
-use crate::models::response::ComputeResponse;
-use crate::services::date_parser;
+use crate::features::stock_simulation::date_parser;
+use crate::features::stock_simulation::models::{ComputeRequest, ComputeResponse, UploadedFile};
+use crate::shared::errors::detailed_error::DetailedError;
 use chrono::{Duration, NaiveDate};
 use std::collections::BTreeMap;
 

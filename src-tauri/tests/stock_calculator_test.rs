@@ -1,5 +1,7 @@
-use crate::models::request::{ComputeRequest, RowData, UploadedFile};
-use crate::services::stock_calculator::calculate_stock;
+use stock_simulator_lib::features::stock_simulation::{
+    models::{ComputeRequest, RowData, UploadedFile},
+    service::calculate_stock,
+};
 
 fn create_test_file(data: Vec<RowData>) -> UploadedFile {
     UploadedFile {
