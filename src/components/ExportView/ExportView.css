@@ -108,7 +108,8 @@
 }
 
 .export-table tr:hover {
-  background: #3d3d3d31;
+  background: var(--upload-hover-bg);
+  cursor: pointer;
 }
 
 .export-table th:last-child {

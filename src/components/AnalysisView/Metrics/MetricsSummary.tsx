@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
 import "./MetricsSummary.css";
+import { formatNumber, formatCurrency, formatPercentage } from "../../../utils/formatNumber";
 
 interface ComputeResponse {
   avg_stock: number;
@@ -11,25 +11,14 @@ interface ComputeResponse {
   actual_deliveries: number;
   efficiency: number;
   efficiency_abs: number;
+  avg_delivery_interval_actual: number;
+  avg_delivery_interval_model: number;
 }
 
 interface MetricsSummaryProps {
   data: ComputeResponse | null;
   isLoading?: boolean;
 }
-
-const formatNumber = (num: number): string => {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-};
-
-const formatCurrency = (num: number): string => {
-  return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-};
-
-const formatPercentage = (num: number): string => {
-  if (isNaN(num) || !isFinite(num)) return "0%";
-  return `${num.toFixed(1)}%`;
-};
 
 const getEfficiencyColor = (value: number): 'positive' | 'negative' | 'neutral' => {
   if (value < 0) return 'negative';
@@ -51,7 +40,7 @@ const createMetricsData = (data: ComputeResponse): Record<string, MetricItem[]> 
     actual: [
       { 
         value: formatNumber(parseFloat(data.actual_avg_stock.toFixed(0))), 
-        label: "Средний остаток, ед.", 
+        label: "Ср днейвной остаток, ед.", 
         type: "actual" 
       },
       { 
@@ -63,12 +52,17 @@ const createMetricsData = (data: ComputeResponse): Record<string, MetricItem[]> 
         value: formatNumber(data.actual_deliveries), 
         label: "Поставок", 
         type: "actual" 
-      }
+      },
+      { 
+        value: formatNumber(parseFloat(data.avg_delivery_interval_actual.toFixed(0))), 
+        label: "Интервал поставок, дни", 
+        type: "actual" 
+      },
     ],
     simulation: [
       { 
         value: formatNumber(parseFloat(data.avg_stock.toFixed(0))), 
-        label: "Средний остаток, ед.", 
+        label: "Ср. дневной остаток, ед.", 
         type: "simulation" 
       },
       { 
@@ -80,12 +74,17 @@ const createMetricsData = (data: ComputeResponse): Record<string, MetricItem[]> 
         value: formatNumber(data.deliveries), 
         label: "Поставок", 
         type: "simulation" 
-      }
+      },
+      {
+        value: formatNumber(parseFloat(data.avg_delivery_interval_model.toFixed(0))), 
+        label: "Интервал поставок, дни", 
+        type: "simulation" 
+      },
     ],
     efficiency: [
       { 
         value: formatPercentage(data.efficiency), 
-        label: "Эффективность модели",
+        label: "Эффективность, %",
         type: "efficiency",
         color: getEfficiencyColor(data.efficiency)
       },
@@ -99,24 +98,6 @@ const createMetricsData = (data: ComputeResponse): Record<string, MetricItem[]> 
   };
 };
 
-const getLargeScreenOrder = (metrics: Record<string, MetricItem[]>): MetricItem[] => {
-  return [
-    ...metrics.actual,
-    metrics.efficiency[0],
-    metrics.efficiency[1],
-    ...metrics.simulation
-  ];
-};
-
-const getAdaptiveOrder = (metrics: Record<string, MetricItem[]>): MetricItem[] => {
-  return [
-    ...metrics.actual,
-    metrics.efficiency[0],
-    ...metrics.simulation,
-    metrics.efficiency[1]
-  ];
-};
-
 const SkeletonMetricCard = () => (
   <div className="metric-card metric-skeleton">
     <div className="metric-value skeleton-line"></div>
@@ -125,42 +106,11 @@ const SkeletonMetricCard = () => (
 );
 
 export default function MetricsSummary({ data, isLoading = false }: MetricsSummaryProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [columns, setColumns] = useState(8);
-  const [useAdaptiveOrder, setUseAdaptiveOrder] = useState(false);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const updateLayout = () => {
-      const container = containerRef.current!;
-      const containerWidth = container.clientWidth;
-      
-      const shouldUseAdaptive = containerWidth < 1200;
-      setUseAdaptiveOrder(shouldUseAdaptive);
-      
-      let cols;
-      if (containerWidth >= 1200) {
-        cols = 8;
-      } else if (containerWidth >= 768) {
-        cols = 4;
-      } else if (containerWidth >= 480) {
-        cols = 4;
-      } else {
-        cols = 2;
-      }
-      
-      setColumns(cols);
-    };
-
-    updateLayout();
-    window.addEventListener('resize', updateLayout);
-    return () => window.removeEventListener('resize', updateLayout);
-  }, []);
+  const FIXED_COLUMNS = 5;
 
   if (isLoading || !data) {
     return (
-      <div ref={containerRef} className="metrics-grid" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+      <div className="metrics-grid" style={{ gridTemplateColumns: `repeat(${FIXED_COLUMNS}, 1fr)` }}>
         {Array.from({ length: 8 }).map((_, index) => (
           <SkeletonMetricCard key={index} />
         ))}
@@ -170,12 +120,15 @@ export default function MetricsSummary({ data, isLoading = false }: MetricsSumma
 
   const metricsData = createMetricsData(data);
   
-  const metricsToDisplay = useAdaptiveOrder 
-    ? getAdaptiveOrder(metricsData) 
-    : getLargeScreenOrder(metricsData);
+  const metricsToDisplay = [
+    ...metricsData.actual,
+    metricsData.efficiency[0],
+    ...metricsData.simulation,
+    metricsData.efficiency[1],
+  ];
 
   return (
-    <div ref={containerRef} className="metrics-grid" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+    <div className="metrics-grid" style={{ gridTemplateColumns: `repeat(${FIXED_COLUMNS}, 1fr)` }}>
       {metricsToDisplay.map((metric, index) => {
         let className = "metric-card ";
         

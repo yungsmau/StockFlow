@@ -10,7 +10,7 @@
 
 .modal-container {
   position: fixed;
-  top: 75px;
+  top: 70px;
   right: 24px;
   z-index: 1001;
   pointer-events: auto;
@@ -20,7 +20,7 @@
 .notifications-modal,
 .about-modal {
   width: 320px;
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 24px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);

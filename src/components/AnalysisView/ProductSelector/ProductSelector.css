@@ -1,106 +1,116 @@
-.product-dropdown {
-  width: 100%;
-  position: relative;
-}
-
-.dropdown-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 8px 10px;
+/* === ProductSelector — базовые стили === */
+.product-select__control {
+  background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: var(--bg-primary);
+  border-radius: 8px;
+  min-height: 0 !important;
   cursor: pointer;
-  font-size: 12px;
-  color: var(--text-primary);
-  transition: all 0.2s ease;
 }
 
-.dropdown-toggle:focus,
-.dropdown-toggle:focus-visible {
-  outline: none;
+.product-select__control:hover {
+  border-color: var(--upload-hover-bg);
+}
+
+.product-select__control--is-focused {
   border-color: var(--button-bg);
   box-shadow: 0 0 0 2px rgba(15, 145, 210, 0.2);
 }
 
-.dropdown-toggle:hover {
-  border-color: var(--text-secondary);
+/* Тёмная тема: фокус */
+[data-theme="dark"] .product-select__control--is-focused {
+  box-shadow: 0 0 0 2px rgba(15, 145, 210, 0.4);
 }
 
-.dropdown-arrow {
+/* Контейнер значения */
+.product-select__value-container {
   font-size: 12px;
-  color: var(--text-secondary);
-  user-select: none;
-  margin-left: 8px;
-}
-
-.dropdown-toggle:hover .dropdown-arrow {
+  font-weight: 300;
   color: var(--text-primary);
 }
 
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: var(--bg-primary);
+/* Выпадающее меню */
+.product-select__menu {
+  background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-top: none;
-  border-radius: 0 0 6px 6px;
-  z-index: 1000;
-  margin-top: 2px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  z-index: 10;
+  font-size: 12px;
+  font-weight: 300;
 }
 
-.dropdown-search {
-  width: 100%;
-  padding: 8px 12px;
-  border: none;
-  border-bottom: 1px solid var(--border-color);
-  outline: none;
-  font-size: 14px;
-  background: var(--bg-primary);
+/* Опции */
+.product-select__option {
+  background-color: var(--bg-primary);
   color: var(--text-primary);
-}
-
-.dropdown-search::placeholder {
-  color: var(--text-secondary);
-}
-
-.dropdown-list {
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.dropdown-item {
   padding: 8px 12px;
   cursor: pointer;
-  font-size: 14px;
-  transition: background 0.15s;
+}
+
+.product-select__option--is-focused {
+  background-color: var(--upload-hover-bg);
+}
+
+.product-select__option--is-selected {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+}
+
+/* Выбранное значение */
+.product-select__single-value {
   color: var(--text-primary);
 }
 
-.dropdown-item:hover {
-  background: var(--upload-hover-bg);
+/* Инпут (при поиске) */
+.product-select__input {
+  color: var(--text-primary);
 }
 
-.dropdown-item.selected {
-  background: var(--button-hover-bg);
-  font-weight: 600;
-  color: var(--button-bg);
-}
-
-.dropdown-item.disabled {
+/* Плейсхолдер */
+.product-select__placeholder {
   color: var(--text-secondary);
-  cursor: default;
-  text-align: center;
-  font-size: 12px;
-  padding: 12px;
 }
 
-.dropdown-item.highlighted {
-  background: var(--button-hover-bg);
-  color: var(--button-bg);
+/* Иконка стрелки */
+.product-select__dropdown-indicator {
+  color: var(--text-secondary);
+}
+
+.product-select__dropdown-indicator:hover {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .product-select__control {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .product-select__menu {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .product-select__option--is-focused {
+  background-color: var(--upload-hover-bg);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .product-select__option--is-selected {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .product-select__single-value,
+[data-theme="dark"] .product-select__input {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .product-select__placeholder {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .product-select__dropdown-indicator {
+  color: var(--text-secondary);
+}
+
+.product-select__input-container {
+  color: var(--text-primary) !important;
 }

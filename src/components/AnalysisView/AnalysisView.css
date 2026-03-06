@@ -1,104 +1,51 @@
+/* Основной контейнер */
 .analysis-view {
-  padding: 24px;
-  height: calc(100vh - 120px);
-}
-
-.analysis-controls {
+  padding: 12px 24px;
+  height: calc(100vh - 150px);
   display: flex;
-  flex-direction: row;
-  gap: 16px;
-  margin-bottom: 20px;
-  width: 100%;
+  flex-direction: column;
+  gap: 24px;
+  position: relative; /* для абсолютного позиционирования кнопок */
 }
 
-.product-selector-container {
-  flex: 2;
-  min-width: 280px;
-  max-width: 400px;
-}
-
-.model-parameters-container {
-  flex: 4;
+.analysis-top-section {
   display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  min-width: 500px;
+  gap: 20px;
 }
 
-.model-parameters-container > * {
-  flex: 1;
-  min-width: 160px;
+.analysis-filter {
+  flex: 5%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-@media (max-width: 1680px) {
-  .analysis-controls {
-    flex-direction: column;
-  }
-  
-  .product-selector-container,
-  .model-parameters-container {
-    width: 100%;
-    min-width: auto;
-    max-width: none;
-  }
+.analysis-metrics-section {
+  flex: 95%;
 }
 
-@media (max-width: 1280px) {
-  .param-content {
-    flex-direction: column;
-  }
-
-  .param-input {
-    max-width: 100%;
-  }
-}
-
-@media (max-width: 1000px) {
-  .param-content {
-    flex-direction: row;
-  }  
-
-  .model-parameters-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  
-  .model-parameters-container > :nth-child(1),
-  .model-parameters-container > :nth-child(2) {
-    grid-row: 1;
-  }
-  
-  .model-parameters-container > :nth-child(3),
-  .model-parameters-container > :nth-child(4) {
-    grid-row: 2;
-  }
-  
-  .model-parameters-container > :nth-child(5) {
-    grid-column: 1 / -1;
-    grid-row: 3;
-  }
-}
-
+/* === Нижняя часть: кнопки и графики === */
 .analysis-buttons {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 16px;
 }
 
 .export-section button {
-  padding: 5px 24px;
+  display: flex;
+  justify-content: center;
+  padding: 6px 12px;
+  min-width: 150px;
   border: 1px solid var(--border-color);
   background: transparent;
   color: var(--text-primary);
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 400;
+  font-size: 12px;
+  font-weight: 300;
   transition: all 0.2s ease;
   white-space: nowrap;
   position: relative;
   margin: 0;
-  border-radius: 7px;
+  border-radius: 6px;
 }
 
 .export-section button:hover {
@@ -111,93 +58,7 @@
   background-color: #7beb524a; 
 }
 
-.chart-toggle {
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  padding: 4px 6px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.2));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0,0,0,0.15);
-  box-shadow: 
-    0 2px 12px rgba(0,0,0,0.08),
-    0 1px 3px rgba(0,0,0,0.05),
-    inset 0 1px 0 rgba(255,255,255,0.5);
-}
-
-[data-theme="dark"] .chart-toggle {
-  background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 
-    0 2px 12px rgba(0,0,0,0.2),
-    0 1px 3px rgba(0,0,0,0.15),
-    inset 0 1px 0 rgba(255,255,255,0.15);
-}
-
-.chart-toggle button {
-  padding: 5px 24px;
-  border: 1px solid var(--border-color);
-  background: transparent;
-  color: var(--text-primary);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 400;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  position: relative;
-  margin: 0;
-  border-radius: 7px;
-}
-
-.chart-toggle button.active {
-  background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.3));
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(0,0,0,0.2);
-  box-shadow: 
-    0 2px 8px rgba(0,0,0,0.15),
-    inset 0 1px 0 rgba(255,255,255,0.6);
-  color: var(--text-primary);
-}
-
-.chart-toggle button:not(.active) {
-  border-color: transparent;
-}
-
-[data-theme="dark"] .chart-toggle button.active {
-  background: linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.15));
-  border: 1px solid rgba(255,255,255,0.3);
-  box-shadow: 
-    0 2px 8px rgba(0,0,0,0.25),
-    inset 0 1px 0 rgba(255,255,255,0.25);
-  color: var(--button-text);
-}
-
-.chart-toggle button:hover:not(.active):not(:disabled) {
-  background: var(--upload-hover-bg);
-  border-color: var(--border-color);
-}
-
-@media (max-width: 768px) {
-  .chart-toggle {
-    padding: 2px 4px;
-  }
-  
-  .chart-toggle button {
-    padding: 4px 12px;
-    font-size: 11px;
-  }
-}
-
-@media (max-width: 480px) {
-  .chart-toggle button {
-    padding: 3px 8px;
-    font-size: 10px;
-  }
-}
-
+/* === Графики === */
 .plot-container {
   width: 100%;
   min-height: 250px;
@@ -213,4 +74,165 @@
   height: 100%;
   color: var(--text-secondary);
   font-size: 14px;
+}
+
+/* === Кнопка "Фильтр" === */
+.filter-toggle-btn {
+  position: relative;
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 300;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.2));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.15);
+  box-shadow: 
+    0 2px 8px rgba(0,0,0,0.1),
+    0 1px 3px rgba(0,0,0,0.05),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .filter-toggle-btn {
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 
+    0 2px 8px rgba(0,0,0,0.2),
+    0 1px 3px rgba(0,0,0,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+/* ИСПРАВЛЕНО: filter, а не filtet */
+.filter-toggle-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .filter-toggle-btn::before {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+.filter-toggle-btn:hover {
+  transform: translateY(-2px);
+}
+
+.filter-toggle-btn:hover::before {
+  left: 100%;
+}
+
+/* === Выбор режима графика (под фильтром) === */
+.chart-mode-toggle-wrapper {
+  width: 150px;
+}
+
+.chart-mode-toggle__control {
+  min-height: 0 !important;
+  font-size: 12px; /* исправлено: было 10px, но label 12px — лучше согласовать */
+  font-weight: 300;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Тёмная тема: контроль */
+[data-theme="dark"] .chart-mode-toggle__control {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+.chart-mode-toggle__single-value,
+.chart-mode-toggle__option {
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+/* Тёмная тема: текст */
+[data-theme="dark"] .chart-mode-toggle__single-value,
+[data-theme="dark"] .chart-mode-toggle__option {
+  color: var(--text-primary);
+}
+
+.chart-mode-toggle__indicator {
+  padding: 8px 5px;
+}
+
+.chart-mode-toggle__indicator svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-secondary);
+}
+
+/* Тёмная тема: иконка */
+[data-theme="dark"] .chart-mode-toggle__indicator svg {
+  color: var(--text-secondary);
+}
+
+.chart-mode-toggle__menu {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 300;
+  z-index: 6;
+}
+
+/* Тёмная тема: меню */
+[data-theme="dark"] .chart-mode-toggle__menu {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+.chart-mode-toggle__menu-list {
+  padding: 0 !important;
+}
+
+/* Подсветка при наведении на опцию */
+.chart-mode-toggle__option--is-focused {
+  background: var(--upload-hover-bg);
+}
+
+/* Активная (выбранная) опция */
+.chart-mode-toggle__option--is-selected {
+  background: var(--button-bg);
+  color: var(--button-text);
+}
+
+/* Тёмная тема: активная опция */
+[data-theme="dark"] .chart-mode-toggle__option--is-selected {
+  background: var(--button-bg);
+  color: var(--button-text);
+}
+
+@media (max-width: 1180px) {
+  .export-section button {
+    font-size: 10px;
+    padding: 5px 10xp;
+  }
+  
+  .filter-toggle-btn {
+    padding: 5px 10px;
+  }
+}
+
+.analysis-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  color: var(--text-secondary);
 }

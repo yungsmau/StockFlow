@@ -117,7 +117,7 @@ const StockSimulationPlot = ({
             tickfont: { color: textColor },
             spikemode: 'across',
             spikecolor: textColor,
-            spikedash: 'solid' 
+            spikedash: 'solid',
           },
           yaxis: {
             tickfont: { size: 10, color: textColor },

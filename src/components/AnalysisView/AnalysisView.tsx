@@ -1,14 +1,17 @@
 import { useState } from "react";
+import Select, { SingleValue } from 'react-select';
 import "./AnalysisView.css";
 
-import ProductSelector from "./ProductSelector/ProductSelector";
-import ModelParameters from "./ModelParameters/ModelParameters";
+import FiltersPanel from "./FilterPanel/FilterPanel";
 import MetricsSummary from "./Metrics/MetricsSummary";
 import StockSimulationPlot from "./Plots/StockSimulationPlot";
 import ActualDataPlot from "./Plots/ActualDataPlot";
 import ErrorDisplay from "./ErrorDisplay/ErrorDisplay";
 
+import { saveHistoryItem } from '../../utils/historyService';
+
 import { useAnalysis } from '../../context/AnalysisContext';
+
 
 interface ExportItem {
   product: string;
@@ -19,6 +22,10 @@ interface ExportItem {
   efficiency: number;
   avgStock: number;
   actualAvgStock: number;
+  minimalOrder?: number;
+  optimalOrder?: number;
+  stockValue?: number;
+  efficiencyAbs?: number;
 }
 
 interface RowData {
@@ -37,20 +44,27 @@ interface UploadedFile {
 
 interface AnalysisViewProps {
   uploadedFiles: UploadedFile[];
-  exportData: ExportItem[];
   onAddToExport: (item: ExportItem) => void;
-  onViewExport: () => void;
 }
+
+const CHART_MODE_OPTIONS = [
+  { value: 'comparison', label: 'Сравнение' },
+  { value: 'simulation', label: 'Моделирование' },
+  { value: 'actual', label: 'Факт' },
+];
 
 export default function AnalysisView({ 
   uploadedFiles,
   onAddToExport,
 }: AnalysisViewProps) {
-  const { state, updateParameter, retry } = useAnalysis();
+  const { state, retry, referenceData } = useAnalysis();
   const [chartMode, setChartMode] = useState<'comparison' | 'actual' | 'simulation'>('comparison');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const handleAddToExport = () => {
+  const handleAddToExport = async () => {
     if (state.result && state.selectedProduct) {
+      const refItem = referenceData.get(state.selectedProduct);
+      
       const exportItem: ExportItem = {
         product: state.selectedProduct,
         initialStock: state.initialStock,
@@ -60,28 +74,47 @@ export default function AnalysisView({
         efficiency: state.result.efficiency,
         avgStock: state.result.avg_stock,
         actualAvgStock: state.result.actual_avg_stock,
+        minimalOrder: refItem?.minimalOrder,
+        optimalOrder: refItem?.optimalOrder,
+        stockValue: state.result.total_price,
+        efficiencyAbs: state.result.efficiency_abs
       };
+
+      try {
+        await saveHistoryItem(
+          exportItem.product,
+          exportItem.initialStock,
+          exportItem.threshold,
+          exportItem.deliveryDays,
+          exportItem.unitCost,
+          exportItem.efficiency,
+          exportItem.avgStock,
+          exportItem.actualAvgStock,
+          undefined, // minimalOrder
+          undefined, // optimalOrder  
+          exportItem.stockValue,
+          exportItem.efficiencyAbs
+        );
+      } catch (error) {
+        console.error('Failed to save to history:', error);
+      }
+
+      // Добавляем в экспорт
       onAddToExport(exportItem);
     }
   };
 
-  const handleModelChange = (newData: {
-    initialStock: number;
-    threshold: number;
-    deliveryDays: number;
-    unitCost: number;
-  }) => {
-    updateParameter({
-      initialStock: newData.initialStock,
-      threshold: newData.threshold,
-      deliveryDays: newData.deliveryDays,
-      unitCost: newData.unitCost,
-    });
-  };
-
   if (uploadedFiles.flatMap(f => f.data).length === 0) {
-    return <div>Нет доступных данных</div>;
+    return <div className="analysis-empty">Нет доступных данных</div>;
   }
+
+  const selectedOption = CHART_MODE_OPTIONS.find(opt => opt.value === chartMode) || null;
+
+  const handleChartModeChange = (newValue: SingleValue<{ value: string; label: string }>) => {
+    if (newValue) {
+      setChartMode(newValue.value as any);
+    }
+  };
 
   return (
     <div className="analysis-view">
@@ -97,97 +130,108 @@ export default function AnalysisView({
         />
       )}
 
-      <div className="analysis-controls">
-        <div className="product-selector-container">
-          <ProductSelector
-            uploadedFiles={uploadedFiles}
-            selectedProduct={state.selectedProduct}
-            onProductChange={(product) => updateParameter({ selectedProduct: product })}
-          />
+      <div className="analysis-top-section">
+        <div className="analysis-filter">
+          {/* Кнопка "Фильтр" */}
+          <button
+            className="filter-toggle-btn"
+            onClick={() => setIsFilterOpen(true)}
+            aria-label="Открыть фильтр"
+          >
+            Параметры
+          </button>
+
+          {/* Кнопка переключения графиков — ПОД "Фильтром" */}
+          <div className="chart-mode-toggle-wrapper">
+            <Select
+              options={CHART_MODE_OPTIONS}
+              value={selectedOption}
+              onChange={handleChartModeChange}
+              isSearchable={false}
+              classNamePrefix="chart-mode-toggle"
+            />
+          </div>
+
+          <div className="analysis-buttons">
+            <div className="export-section">
+              <button 
+                className="export-add-btn"
+                onClick={handleAddToExport}
+                disabled={!state.result}
+              >
+                Добавить в экспорт
+              </button>
+            </div>
+          </div>
+
+          {/* Всплывающий фильтр */}
+          {isFilterOpen && (
+            <div className="filter-overlay" onClick={() => setIsFilterOpen(false)}>
+              <div 
+                className="filter-panel" 
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="filter-header">
+                  <h3>Параметры</h3>
+                  <button 
+                    className="filter-close-btn" 
+                    onClick={() => setIsFilterOpen(false)}
+                    aria-label="Закрыть фильтр"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 4L4 12M4 4L12 12" stroke="#1E1E1E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+                <FiltersPanel uploadedFiles={uploadedFiles} />
+              </div>
+            </div>
+          )}
         </div>
-        
-        <div className="model-parameters-container">
-          <ModelParameters
-            initialStock={state.initialStock}
-            threshold={state.threshold}
-            deliveryDays={state.deliveryDays}
-            unitCost={state.unitCost}
-            recommendedThreshold={state.result?.recommended_threshold}
-            onChange={handleModelChange}
-          />
+
+        {/* Основной контент — ТОЛЬКО метрики */}
+        <div className="analysis-metrics-section">
+          {state.result && <MetricsSummary data={state.result} isLoading={state.loading} />}
         </div>
       </div>
 
-      {state.result && <MetricsSummary data={state.result} isLoading={state.loading} />}
+      {/* Графики и экспорт */}
+      <div className="analysis-bottom-section">
 
-      {/* Переключатель графиков */}
-      <div className="analysis-buttons">
-        <div className="chart-toggle">
-          <button 
-            className={chartMode === 'comparison' ? 'active' : ''} 
-            onClick={() => setChartMode('comparison')}
-          >
-            Сравнение   
-          </button>
+        {/* Графики */}
+        {chartMode === 'comparison' && state.result && state.actualData.length > 0 && (
+          <>
+            <StockSimulationPlot 
+              data={state.result} 
+              product={state.selectedProduct} 
+              heightPercent={40}
+            />
+            <ActualDataPlot 
+              data={state.actualData} 
+              product={state.selectedProduct} 
+              threshold={state.threshold}
+              heightPercent={35}
+            />
+          </>
+        )}
 
-          <button 
-            className={chartMode === 'simulation' ? 'active' : ''}
-            onClick={() => setChartMode('simulation')}
-          >
-            Моделирование 
-          </button>
-
-          <button 
-            className={chartMode === 'actual' ? 'active' : ''}
-            onClick={() => setChartMode('actual')}
-          >
-            Фактические данные
-          </button>
-        </div>
-
-        {/* Блок экспорта */}
-        <div className="export-section">
-          <button 
-            className="export-add-btn"
-            onClick={handleAddToExport}
-            disabled={!state.result}
-          >
-            Добавить в экспорт
-          </button>
-        </div>
-      </div>
-
-      {/* Графики */}
-      {chartMode === 'comparison' && state.result && state.actualData.length > 0 && (
-        <>
+        {chartMode === 'simulation' && state.result && (
           <StockSimulationPlot 
             data={state.result} 
             product={state.selectedProduct} 
-            heightPercent={40}
+            heightPercent={75}
           />
+        )}
+
+        {chartMode === 'actual' && state.actualData.length > 0 && (
           <ActualDataPlot 
             data={state.actualData} 
             product={state.selectedProduct} 
-            heightPercent={30}
+            threshold={state.threshold}
+            heightPercent={75}
           />
-        </>
-      )}
-
-      {chartMode === 'simulation' && state.result && (
-        <StockSimulationPlot 
-          data={state.result} 
-          product={state.selectedProduct} 
-          heightPercent={70}
-        />
-      )}
-
-      {chartMode === 'actual' && state.actualData.length > 0 && (
-        <ActualDataPlot 
-          data={state.actualData} 
-          product={state.selectedProduct} 
-          heightPercent={70}
-        />
-      )}
+        )}
+      </div>
     </div>
   );
 }

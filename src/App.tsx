@@ -2,7 +2,9 @@ import { useState } from 'react';
 
 import FileUploadSection from './components/FileUpload/FileUploadSection';
 import AnalysisView from './components/AnalysisView/AnalysisView';
+import InventoryView from './components/InventoryView/InventoryView';
 import ExportView from './components/ExportView/ExportView';
+import HistoryView from './components/HistoryView/HistoryView';
 import HeaderButtons from './components/HeaderButtons/HeaderButtons';
 import HelpModal from './components/modals/HelpModal/HelpModal';
 import NotificationsModal from './components/modals/NotificationModal/NotificationsModal';
@@ -23,9 +25,13 @@ export interface ExportItem {
   efficiency: number;
   avgStock: number;
   actualAvgStock: number;
+  minimalOrder?: number; 
+  optimalOrder?: number;
+  stockValue?: number;
+  efficiencyAbs?: number; 
 }
 
-type AppPage = 'upload' | 'analysis' | 'export';
+type AppPage = 'upload' | 'analysis' | 'inventory' | 'export' | 'history';
 
 function AppContent() {
   const { update } = useUpdateCheck();
@@ -33,7 +39,9 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState<AppPage>('upload');
   const [exportData, setExportData] = useState<ExportItem[]>([]);
 
-  const { uploadedFiles, setUploadedFiles } = useAnalysis();
+  const [uploadedReferenceFiles, setUploadedReferenceFiles] = useState<{ name: string; format: string }[]>([]);
+  
+  const { uploadedFiles, setUploadedFiles, setReferenceData, updateParameter } = useAnalysis();
 
   const toggleModal = (modalType: 'help' | 'notifications' | 'about') => {
     setActiveModal(prev => prev === modalType ? null : modalType);
@@ -55,6 +63,18 @@ function AppContent() {
     setExportData(prev => prev.filter((_, i: number) => i !== index));
   };
 
+  const handleRemoveReferenceFile = (index: number) => {
+    if (index === -1) {
+      setUploadedReferenceFiles([]);
+      setReferenceData(new Map());
+    } else {
+      const newReferenceFiles = uploadedReferenceFiles.filter((_, i) => i !== index);
+      setUploadedReferenceFiles(newReferenceFiles);
+      
+      setReferenceData(new Map());
+    }
+  };
+
   const canAccessAnalysis = uploadedFiles.length > 0;
   const canAccessExport = exportData.length > 0;
 
@@ -68,6 +88,16 @@ function AppContent() {
           >
             Загрузка 
           </button>
+          
+          <button 
+            className={currentPage === 'inventory' ? 'active' : ''}
+            onClick={() => canAccessAnalysis && setCurrentPage('inventory')}
+            disabled={!canAccessAnalysis}
+            title={!canAccessAnalysis ? "Сначала загрузите данные" : ""}
+          >
+            Данные 
+          </button>
+
           <button 
             className={currentPage === 'analysis' ? 'active' : ''}
             onClick={() => canAccessAnalysis && setCurrentPage('analysis')}
@@ -76,6 +106,7 @@ function AppContent() {
           >
             Анализ 
           </button>
+
           <button 
             className={currentPage === 'export' ? 'active' : ''}
             onClick={() => canAccessExport && setCurrentPage('export')}
@@ -83,6 +114,13 @@ function AppContent() {
             title={!canAccessExport ? "Сначала добавьте данные в экспорт" : ""}
           >
             Экспорт
+          </button>
+
+          <button 
+            className={currentPage === 'history' ? 'active' : ''}
+            onClick={() => setCurrentPage('history')}
+          >
+            История
           </button>
         </nav>
         
@@ -100,14 +138,24 @@ function AppContent() {
           <FileUploadSection
             isBlocked={isUploadBlocked}
             uploadedFiles={uploadedFiles}
+            uploadedReferenceFiles={uploadedReferenceFiles}
             onFileAdd={(file) => {
               setUploadedFiles([...uploadedFiles, file]);
+            }}
+            onReferenceDataAdd={(data) => {
+              setReferenceData(data);
+              // Добавляем справочник в список отображаемых файлов
+              const fileName = 'Справочник'; // или получать имя файла
+              setUploadedReferenceFiles([{ name: fileName, format: 'XLSX' }]);
             }}
             onRemoveFile={(index) => {
               setUploadedFiles(uploadedFiles.filter((_, i: number) => i !== index));
             }}
+            onRemoveReferenceFile={handleRemoveReferenceFile}
             onCancelAll={() => {
               setUploadedFiles([]);
+              setUploadedReferenceFiles([]);
+              setReferenceData(new Map());
             }}
             onAnalyzeClick={() => {
               if (uploadedFiles.length > 0) {
@@ -115,18 +163,31 @@ function AppContent() {
               }
             }} 
           />
+        ) : currentPage === 'inventory' ? (
+          <InventoryView />
         ) : currentPage === 'analysis' ? (
           <AnalysisView
             uploadedFiles={uploadedFiles}
-            exportData={exportData}
             onAddToExport={handleAddToExport}
-            onViewExport={() => setCurrentPage('export')}
           />
-        ) : (
+        ) : currentPage === 'export' ? (
           <ExportView
             data={exportData}
             onClear={handleClearExport}
             onRemoveItem={handleRemoveFromExport}
+          />
+        ) : (
+          <HistoryView 
+            onNavigateToAnalysis={(product, params) => {
+              updateParameter({
+                selectedProduct: product,
+                initialStock: params.initialStock,
+                threshold: params.threshold,
+                deliveryDays: params.deliveryDays,
+                unitCost: params.unitCost
+              });
+              setCurrentPage('analysis');
+            }}
           />
         )}
       </main>
@@ -142,7 +203,6 @@ function AppContent() {
   );
 }
 
-// Основной App с провайдером
 export default function App() {
   return (
     <AnalysisProvider>

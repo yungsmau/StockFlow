@@ -1,7 +1,6 @@
-use crate::errors::detailed_error::DetailedError;
-use crate::models::request::{ComputeRequest, UploadedFile};
-use crate::models::response::ComputeResponse;
-use crate::services::date_parser;
+use crate::features::stock_simulation::date_parser;
+use crate::features::stock_simulation::models::{ComputeRequest, ComputeResponse, UploadedFile};
+use crate::shared::errors::detailed_error::DetailedError;
 use chrono::{Duration, NaiveDate};
 use std::collections::BTreeMap;
 
@@ -44,7 +43,128 @@ fn calculate_actual_deliveries(uploaded_files: &[UploadedFile], product: &str) -
         .count() as i32
 }
 
-fn calculate_recommended_threshold(
+fn calculate_avg_delivery_interval_actual(uploaded_files: &[UploadedFile], product: &str) -> f64 {
+    let mut delivery_dates = Vec::new();
+
+    for file in uploaded_files {
+        for (row_index, r) in file.data.iter().enumerate() {
+            if r.nomenclature == product && r.income > 0.0 {
+                if let Ok(date) =
+                    date_parser::parse_date_safe(&r.date, &file.name, row_index, "Дата")
+                {
+                    delivery_dates.push(date);
+                }
+            }
+        }
+    }
+
+    if delivery_dates.len() < 2 {
+        return 0.0;
+    }
+
+    delivery_dates.sort();
+    let mut intervals: Vec<i64> = Vec::new();
+
+    for i in 1..delivery_dates.len() {
+        let diff = delivery_dates[i]
+            .signed_duration_since(delivery_dates[i - 1])
+            .num_days();
+        if diff > 0 {
+            intervals.push(diff);
+        }
+    }
+
+    if intervals.is_empty() {
+        0.0
+    } else {
+        let total: i64 = intervals.iter().sum();
+        total as f64 / intervals.len() as f64
+    }
+}
+
+fn calculate_avg_delivery_interval_model(_dates: &[String], incoming: &[i32]) -> f64 {
+    let mut delivery_indices = Vec::new();
+
+    for (i, &amount) in incoming.iter().enumerate() {
+        if amount > 0 {
+            delivery_indices.push(i);
+        }
+    }
+
+    if delivery_indices.len() < 2 {
+        return 0.0;
+    }
+
+    let mut intervals: Vec<i64> = Vec::new();
+
+    for i in 1..delivery_indices.len() {
+        let idx_prev = delivery_indices[i - 1];
+        let idx_curr = delivery_indices[i];
+        let days_diff = (idx_curr - idx_prev) as i64; // предполагается, что даты идут подряд
+        if days_diff > 0 {
+            intervals.push(days_diff);
+        }
+    }
+
+    if intervals.is_empty() {
+        0.0
+    } else {
+        let total: i64 = intervals.iter().sum();
+        total as f64 / intervals.len() as f64
+    }
+}
+
+fn calculate_average_expense(
+    uploaded_files: &[UploadedFile],
+    product: &str,
+    delivery_days: i32,
+) -> f64 {
+    if delivery_days <= 0 {
+        return 0.0;
+    }
+
+    let window_size = delivery_days as usize;
+    let mut date_to_expense: BTreeMap<NaiveDate, f64> = BTreeMap::new();
+
+    // Собираем расходы по датам
+    for file in uploaded_files {
+        for (row_index, r) in file.data.iter().enumerate() {
+            if r.nomenclature == product {
+                match date_parser::parse_date_safe(&r.date, &file.name, row_index, "Дата") {
+                    Ok(date) => {
+                        *date_to_expense.entry(date).or_insert(0.0) += r.expense;
+                    }
+                    Err(_) => continue,
+                }
+            }
+        }
+    }
+
+    if date_to_expense.is_empty() {
+        return 0.0;
+    }
+
+    let expenses: Vec<f64> = date_to_expense.values().copied().collect();
+
+    if expenses.len() < window_size {
+        // Если данных меньше окна — среднее за весь период
+        let total: f64 = expenses.iter().sum();
+        return total / expenses.len() as f64;
+    }
+
+    // Считаем сумму каждого окна
+    let mut window_sums = Vec::new();
+    for i in 0..=(expenses.len() - window_size) {
+        let window_sum: f64 = expenses[i..i + window_size].iter().sum();
+        window_sums.push(window_sum);
+    }
+
+    // Возвращаем среднее по всем окнам
+    let total_sum: f64 = window_sums.iter().sum();
+    total_sum / window_sums.len() as f64
+}
+
+fn calculate_max_expense(
     uploaded_files: &[UploadedFile],
     product: &str,
     delivery_days: i32,
@@ -281,8 +401,17 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
 
     let efficiency_abs = actual_total_price - total_price;
 
+    let avg_expense =
+        calculate_average_expense(&req.uploaded_files, &req.product, req.delivery_days);
+
     let recommended_threshold =
-        calculate_recommended_threshold(&req.uploaded_files, &req.product, req.delivery_days);
+        calculate_max_expense(&req.uploaded_files, &req.product, req.delivery_days);
+
+    let avg_delivery_interval_actual =
+        calculate_avg_delivery_interval_actual(&req.uploaded_files, &req.product);
+
+    let avg_delivery_interval_model =
+        calculate_avg_delivery_interval_model(&result_dates, &incoming);
 
     Ok(ComputeResponse {
         dates: result_dates,
@@ -299,6 +428,9 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
         actual_total_price,
         efficiency,
         efficiency_abs,
+        avg_expense,
         recommended_threshold,
+        avg_delivery_interval_actual,
+        avg_delivery_interval_model,
     })
 }

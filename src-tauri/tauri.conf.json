@@ -42,6 +42,12 @@
     "dialog": null,
     "fs": {
       "requireLiteralLeadingDot": true
+    },
+    "sql": {
+      "migrationsPath": "../migrations",
+      "preload": [
+        "sqlite:stockflow.db"
+      ]
     }
   }
 }

@@ -168,7 +168,7 @@ body {
 }
 
 .main-navigation button {
-  padding: 5px 80px;
+  padding: 5px 60px;
   border: 1px solid var(--border-color);
   background: transparent;
   color: var(--text-primary);
@@ -217,7 +217,7 @@ body {
   border-color: transparent;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1500px) {
   .main-navigation {
     margin: 0 12px;
     padding: 2px;
