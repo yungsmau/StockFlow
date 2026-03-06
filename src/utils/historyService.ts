@@ -83,8 +83,8 @@ export const saveHistoryItem = async (
   efficiency: number,
   avgStock: number,
   actualAvgStock: number,
-  minimalOrder?: number, // ← Эти параметры не сохраняются в историю
-  optimalOrder?: number, // ← Эти параметры не сохраняются в историю
+  _minimalOrder?: number, // ← Эти параметры не сохраняются в историю
+  _optimalOrder?: number, // ← Эти параметры не сохраняются в историю
   stockValue?: number,
   efficiencyAbs?: number,
 ): Promise<void> => {

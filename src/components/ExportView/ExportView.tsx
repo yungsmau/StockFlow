@@ -62,7 +62,7 @@ async function exportToExcel(data: ExtendedExportItem[]): Promise<void> {
     sheet.getColumn(colKey).numFmt = '#,##0';
   });
   
-  ['minimalOrder', 'optimalOrder'].forEach(colKey => {
+  ['minimalOrder', 'optimalOrder'].forEach(_colKey => {
     // Эти колонки могут содержать текст "-", поэтому не форматируем как числа
   });
   

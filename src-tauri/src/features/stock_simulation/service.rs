@@ -82,7 +82,7 @@ fn calculate_avg_delivery_interval_actual(uploaded_files: &[UploadedFile], produ
     }
 }
 
-fn calculate_avg_delivery_interval_model(dates: &[String], incoming: &[i32]) -> f64 {
+fn calculate_avg_delivery_interval_model(_dates: &[String], incoming: &[i32]) -> f64 {
     let mut delivery_indices = Vec::new();
 
     for (i, &amount) in incoming.iter().enumerate() {
