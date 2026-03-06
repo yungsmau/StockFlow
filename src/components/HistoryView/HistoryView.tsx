@@ -3,7 +3,16 @@ import './HistoryView.css';
 import { formatNumber, formatCurrency } from '../../utils/formatNumber';
 import { loadHistoryItems, clearHistory, type ExportHistoryItem } from '../../utils/historyService';
 
-export default function HistoryView() {
+interface HistoryViewProps {
+  onNavigateToAnalysis?: (product: string, params: {
+    initialStock: number;
+    threshold: number;
+    deliveryDays: number;
+    unitCost: number;
+  }) => void;
+}
+
+export default function HistoryView({ onNavigateToAnalysis }: HistoryViewProps) {
   const [items, setItems] = useState<ExportHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +25,6 @@ export default function HistoryView() {
         setLoading(true);
         setError(null);
         
-        // Загружаем через сервис
         const historyItems = await loadHistoryItems();
         setItems(historyItems);
       } catch (err) {
@@ -57,6 +65,17 @@ export default function HistoryView() {
     return 'efficiency-neutral';
   };
 
+  const handleRowClick = (item: ExportHistoryItem) => {
+    if (onNavigateToAnalysis) {
+      onNavigateToAnalysis(item.product, {
+        initialStock: item.initialStock,
+        threshold: item.threshold,
+        deliveryDays: item.deliveryDays,
+        unitCost: item.unitCost
+      });
+    }
+  };
+
   const handleClearClick = () => {
     setIsConfirmOpen(true);
   };
@@ -72,7 +91,6 @@ export default function HistoryView() {
     setIsConfirmOpen(false);
 
     try {
-      // Очищаем через сервис
       await clearHistory();
       setItems([]);
     } catch (err) {
@@ -123,7 +141,11 @@ export default function HistoryView() {
                 </thead>
                 <tbody>
                   {items.map(item => (
-                    <tr key={item.id}>
+                    <tr 
+                      key={item.id}
+                      onClick={() => handleRowClick(item)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <td>{formatDate(item.processedAt)}</td>
                       <td>{item.product}</td>
                       <td>{formatNumber(item.initialStock)}</td>
@@ -156,7 +178,6 @@ export default function HistoryView() {
         </>
       )}
 
-      {/* Модальное окно подтверждения */}
       {isConfirmOpen && (
         <div className="history-confirm-overlay" onClick={handleCancelClear}>
           <div className="history-confirm-modal" onClick={(e) => e.stopPropagation()}>

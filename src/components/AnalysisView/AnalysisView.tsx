@@ -92,7 +92,7 @@ export default function AnalysisView({
   };
 
   if (uploadedFiles.flatMap(f => f.data).length === 0) {
-    return <div>Нет доступных данных</div>;
+    return <div className="analysis-empty">Нет доступных данных</div>;
   }
 
   const selectedOption = CHART_MODE_OPTIONS.find(opt => opt.value === chartMode) || null;

@@ -1,5 +1,4 @@
 /* === ProductSelector — базовые стили === */
-
 .product-select__control {
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);

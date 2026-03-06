@@ -197,6 +197,10 @@
   border-color: var(--border-color);
 }
 
+.chart-mode-toggle__menu-list {
+  padding: 0 !important;
+}
+
 /* Подсветка при наведении на опцию */
 .chart-mode-toggle__option--is-focused {
   background: var(--upload-hover-bg);
@@ -223,4 +227,12 @@
   .filter-toggle-btn {
     padding: 5px 10px;
   }
+}
+
+.analysis-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  color: var(--text-secondary);
 }

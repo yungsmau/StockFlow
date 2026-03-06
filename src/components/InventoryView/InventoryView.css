@@ -1,0 +1,259 @@
+.inventory-view {
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.inventory-header {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.inventory-header__description {
+  width: 20%;
+  min-width: 0; /* Предотвращает переполнение */
+}
+
+.inventory-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--text-primary);
+}
+
+.inventory-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 200;
+}
+
+.inventory-selector {
+  width: 60%;
+  min-width: 0; /* Предотвращает переполнение */
+}
+
+.product-search-card {
+  padding: 0;
+}
+
+/* Стили для ProductSelector (если нужно) */
+.product-select__menu-list {
+  padding: 0 !important;
+}
+
+.inventory-empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+}
+
+.inventory-table-container {
+  overflow-x: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.inventory-table-wrapper {
+  height: 100%;
+  overflow-y: auto;
+  border-radius: 8px;
+  
+  scrollbar-width: thin;
+  scrollbar-color: var(--button-bg) var(--bg-secondary);
+}
+
+.inventory-table-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.inventory-table-wrapper::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+.inventory-table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--button-bg);
+  border-radius: 4px;
+}
+
+.inventory-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--upload-hover-bg);
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-secondary);
+}
+
+.inventory-table th,
+.inventory-table td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 12px;
+}
+
+.inventory-table th {
+  background: var(--bg-primary);
+  font-weight: 400;
+  color: var(--text-primary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.inventory-table td {
+  font-family: 'Rubik';
+  font-weight: 200;
+}
+
+.inventory-table th:not(:last-child),
+.inventory-table td:not(:last-child) {
+  border-right: 1px solid rgba(210, 208, 208, 0.544);
+}
+
+.inventory-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .inventory-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .inventory-header__description,
+  .inventory-selector {
+    width: 100%;
+  }
+  
+  .product-selector-container {
+    max-width: 100%;
+  }
+  
+  .inventory-table {
+    font-size: 11px;
+  }
+  
+  .inventory-table th,
+  .inventory-table td {
+    padding: 6px;
+  }
+}
+
+.product-select__menu {
+  z-index: 20 !important;
+}
+
+/* Нумерация строк */
+.inventory-table th:first-child,
+.inventory-table td:first-child {
+  width: 40px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+/* Подсветка выбранной строки */
+.inventory-table tr.selected-row {
+  background: var(--upload-hover-bg) !important;
+  border-left: 3px solid var(--button-bg);
+}
+
+/* Временная анимация подсветки */
+.inventory-table tr.highlighted {
+  animation: highlight 2s ease-in-out;
+}
+
+@keyframes highlight {
+  0% { background-color: rgba(255, 255, 0, 0.3); }
+  50% { background-color: rgba(255, 255, 0, 0.5); }
+  100% { background-color: transparent; }
+}
+
+/* Курсор при наведении */
+.inventory-table tr:hover {
+  background: var(--upload-hover-bg);
+  cursor: pointer;
+}
+
+/* Активное состояние для выбранной строки */
+.inventory-table tr.selected-row:hover {
+  background: var(--upload-hover-bg) !important;
+}
+
+/* Зелёная подсветка для обработанных номенклатур */
+.inventory-table tr.processed-row {
+  background-color: rgba(76, 175, 79, 0.357) !important;
+}
+
+.inventory-table tr.processed-row:hover {
+  background-color: rgba(48, 189, 53, 0.493) !important;
+}
+
+/* Приоритет стилей: выбранная строка важнее обработанной */
+.inventory-table tr.selected-row.processed-row {
+  background: var(--upload-hover-bg) !important;
+  border-left: 3px solid var(--button-bg);
+}
+
+.inventory-table__header.sortable-header:hover {
+  background-color: rgb(231, 231, 231) !important;
+}
+
+[data-theme="dark"] .inventory-table__header.sortable-header:hover {
+  background-color: rgb(193, 193, 193) !important;
+}
+
+/* SVG иконки */
+.inventory-table th.sortable-header svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+/* Адаптивность для сортировки */
+@media (max-width: 768px) {
+  .inventory-table th.sortable-header {
+    gap: 4px;
+    padding: 6px 4px;
+  }
+  
+  .inventory-table th.sortable-header svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.inventory-table th.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+  position: relative;
+  position: sticky;
+}
+
+.inventory-table__header.sortable-header span {
+  margin-right: 5px;
+}
+
+/* Контейнер для текста и иконки */
+.inventory-table th.sortable-header .sort-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* SVG иконки */
+.inventory-table th.sortable-header svg {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  vertical-align: middle;
+}

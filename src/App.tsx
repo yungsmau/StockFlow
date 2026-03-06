@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import FileUploadSection from './components/FileUpload/FileUploadSection';
 import AnalysisView from './components/AnalysisView/AnalysisView';
+import InventoryView from './components/InventoryView/InventoryView';
 import ExportView from './components/ExportView/ExportView';
 import HistoryView from './components/HistoryView/HistoryView';
 import HeaderButtons from './components/HeaderButtons/HeaderButtons';
@@ -26,7 +27,7 @@ export interface ExportItem {
   actualAvgStock: number;
 }
 
-type AppPage = 'upload' | 'analysis' | 'export' | 'history';
+type AppPage = 'upload' | 'analysis' | 'inventory' | 'export' | 'history';
 
 function AppContent() {
   const { update } = useUpdateCheck();
@@ -34,7 +35,8 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState<AppPage>('upload');
   const [exportData, setExportData] = useState<ExportItem[]>([]);
 
-  const { uploadedFiles, setUploadedFiles } = useAnalysis();
+  // Получаем все необходимые функции из контекста
+  const { uploadedFiles, setUploadedFiles, updateParameter } = useAnalysis();
 
   const toggleModal = (modalType: 'help' | 'notifications' | 'about') => {
     setActiveModal(prev => prev === modalType ? null : modalType);
@@ -68,6 +70,15 @@ function AppContent() {
             onClick={() => setCurrentPage('upload')}
           >
             Загрузка 
+          </button>
+          
+          <button 
+            className={currentPage === 'inventory' ? 'active' : ''}
+            onClick={() => canAccessAnalysis && setCurrentPage('inventory')}
+            disabled={!canAccessAnalysis}
+            title={!canAccessAnalysis ? "Сначала загрузите данные" : ""}
+          >
+            Сводка
           </button>
 
           <button 
@@ -125,6 +136,8 @@ function AppContent() {
               }
             }} 
           />
+        ) : currentPage === 'inventory' ? (
+          <InventoryView />
         ) : currentPage === 'analysis' ? (
           <AnalysisView
             uploadedFiles={uploadedFiles}
@@ -137,7 +150,18 @@ function AppContent() {
             onRemoveItem={handleRemoveFromExport}
           />
         ) : (
-          <HistoryView />
+          <HistoryView 
+            onNavigateToAnalysis={(product, params) => {
+              updateParameter({
+                selectedProduct: product,
+                initialStock: params.initialStock,
+                threshold: params.threshold,
+                deliveryDays: params.deliveryDays,
+                unitCost: params.unitCost
+              });
+              setCurrentPage('analysis');
+            }}
+          />
         )}
       </main>
 

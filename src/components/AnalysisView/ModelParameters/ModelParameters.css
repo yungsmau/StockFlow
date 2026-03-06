@@ -32,6 +32,13 @@
   color: var(--text-primary);
 }
 
+.param-input-container {
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  gap: 10px;
+}
+
 .param-input,
 .recommendation-value-display {
   font-family: 'Rubik', sans-serif;

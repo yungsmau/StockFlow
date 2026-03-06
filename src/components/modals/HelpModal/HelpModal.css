@@ -224,3 +224,7 @@
   line-height: 1.4;
   font-weight: 300;
 }
+
+.help-modal .modal-header {
+  margin-bottom: 20px;
+}

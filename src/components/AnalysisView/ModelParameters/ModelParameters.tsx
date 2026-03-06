@@ -31,8 +31,51 @@ export default function ModelParameters({
     : 5_000_000;
 
   const maxInitialStock = recommendedMax;
-  const maxThreshold = recommendedMax;
+  const maxThreshold = Math.min(recommendedMax, values.initialStock);
 
+  const resetInitialStock = () => {
+    updateField("initialStock", "100");
+    // Сразу применяем значение
+    onChange({
+      initialStock: 100,
+      threshold: values.threshold,
+      deliveryDays: values.deliveryDays,
+      unitCost: values.unitCost
+    });
+  };
+
+  const resetThreshold = () => {
+    updateField("threshold", "100");
+    // Сразу применяем значение  
+    onChange({
+      initialStock: values.initialStock,
+      threshold: 100,
+      deliveryDays: values.deliveryDays,
+      unitCost: values.unitCost
+    });
+  };
+
+  const resetDeliveryDays = () => {
+    updateField("deliveryDays", "10");
+    // Сразу применяем значение
+    onChange({
+      initialStock: values.initialStock,
+      threshold: values.threshold,
+      deliveryDays: 10,
+      unitCost: values.unitCost
+    });
+  };
+
+  const resetUnitCost = () => {
+    updateField("unitCost", "1");
+    // Сразу применяем значение
+    onChange({
+      initialStock: values.initialStock,
+      threshold: values.threshold,
+      deliveryDays: values.deliveryDays,
+      unitCost: 1
+    });
+  };
   return (
     <>
       <ParameterField
@@ -44,6 +87,7 @@ export default function ModelParameters({
         max={maxInitialStock}
         onInput={(v) => updateField("initialStock", v)}
         onConfirm={() => commit(onChange)}
+        onResetToDefault={resetInitialStock}
       />
 
       <ParameterField
@@ -55,6 +99,7 @@ export default function ModelParameters({
         max={maxThreshold}
         onInput={(v) => updateField("threshold", v)}
         onConfirm={() => commit(onChange)}
+        onResetToDefault={resetThreshold}
       />
 
       <ParameterField
@@ -64,6 +109,7 @@ export default function ModelParameters({
         type="integer"
         onInput={(v) => updateField("deliveryDays", v)}
         onConfirm={() => commit(onChange)}
+        onResetToDefault={resetDeliveryDays}
       />
 
       <ParameterField
@@ -73,6 +119,7 @@ export default function ModelParameters({
         type="float"
         onInput={(v) => updateField("unitCost", v)}
         onConfirm={() => commit(onChange)}
+        onResetToDefault={resetUnitCost}
       />
 
       {recommendedThreshold !== undefined && (
