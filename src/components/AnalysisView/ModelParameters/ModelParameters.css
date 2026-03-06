@@ -41,6 +41,7 @@
 
 .param-input,
 .recommendation-value-display {
+  width: 50%;
   font-family: 'Rubik', sans-serif;
   font-size: 14px;
   font-weight: 200;

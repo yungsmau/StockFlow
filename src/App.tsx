@@ -25,6 +25,10 @@ export interface ExportItem {
   efficiency: number;
   avgStock: number;
   actualAvgStock: number;
+  minimalOrder?: number; 
+  optimalOrder?: number;
+  stockValue?: number;
+  efficiencyAbs?: number; 
 }
 
 type AppPage = 'upload' | 'analysis' | 'inventory' | 'export' | 'history';
@@ -35,8 +39,9 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState<AppPage>('upload');
   const [exportData, setExportData] = useState<ExportItem[]>([]);
 
-  // Получаем все необходимые функции из контекста
-  const { uploadedFiles, setUploadedFiles, updateParameter } = useAnalysis();
+  const [uploadedReferenceFiles, setUploadedReferenceFiles] = useState<{ name: string; format: string }[]>([]);
+  
+  const { uploadedFiles, setUploadedFiles, setReferenceData, updateParameter } = useAnalysis();
 
   const toggleModal = (modalType: 'help' | 'notifications' | 'about') => {
     setActiveModal(prev => prev === modalType ? null : modalType);
@@ -56,6 +61,18 @@ function AppContent() {
 
   const handleRemoveFromExport = (index: number) => {
     setExportData(prev => prev.filter((_, i: number) => i !== index));
+  };
+
+  const handleRemoveReferenceFile = (index: number) => {
+    if (index === -1) {
+      setUploadedReferenceFiles([]);
+      setReferenceData(new Map());
+    } else {
+      const newReferenceFiles = uploadedReferenceFiles.filter((_, i) => i !== index);
+      setUploadedReferenceFiles(newReferenceFiles);
+      
+      setReferenceData(new Map());
+    }
   };
 
   const canAccessAnalysis = uploadedFiles.length > 0;
@@ -78,7 +95,7 @@ function AppContent() {
             disabled={!canAccessAnalysis}
             title={!canAccessAnalysis ? "Сначала загрузите данные" : ""}
           >
-            Сводка
+            Данные 
           </button>
 
           <button 
@@ -121,14 +138,24 @@ function AppContent() {
           <FileUploadSection
             isBlocked={isUploadBlocked}
             uploadedFiles={uploadedFiles}
+            uploadedReferenceFiles={uploadedReferenceFiles}
             onFileAdd={(file) => {
               setUploadedFiles([...uploadedFiles, file]);
+            }}
+            onReferenceDataAdd={(data) => {
+              setReferenceData(data);
+              // Добавляем справочник в список отображаемых файлов
+              const fileName = 'Справочник'; // или получать имя файла
+              setUploadedReferenceFiles([{ name: fileName, format: 'XLSX' }]);
             }}
             onRemoveFile={(index) => {
               setUploadedFiles(uploadedFiles.filter((_, i: number) => i !== index));
             }}
+            onRemoveReferenceFile={handleRemoveReferenceFile}
             onCancelAll={() => {
               setUploadedFiles([]);
+              setUploadedReferenceFiles([]);
+              setReferenceData(new Map());
             }}
             onAnalyzeClick={() => {
               if (uploadedFiles.length > 0) {

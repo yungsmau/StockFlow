@@ -40,7 +40,7 @@ const createMetricsData = (data: ComputeResponse): Record<string, MetricItem[]> 
     actual: [
       { 
         value: formatNumber(parseFloat(data.actual_avg_stock.toFixed(0))), 
-        label: "Средний остаток, ед.", 
+        label: "Ср днейвной остаток, ед.", 
         type: "actual" 
       },
       { 
@@ -55,14 +55,14 @@ const createMetricsData = (data: ComputeResponse): Record<string, MetricItem[]> 
       },
       { 
         value: formatNumber(parseFloat(data.avg_delivery_interval_actual.toFixed(0))), 
-        label: "Интервал поставок", 
+        label: "Интервал поставок, дни", 
         type: "actual" 
       },
     ],
     simulation: [
       { 
         value: formatNumber(parseFloat(data.avg_stock.toFixed(0))), 
-        label: "Средний остаток, ед.", 
+        label: "Ср. дневной остаток, ед.", 
         type: "simulation" 
       },
       { 
@@ -77,7 +77,7 @@ const createMetricsData = (data: ComputeResponse): Record<string, MetricItem[]> 
       },
       {
         value: formatNumber(parseFloat(data.avg_delivery_interval_model.toFixed(0))), 
-        label: "Интервал поставок", 
+        label: "Интервал поставок, дни", 
         type: "simulation" 
       },
     ],

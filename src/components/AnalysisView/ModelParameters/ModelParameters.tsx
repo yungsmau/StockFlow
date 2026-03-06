@@ -7,6 +7,8 @@ import './ModelParameters.css';
 interface Props extends ModelData {
   recommendedThreshold?: number;
   avgExpense?: number;
+  optimalOrder?: number;
+  minimalOrder?: number;
   onChange: (data: ModelData) => void;
 }
 
@@ -17,6 +19,8 @@ export default function ModelParameters({
   unitCost,
   recommendedThreshold,
   avgExpense,
+  optimalOrder,
+  minimalOrder,
   onChange,
 }: Props) {
   const { values, errors, updateField, commit } = useModelForm({
@@ -34,10 +38,10 @@ export default function ModelParameters({
   const maxThreshold = Math.min(recommendedMax, values.initialStock);
 
   const resetInitialStock = () => {
-    updateField("initialStock", "100");
-    // Сразу применяем значение
+    const newValue = optimalOrder ?? 100;
+    updateField("initialStock", String(newValue));
     onChange({
-      initialStock: 100,
+      initialStock: newValue,
       threshold: values.threshold,
       deliveryDays: values.deliveryDays,
       unitCost: values.unitCost
@@ -45,41 +49,42 @@ export default function ModelParameters({
   };
 
   const resetThreshold = () => {
-    updateField("threshold", "100");
-    // Сразу применяем значение  
+    const newValue = optimalOrder ?? 100;
+    updateField("threshold", String(newValue));
     onChange({
       initialStock: values.initialStock,
-      threshold: 100,
+      threshold: newValue,
       deliveryDays: values.deliveryDays,
       unitCost: values.unitCost
     });
   };
 
   const resetDeliveryDays = () => {
-    updateField("deliveryDays", "10");
-    // Сразу применяем значение
+    const newValue = 10;
+    updateField("deliveryDays", String(newValue));
     onChange({
       initialStock: values.initialStock,
       threshold: values.threshold,
-      deliveryDays: 10,
+      deliveryDays: newValue,
       unitCost: values.unitCost
     });
   };
 
   const resetUnitCost = () => {
-    updateField("unitCost", "1");
-    // Сразу применяем значение
+    const newValue = 1;
+    updateField("unitCost", String(newValue));
     onChange({
       initialStock: values.initialStock,
       threshold: values.threshold,
       deliveryDays: values.deliveryDays,
-      unitCost: 1
+      unitCost: newValue
     });
   };
+
   return (
     <>
       <ParameterField
-        label="Поставка"
+        label="Поставка, ед."
         value={values.initialStock}
         error={errors.initialStock}
         type="integer"
@@ -91,7 +96,7 @@ export default function ModelParameters({
       />
 
       <ParameterField
-        label="Порог"
+        label="Порог, ед."
         value={values.threshold}
         error={errors.threshold}
         type="integer"
@@ -103,7 +108,7 @@ export default function ModelParameters({
       />
 
       <ParameterField
-        label="Дней доставки"
+        label="Скор поставки, дни"
         value={values.deliveryDays}
         error={errors.deliveryDays}
         type="integer"
@@ -113,7 +118,7 @@ export default function ModelParameters({
       />
 
       <ParameterField
-        label="Цена"
+        label="Цена, руб./ед"
         value={values.unitCost}
         error={errors.unitCost}
         type="float"
@@ -122,9 +127,10 @@ export default function ModelParameters({
         onResetToDefault={resetUnitCost}
       />
 
+      {/* Рекомендации из модели */}
       {recommendedThreshold !== undefined && (
         <RecommendationField
-          label="Рекомендуемый порог"
+          label="Максимальный расход, ед."
           value={recommendedThreshold}
           type="integer"
         />
@@ -132,9 +138,26 @@ export default function ModelParameters({
 
       {avgExpense !== undefined && (
         <RecommendationField
-          label="Средний расход"
+          label="Средний расход, ед."
           value={avgExpense}
           type="integer" 
+        />
+      )}
+
+      {/* Рекомендации из справочника */}
+      {minimalOrder !== undefined && (
+        <RecommendationField
+          label="Минимальный объем закупа, ед."
+          value={minimalOrder}
+          type="integer"
+        />
+      )}
+
+      {optimalOrder !== undefined && (
+        <RecommendationField
+          label="Оптимальный объем закупа, ед."
+          value={optimalOrder}
+          type="integer"
         />
       )}
     </>

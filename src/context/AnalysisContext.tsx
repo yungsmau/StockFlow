@@ -15,6 +15,13 @@ interface UploadedFile {
   data: RowData[];
 }
 
+interface ReferenceItem {
+  deliveryDays?: number;
+  unitCost?: number;
+  optimalOrder?: number;
+  minimalOrder?: number; 
+}
+
 interface ComputeResponse {
   dates: string[];
   starting_stock: number[];
@@ -49,6 +56,8 @@ interface AnalysisState {
   threshold: number;
   deliveryDays: number;
   unitCost: number;
+  optimalOrder?: number;
+  minimalOrder?: number; 
   result: ComputeResponse | null;
   actualData: ActualDataPoint[];
   loading: boolean;
@@ -58,7 +67,9 @@ interface AnalysisState {
 interface AnalysisContextType {
   state: AnalysisState;
   uploadedFiles: UploadedFile[];
+  referenceData: Map<string, ReferenceItem>;
   setUploadedFiles: (files: UploadedFile[]) => void;
+  setReferenceData: (data: Map<string, ReferenceItem>) => void;
   computeForProduct: (product: string, params: {
     initialStock: number;
     threshold: number;
@@ -71,6 +82,8 @@ interface AnalysisContextType {
     threshold: number;
     deliveryDays: number;
     unitCost: number;
+    optimalOrder?: number;
+    minimalOrder?: number;
   }>) => void;
   retry: () => void;
 }
@@ -79,12 +92,15 @@ const AnalysisContext = createContext<AnalysisContextType | undefined>(undefined
 
 export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [referenceData, setReferenceData] = useState<Map<string, ReferenceItem>>(new Map());
   const [state, setState] = useState<AnalysisState>({
     selectedProduct: "",
     initialStock: 100,
     threshold: 100,
     deliveryDays: 10,
     unitCost: 1,
+    optimalOrder: undefined,
+    minimalOrder: undefined,
     result: null,
     actualData: [],
     loading: false,
@@ -165,18 +181,49 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     threshold: number;
     deliveryDays: number;
     unitCost: number;
+    optimalOrder?: number;
+    minimalOrder?: number;
   }>) => {
-    setState(prev => ({ ...prev, ...updates }));
-    
-    const product = updates.selectedProduct || state.selectedProduct;
-    if (product) {
+    if (updates.selectedProduct && Object.keys(updates).length === 1) {
+      const product = updates.selectedProduct;
+      
+      const refItem = referenceData.get(product);
+      
+      // УДАЛЕНА автоматическая установка из optimalOrder
       const newParams = {
-        initialStock: updates.initialStock ?? state.initialStock,
-        threshold: updates.threshold ?? state.threshold,
-        deliveryDays: updates.deliveryDays ?? state.deliveryDays,
-        unitCost: updates.unitCost ?? state.unitCost
+        initialStock: 100,           // ← Жестко заданные значения
+        threshold: 100,              // ← Жестко заданные значения
+        deliveryDays: refItem?.deliveryDays ?? 10,
+        unitCost: refItem?.unitCost ?? 1,
+        optimalOrder: refItem?.optimalOrder,
+        minimalOrder: refItem?.minimalOrder
       };
-      computeForProduct(product, newParams);
+      
+      setState(prev => ({ 
+        ...prev, 
+        selectedProduct: product,
+        ...newParams
+      }));
+      
+      computeForProduct(product, {
+        initialStock: newParams.initialStock,
+        threshold: newParams.threshold,
+        deliveryDays: newParams.deliveryDays,
+        unitCost: newParams.unitCost
+      });
+    } else {
+      setState(prev => ({ ...prev, ...updates }));
+      
+      const product = updates.selectedProduct || state.selectedProduct;
+      if (product) {
+        const newParams = {
+          initialStock: updates.initialStock ?? state.initialStock,
+          threshold: updates.threshold ?? state.threshold,
+          deliveryDays: updates.deliveryDays ?? state.deliveryDays,
+          unitCost: updates.unitCost ?? state.unitCost
+        };
+        computeForProduct(product, newParams);
+      }
     }
   };
 
@@ -191,7 +238,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Автоматический выбор первого продукта
   useEffect(() => {
     if (!state.selectedProduct && uploadedFiles.length > 0) {
       const firstProduct = uploadedFiles[0].data[0]?.nomenclature;
@@ -210,7 +256,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     <AnalysisContext.Provider value={{
       state,
       uploadedFiles,
+      referenceData,
       setUploadedFiles,
+      setReferenceData,
       computeForProduct,
       updateParameter,
       retry

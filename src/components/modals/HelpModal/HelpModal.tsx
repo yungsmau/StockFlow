@@ -46,10 +46,43 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
     }
   };
 
+  // НОВАЯ ФУНКЦИЯ для скачивания справочника
+  const downloadReferenceExample = async () => {
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Справочник');
+      sheet.columns = [
+        { header: 'Номенклатура', key: 'nomenclature', width: 25 },
+        { header: 'Минимальный объем закупа', key: 'minimalOrder', width: 20 },
+        { header: 'Оптимальный объем закупа', key: 'optimalOrder', width: 20 },
+        { header: 'Цена', key: 'unitCost', width: 15 },
+        { header: 'Период доставки', key: 'deliveryDays', width: 15 }
+      ];
+      sheet.addRows([
+        { nomenclature: 'Товар А', minimalOrder: 500, optimalOrder: 1000, unitCost: 12.50, deliveryDays: 5 },
+        { nomenclature: 'Товар Б', minimalOrder: 200, optimalOrder: 800, unitCost: 8.75, deliveryDays: 3 },
+        { nomenclature: 'Товар В', minimalOrder: 1000, optimalOrder: 2000, unitCost: 15.20, deliveryDays: 7 }
+      ]);
+      const buffer = await workbook.xlsx.writeBuffer();
+      const filePath = await (await import('@tauri-apps/plugin-dialog')).save({
+        filters: [{ name: 'Excel файл', extensions: ['xlsx'] }],
+        defaultPath: 'справочник_пример.xlsx'
+      });
+      if (filePath) {
+        await (await import('@tauri-apps/plugin-fs')).writeFile(filePath, new Uint8Array(buffer));
+      }
+    } catch (error) {
+      console.error('Ошибка при генерации справочника:', error);
+    }
+  };
+
   const renderContent = () => {
     switch (view) {
       case 'usage':
-        return <UsageGuide onDownloadExample={downloadExample} />;
+        return <UsageGuide 
+          onDownloadExample={downloadExample} 
+          onDownloadReferenceExample={downloadReferenceExample} // ← ПЕРЕДАЁМ НОВУЮ ФУНКЦИЮ
+        />;
       case 'parameters':
         return <ParametersGuide />;
       case 'menu':
@@ -92,8 +125,10 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
       className="help-modal"
       onBack={view !== 'menu' ? handleBack : undefined}
     >
-      <div className="help-modal__content">
-        {renderContent()}
+      <div className="help-modal__scrollable">
+        <div className="help-modal__content">
+          {renderContent()}
+        </div>
       </div>
     </Modal>
   );

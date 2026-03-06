@@ -12,6 +12,8 @@ const CREATE_TABLE_SQL = `
     efficiency REAL NOT NULL,
     avg_stock REAL NOT NULL,
     actual_avg_stock REAL NOT NULL,
+    stock_value REAL,
+    efficiency_abs REAL,
     processed_at TEXT DEFAULT CURRENT_TIMESTAMP
   )
 `;
@@ -27,6 +29,8 @@ export interface HistoryItem {
   efficiency: number;
   avg_stock: number;
   actual_avg_stock: number;
+  stock_value?: number;
+  efficiency_abs?: number;
   processed_at: string;
 }
 
@@ -41,6 +45,8 @@ export interface ExportHistoryItem {
   efficiency: number;
   avgStock: number;
   actualAvgStock: number;
+  stockValue?: number;
+  efficiencyAbs?: number;
   processedAt: string;
 }
 
@@ -55,6 +61,8 @@ export const dbToHistoryItem = (dbItem: HistoryItem): ExportHistoryItem => ({
   efficiency: dbItem.efficiency,
   avgStock: dbItem.avg_stock,
   actualAvgStock: dbItem.actual_avg_stock,
+  stockValue: dbItem.stock_value,
+  efficiencyAbs: dbItem.efficiency_abs,
   processedAt: dbItem.processed_at,
 });
 
@@ -75,14 +83,19 @@ export const saveHistoryItem = async (
   efficiency: number,
   avgStock: number,
   actualAvgStock: number,
+  minimalOrder?: number, // ← Эти параметры не сохраняются в историю
+  optimalOrder?: number, // ← Эти параметры не сохраняются в историю
+  stockValue?: number,
+  efficiencyAbs?: number,
 ): Promise<void> => {
   const db = await getDatabase();
 
   await db.execute(
     `INSERT INTO processed_items (
       product, initial_stock, threshold, delivery_days,
-      unit_cost, efficiency, avg_stock, actual_avg_stock
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      unit_cost, efficiency, avg_stock, actual_avg_stock,
+      stock_value, efficiency_abs
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     ON CONFLICT(product) DO UPDATE SET
       initial_stock = excluded.initial_stock,
       threshold = excluded.threshold,
@@ -91,6 +104,8 @@ export const saveHistoryItem = async (
       efficiency = excluded.efficiency,
       avg_stock = excluded.avg_stock,
       actual_avg_stock = excluded.actual_avg_stock,
+      stock_value = excluded.stock_value,
+      efficiency_abs = excluded.efficiency_abs,
       processed_at = CURRENT_TIMESTAMP`,
     [
       product,
@@ -101,6 +116,8 @@ export const saveHistoryItem = async (
       efficiency,
       avgStock,
       actualAvgStock,
+      stockValue,
+      efficiencyAbs,
     ],
   );
 };

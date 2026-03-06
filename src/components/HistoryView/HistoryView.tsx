@@ -130,13 +130,14 @@ export default function HistoryView({ onNavigateToAnalysis }: HistoryViewProps) 
                   <tr>
                     <th>Дата обработки</th>
                     <th>Номенклатура</th>
-                    <th>Поставка</th>
-                    <th>Порог</th>
-                    <th>Дней доставки</th>
-                    <th>Цена</th>
-                    <th>Эффективность</th>
-                    <th>Средний остаток (модель)</th>
-                    <th>Средний остаток (факт)</th>
+                    <th>Поставка, ед.</th>
+                    <th>Порог, ед.</th>
+                    <th>Цена, руб./ед.</th>
+                    <th>Срок поставки, дни</th>
+                    <th>Ср. днейвной остаток, ед.</th>
+                    <th>Стоимость остатка, руб.</th>
+                    <th>Эффективность, %</th>
+                    <th>Эффективность, руб.</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -150,15 +151,20 @@ export default function HistoryView({ onNavigateToAnalysis }: HistoryViewProps) 
                       <td>{item.product}</td>
                       <td>{formatNumber(item.initialStock)}</td>
                       <td>{formatNumber(item.threshold)}</td>
-                      <td>{formatNumber(item.deliveryDays)}</td>
                       <td>{formatCurrency(item.unitCost)}</td>
+                      <td>{formatNumber(item.deliveryDays)}</td>
+                      <td>{formatNumber(Math.round(item.avgStock))}</td>
+                      <td>{item.stockValue !== undefined ? formatCurrency(item.stockValue) : '-'}</td>
                       <td>
                         <span className={getEfficiencyClass(item.efficiency)}>
                           {item.efficiency.toFixed(1)}%
                         </span>
                       </td>
-                      <td>{formatNumber(Math.round(item.avgStock))}</td>
-                      <td>{formatNumber(Math.round(item.actualAvgStock))}</td>
+                      <td>
+                        <span className={getEfficiencyClass(item.efficiency)}>
+                          {item.efficiencyAbs !== undefined ? formatCurrency(item.efficiencyAbs) : '-'}
+                        </span> 
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -182,7 +188,10 @@ export default function HistoryView({ onNavigateToAnalysis }: HistoryViewProps) 
         <div className="history-confirm-overlay" onClick={handleCancelClear}>
           <div className="history-confirm-modal" onClick={(e) => e.stopPropagation()}>
             <h3>Подтвердите очистку</h3>
-            <p>Вы уверены, что хотите удалить всю историю обработки? Это действие нельзя отменить.</p>
+            <p>
+              <span>Вы уверены, что хотите удалить всю историю обработки?</span>
+              <span>Это действие нельзя отменить.</span>
+            </p>
             <div className="history-confirm-buttons">
               <button 
                 className="history-confirm-cancel" 

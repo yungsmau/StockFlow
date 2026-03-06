@@ -41,6 +41,8 @@ export default function FiltersPanel({ uploadedFiles }: FiltersPanelProps) {
           threshold={state.threshold}
           deliveryDays={state.deliveryDays}
           unitCost={state.unitCost}
+          optimalOrder={state.optimalOrder}
+          minimalOrder={state.minimalOrder}
           avgExpense={state.result?.avg_expense}
           recommendedThreshold={state.result?.recommended_threshold}
           onChange={handleModelChange}

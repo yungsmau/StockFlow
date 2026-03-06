@@ -242,7 +242,7 @@ export default function InventoryView() {
     <div className="inventory-view">
       <div className="inventory-header">
         <div className='inventory-header__description'>
-          <h2>Сводка по номенклатурам</h2>
+          <h2>Данные по номенклатурам</h2>
           <p>Обзор всех товаров с ключевыми показателями</p>
         </div>
         <div className="product-selector-container inventory-selector">
@@ -259,33 +259,33 @@ export default function InventoryView() {
           <table className="inventory-table">
             <thead>
               <tr>
-                <th className='inventory-table__header sortable-header'>
+                <th className='inventory-table__header'>
                   <span>#</span>
                 </th>
                 <th className='inventory-table__header'>
                   <span>Номенклатура</span>
                 </th>
                 <th onClick={() => handleSort('avgStock')} className="inventory-table__header sortable-header">
-                  <span>Средний остаток</span>
+                  <span>Ср. днейвной остаток, ед.</span>
                   <SortIcon direction={sortField === 'avgStock' ? sortDirection : 'none'} />
                 </th>
                 <th className='inventory-table__header'>
-                  <span>Стоимость остатка</span>
+                  <span>Стоимость остатка, руб.</span>
                 </th>
                 <th onClick={() => handleSort('deliveriesCount')} className="inventory-table__header sortable-header">
                   <span>Поставок</span>
                   <SortIcon direction={sortField === 'deliveriesCount' ? sortDirection : 'none'} />
                 </th>
-                <th onClick={() => handleSort('avgDeliveryInterval')} className="sortable-header">
-                  <span>Интервал поставок (дни)</span>
+                <th onClick={() => handleSort('avgDeliveryInterval')} className="inventory-table__header sortable-header">
+                  <span>Интервал поставок, дни</span>
                   <SortIcon direction={sortField === 'avgDeliveryInterval' ? sortDirection : 'none'} />
                 </th>
-                <th onClick={() => handleSort('totalIncome')} className="sortable-header">
-                  <span>Всего поступлений</span>
+                <th onClick={() => handleSort('totalIncome')} className="inventory-table__header sortable-header">
+                  <span>Всего поступлений, ед.</span>
                   <SortIcon direction={sortField === 'totalIncome' ? sortDirection : 'none'} />
                 </th>
-                <th onClick={() => handleSort('totalExpense')} className="sortable-header">
-                  <span>Всего расходов</span>
+                <th onClick={() => handleSort('totalExpense')} className="inventory-table__header sortable-header">
+                  <span>Всего расходов, ед.</span>
                   <SortIcon direction={sortField === 'totalExpense' ? sortDirection : 'none'} />
                 </th>
               </tr>

@@ -6,30 +6,43 @@ import type { ExportItem } from "../../App";
 import "./ExportView.css";
 import { formatNumber, formatCurrency } from '../../utils/formatNumber';
 
-async function exportToExcel(data: ExportItem[]): Promise<void> {
+interface ExtendedExportItem extends ExportItem {
+  minimalOrder?: number;
+  optimalOrder?: number;
+  stockValue?: number;
+  efficiencyAbs?: number;
+}
+
+async function exportToExcel(data: ExtendedExportItem[]): Promise<void> {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet('Результаты моделирования');
 
   sheet.columns = [
     { header: 'Номенклатура', key: 'product', width: 25 },
-    { header: 'Поставка', key: 'initialStock', width: 12 },
-    { header: 'Порог', key: 'threshold', width: 12 },
-    { header: 'Дней доставки', key: 'deliveryDays', width: 15 },
-    { header: 'Цена, руб/ед', key: 'unitCost', width: 15 },
-    { header: 'Эффективность, %', key: 'efficiency', width: 18 },
+    { header: 'Поставка, ед.', key: 'initialStock', width: 12 },
+    { header: 'Порог, ед.', key: 'threshold', width: 12 },
+    { header: 'Цена, руб./ед.', key: 'unitCost', width: 15 },
+    { header: 'Срок поставки, дни', key: 'deliveryDays', width: 18 },
+    { header: 'Минимальная объем, ед.', key: 'minimalOrder', width: 22 },
+    { header: 'Оптимальный объем, ед.', key: 'optimalOrder', width: 22 },
     { header: 'Средний остаток (модель)', key: 'avgStock', width: 25 },
-    { header: 'Средний остаток (факт)', key: 'actualAvgStock', width: 25 }
+    { header: 'Стоимость остатка', key: 'stockValue', width: 18 },
+    { header: 'Эффективность, %', key: 'efficiency', width: 18 },
+    { header: 'Эффективность, руб.', key: 'efficiencyAbs', width: 18 }
   ];
 
   const rows = data.map(item => ({
     product: item.product,
     initialStock: item.initialStock,
     threshold: item.threshold,
-    deliveryDays: item.deliveryDays,
     unitCost: item.unitCost,
-    efficiency: item.efficiency,
+    deliveryDays: item.deliveryDays,
+    minimalOrder: item.minimalOrder !== undefined ? item.minimalOrder : '-',
+    optimalOrder: item.optimalOrder !== undefined ? item.optimalOrder : '-',
     avgStock: Math.round(item.avgStock),
-    actualAvgStock: Math.round(item.actualAvgStock)
+    stockValue: item.stockValue !== undefined ? item.stockValue : '-',
+    efficiency: item.efficiency,
+    efficiencyAbs: item.efficiencyAbs !== undefined ? item.efficiencyAbs : '-'
   }));
 
   sheet.addRows(rows);
@@ -40,10 +53,19 @@ async function exportToExcel(data: ExportItem[]): Promise<void> {
     cell.alignment = { horizontal: 'center', vertical: 'middle' };
   });
 
+  // Форматирование числовых колонок
   sheet.getColumn('efficiency').numFmt = '0.0';
-  ['initialStock', 'threshold', 'deliveryDays', 'avgStock', 'actualAvgStock'].forEach(colKey => {
+  sheet.getColumn('efficiencyAbs').numFmt = '#,##0.00';
+  sheet.getColumn('stockValue').numFmt = '#,##0.00';
+  
+  ['initialStock', 'threshold', 'deliveryDays', 'avgStock'].forEach(colKey => {
     sheet.getColumn(colKey).numFmt = '#,##0';
   });
+  
+  ['minimalOrder', 'optimalOrder'].forEach(colKey => {
+    // Эти колонки могут содержать текст "-", поэтому не форматируем как числа
+  });
+  
   sheet.getColumn('unitCost').numFmt = '#,##0.00';
 
   const buffer = await workbook.xlsx.writeBuffer();
@@ -64,16 +86,19 @@ function escapeCsvValue(value: string): string {
   return value;
 }
 
-async function exportToCSV(data: ExportItem[]): Promise<void> {
+async function exportToCSV(data: ExtendedExportItem[]): Promise<void> {
   const headers = [
     'Номенклатура',
-    'Поставка',
-    'Порог',
-    'Дней доставки',
-    'Цена, руб/ед',
+    'Поставка, ед.',
+    'Порог, ед.',
+    'Цена, руб./ед.',
+    'Срок поставки, дни',
+    'Минимальная поставка, ед.',
+    'Оптимальная поставка, ед.',
+    'Ср. днейвной остаток, ед.',
+    'Стоимость остатка, руб.',
     'Эффективность, %',
-    'Средний остаток (модель)',
-    'Средний остаток (факт)'
+    'Эффективность, руб.'
   ].map(escapeCsvValue);
 
   const rows = data.map(item =>
@@ -81,11 +106,14 @@ async function exportToCSV(data: ExportItem[]): Promise<void> {
       escapeCsvValue(item.product),
       item.initialStock,
       item.threshold,
-      item.deliveryDays,
       item.unitCost.toFixed(2),
-      item.efficiency.toFixed(1),
+      item.deliveryDays,
+      item.minimalOrder !== undefined ? item.minimalOrder : '-',
+      item.optimalOrder !== undefined ? item.optimalOrder : '-',
       Math.round(item.avgStock),
-      Math.round(item.actualAvgStock)
+      item.stockValue !== undefined ? item.stockValue.toFixed(2) : '-',
+      item.efficiency.toFixed(1),
+      item.efficiencyAbs !== undefined ? item.efficiencyAbs.toFixed(2) : '-'
     ].join(',')
   );
 
@@ -109,14 +137,29 @@ interface ExportViewProps {
 export default function ExportView({ data, onClear, onRemoveItem }: ExportViewProps) {
   const [isHovered, setIsHovered] = useState(false);
 
+  const extendedData = data.map(item => {
+    const minimalOrder = (item as any).minimalOrder;
+    const optimalOrder = (item as any).optimalOrder;
+    const stockValue = (item as any).stockValue;
+    const efficiencyAbs = (item as any).efficiencyAbs;
+    
+    return {
+      ...item,
+      minimalOrder,
+      optimalOrder,
+      stockValue,
+      efficiencyAbs
+    } as ExtendedExportItem;
+  });
+
   const handleExport = async (format: 'xlsx' | 'csv') => {
     if (data.length === 0) return;
 
     try {
       if (format === 'xlsx') {
-        await exportToExcel(data);
+        await exportToExcel(extendedData);
       } else {
-        await exportToCSV(data);
+        await exportToCSV(extendedData);
       }
     } catch (error) {
       console.error(`Ошибка при экспорте в ${format}:`, error);
@@ -150,31 +193,41 @@ export default function ExportView({ data, onClear, onRemoveItem }: ExportViewPr
                 <thead>
                   <tr>
                     <th>Номенклатура</th>
-                    <th>Поставка</th>
-                    <th>Порог</th>
-                    <th>Дней доставки</th>
-                    <th>Цена</th>
-                    <th>Эффективность</th>
-                    <th>Средний остаток (модель)</th>
-                    <th>Средний остаток (факт)</th>
+                    <th>Поставка, ед.</th>
+                    <th>Порог, ед.</th>
+                    <th>Цена, руб./ед.</th>
+                    <th>Срок поставки, дни</th>
+                    <th>Минимальная поставка, ед.</th>
+                    <th>Оптимальная поставка, ед.</th>
+                    <th>Ср. днейвной остаток, ед.</th>
+                    <th>Стоимость остатка, руб.</th>
+                    <th>Эффективность, %</th>
+                    <th>Эффективность, руб.</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.map((item, index) => (
+                  {extendedData.map((item, index) => (
                     <tr key={index}>
                       <td>{item.product}</td>
                       <td>{formatNumber(item.initialStock)}</td>
                       <td>{formatNumber(item.threshold)}</td>
-                      <td>{formatNumber(item.deliveryDays)}</td>
                       <td>{formatCurrency(item.unitCost)}</td>
+                      <td>{formatNumber(item.deliveryDays)}</td>
+                      <td>{item.minimalOrder !== undefined ? formatNumber(item.minimalOrder) : '-'}</td>
+                      <td>{item.optimalOrder !== undefined ? formatNumber(item.optimalOrder) : '-'}</td>
+                      <td>{formatNumber(Math.round(item.avgStock))}</td>
+                      <td>{item.stockValue !== undefined ? formatCurrency(item.stockValue) : '-'}</td>
                       <td>
                         <span className={getEfficiencyClass(item.efficiency)}>
                           {item.efficiency.toFixed(1)}%
                         </span>
                       </td>
-                      <td>{formatNumber(Math.round(item.avgStock))}</td>
-                      <td>{formatNumber(Math.round(item.actualAvgStock))}</td>
+                      <td>
+                        <span className={getEfficiencyClass(item.efficiency)}>
+                          {item.efficiencyAbs !== undefined ? formatCurrency(item.efficiencyAbs) : '-'}
+                        </span>
+                      </td>
                       <td>
                         <button 
                           className="export-table-delete-btn"

@@ -22,6 +22,10 @@ interface ExportItem {
   efficiency: number;
   avgStock: number;
   actualAvgStock: number;
+  minimalOrder?: number;
+  optimalOrder?: number;
+  stockValue?: number;
+  efficiencyAbs?: number;
 }
 
 interface RowData {
@@ -53,12 +57,14 @@ export default function AnalysisView({
   uploadedFiles,
   onAddToExport,
 }: AnalysisViewProps) {
-  const { state, retry } = useAnalysis();
+  const { state, retry, referenceData } = useAnalysis();
   const [chartMode, setChartMode] = useState<'comparison' | 'actual' | 'simulation'>('comparison');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const handleAddToExport = async () => {
     if (state.result && state.selectedProduct) {
+      const refItem = referenceData.get(state.selectedProduct);
+      
       const exportItem: ExportItem = {
         product: state.selectedProduct,
         initialStock: state.initialStock,
@@ -68,9 +74,12 @@ export default function AnalysisView({
         efficiency: state.result.efficiency,
         avgStock: state.result.avg_stock,
         actualAvgStock: state.result.actual_avg_stock,
+        minimalOrder: refItem?.minimalOrder,
+        optimalOrder: refItem?.optimalOrder,
+        stockValue: state.result.total_price,
+        efficiencyAbs: state.result.efficiency_abs
       };
 
-      // Сохраняем в историю через сервис
       try {
         await saveHistoryItem(
           exportItem.product,
@@ -80,7 +89,11 @@ export default function AnalysisView({
           exportItem.unitCost,
           exportItem.efficiency,
           exportItem.avgStock,
-          exportItem.actualAvgStock
+          exportItem.actualAvgStock,
+          undefined, // minimalOrder
+          undefined, // optimalOrder  
+          exportItem.stockValue,
+          exportItem.efficiencyAbs
         );
       } catch (error) {
         console.error('Failed to save to history:', error);

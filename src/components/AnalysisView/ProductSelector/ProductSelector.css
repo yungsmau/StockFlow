@@ -110,3 +110,7 @@
 [data-theme="dark"] .product-select__dropdown-indicator {
   color: var(--text-secondary);
 }
+
+.product-select__input-container {
+  color: var(--text-primary) !important;
+}
