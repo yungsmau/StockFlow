@@ -1,9 +1,9 @@
 import { useMemo, useEffect, useRef, useState } from 'react';
 import { useAnalysis } from '../../context/AnalysisContext';
 import { formatNumber } from '../../utils/formatNumber';
-import './InventoryView.css';
 import ProductSelector from '../AnalysisView/ProductSelector/ProductSelector';
 import { loadHistoryItems } from '../../utils/historyService';
+import './InventoryView.css';
 
 interface InventoryItem {
   product: string;
@@ -15,10 +15,13 @@ interface InventoryItem {
   totalExpense: number;
 }
 
+interface InventoryViewProps {
+  onNavigateToAnalysis?: (product: string) => void;
+}
+
 type SortField = 'avgStock' | 'stockValue' | 'deliveriesCount' | 'avgDeliveryInterval' | 'totalIncome' | 'totalExpense' | null;
 type SortDirection = 'asc' | 'desc';
 
-// SVG иконки
 const SortIcon = ({ direction }: { direction: 'asc' | 'desc' | 'none' }) => {
   if (direction === 'none') {
     return (
@@ -48,18 +51,20 @@ const SortIcon = ({ direction }: { direction: 'asc' | 'desc' | 'none' }) => {
   );
 };
 
-export default function InventoryView() {
-  const { uploadedFiles, state, updateParameter } = useAnalysis();
+export default function InventoryView({ onNavigateToAnalysis }: InventoryViewProps ) {
+  const { uploadedFiles, state, updateParameter, referenceData } = useAnalysis();
   const tableWrapperRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef<Map<string, HTMLTableRowElement>>(new Map());
   const [shouldScroll, setShouldScroll] = useState(false);
   const [processedProducts, setProcessedProducts] = useState<Set<string>>(new Set());
   
-  // Состояние сортировки
   const [sortField, setSortField] = useState<SortField>('avgStock');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
-  // Загружаем список обработанных номенклатур
+  const handleRowDoubleClick = (product: string) => {
+    onNavigateToAnalysis?.(product);
+  };  
+
   useEffect(() => {
     const loadProcessedProducts = async () => {
       try {
@@ -77,11 +82,9 @@ export default function InventoryView() {
     }
   }, [uploadedFiles]);
 
-  // Рассчитываем показатели для всех номенклатур
   const inventoryData = useMemo(() => {
     if (uploadedFiles.length === 0) return [];
 
-    // Собираем все уникальные номенклатуры
     const products = new Set<string>();
     const productData: Map<string, {
       stocks: number[];
@@ -90,7 +93,6 @@ export default function InventoryView() {
       dates: string[];
     }> = new Map();
 
-    // Агрегируем данные по номенклатурам
     uploadedFiles.forEach(file => {
       file.data.forEach(row => {
         if (!products.has(row.nomenclature)) {
@@ -111,22 +113,22 @@ export default function InventoryView() {
       });
     });
 
-    // Рассчитываем показатели для каждой номенклатуры
     const items: InventoryItem[] = [];
     
     for (const product of products) {
       const data = productData.get(product)!;
       
-      // Средний остаток
       const avgStock = data.stocks.reduce((a, b) => a + b, 0) / data.stocks.length;
       
-      // Общее количество поставок
+      const refItem = referenceData.get(product);
+      const unitCost = refItem?.unitCost ?? 0;
+      
+      const stockValue = unitCost > 0 ? avgStock * unitCost : 0;
+      
       const deliveriesCount = data.incomes.filter(income => income > 0).length;
       
-      // Средний интервал между поставками (в днях)
       let avgDeliveryInterval = 0;
       if (deliveriesCount > 1) {
-        // Сортируем даты и считаем интервалы между поставками
         const deliveryDates = data.dates
           .filter((_, idx) => data.incomes[idx] > 0)
           .sort();
@@ -144,14 +146,13 @@ export default function InventoryView() {
         }
       }
       
-      // Общие суммы
       const totalIncome = data.incomes.reduce((a, b) => a + b, 0);
       const totalExpense = data.expenses.reduce((a, b) => a + b, 0);
       
       items.push({
         product,
         avgStock,
-        stockValue: 0,
+        stockValue,
         deliveriesCount,
         avgDeliveryInterval,
         totalIncome,
@@ -159,7 +160,6 @@ export default function InventoryView() {
       });
     }
     
-    // Сортируем согласно текущему состоянию
     if (sortField) {
       return items.sort((a, b) => {
         const aValue = a[sortField];
@@ -176,11 +176,9 @@ export default function InventoryView() {
       });
     }
     
-    // По умолчанию сортируем по среднему остатку по убыванию
     return items.sort((a, b) => b.avgStock - a.avgStock);
-  }, [uploadedFiles, sortField, sortDirection]);
+  }, [uploadedFiles, referenceData, sortField, sortDirection]);
 
-  // Автопрокрутка только при выборе номенклатуры
   useEffect(() => {
     if (shouldScroll && state.selectedProduct && tableWrapperRef.current) {
       const rowElement = rowRefs.current.get(state.selectedProduct);
@@ -226,13 +224,10 @@ export default function InventoryView() {
     updateParameter({ selectedProduct: product });
   };
 
-  // Обработка клика по заголовку колонки
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      // Меняем направление сортировки
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      // Новая колонка - сортируем по убыванию
       setSortField(field);
       setSortDirection('desc');
     }
@@ -242,7 +237,7 @@ export default function InventoryView() {
     <div className="inventory-view">
       <div className="inventory-header">
         <div className='inventory-header__description'>
-          <h2>Данные по номенклатурам</h2>
+          <h2>Номенклатурам</h2>
           <p>Обзор всех товаров с ключевыми показателями</p>
         </div>
         <div className="product-selector-container inventory-selector">
@@ -266,11 +261,12 @@ export default function InventoryView() {
                   <span>Номенклатура</span>
                 </th>
                 <th onClick={() => handleSort('avgStock')} className="inventory-table__header sortable-header">
-                  <span>Ср. днейвной остаток, ед.</span>
+                  <span>Ср. дневной остаток, ед.</span>
                   <SortIcon direction={sortField === 'avgStock' ? sortDirection : 'none'} />
                 </th>
-                <th className='inventory-table__header'>
-                  <span>Стоимость остатка, руб.</span>
+                <th onClick={() => handleSort('stockValue')} className="inventory-table__header sortable-header">
+                  <span>Ср. дневной остаток, руб.</span>
+                  <SortIcon direction={sortField === 'stockValue' ? sortDirection : 'none'} />
                 </th>
                 <th onClick={() => handleSort('deliveriesCount')} className="inventory-table__header sortable-header">
                   <span>Поставок</span>
@@ -281,11 +277,11 @@ export default function InventoryView() {
                   <SortIcon direction={sortField === 'avgDeliveryInterval' ? sortDirection : 'none'} />
                 </th>
                 <th onClick={() => handleSort('totalIncome')} className="inventory-table__header sortable-header">
-                  <span>Всего поступлений, ед.</span>
+                  <span>Всего приход, ед.</span>
                   <SortIcon direction={sortField === 'totalIncome' ? sortDirection : 'none'} />
                 </th>
                 <th onClick={() => handleSort('totalExpense')} className="inventory-table__header sortable-header">
-                  <span>Всего расходов, ед.</span>
+                  <span>Всего расход, ед.</span>
                   <SortIcon direction={sortField === 'totalExpense' ? sortDirection : 'none'} />
                 </th>
               </tr>
@@ -304,7 +300,9 @@ export default function InventoryView() {
                     ${processedProducts.has(item.product) ? 'processed-row' : ''}
                   `.trim()}
                   onClick={() => handleRowClick(item.product)}
+                  onDoubleClick={() => handleRowDoubleClick(item.product)}
                   style={{ cursor: 'pointer' }}
+                  title="Клик → Выбор | Двойной клик → Анализ"
                 >
                   <td>{index + 1}</td>
                   <td>{item.product}</td>

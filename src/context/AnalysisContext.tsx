@@ -189,10 +189,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       
       const refItem = referenceData.get(product);
       
-      // УДАЛЕНА автоматическая установка из optimalOrder
       const newParams = {
-        initialStock: 100,           // ← Жестко заданные значения
-        threshold: 100,              // ← Жестко заданные значения
+        initialStock: 100,
+        threshold: 100,
         deliveryDays: refItem?.deliveryDays ?? 10,
         unitCost: refItem?.unitCost ?? 1,
         optimalOrder: refItem?.optimalOrder,

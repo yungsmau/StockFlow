@@ -8,7 +8,7 @@
 .inventory-header {
   display: flex;
   gap: 24px;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 10px;
 }
 
@@ -256,4 +256,12 @@
   width: 12px;
   height: 12px;
   vertical-align: middle;
+}
+
+.inventory-table {
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  -webkit-touch-callout: none;
 }

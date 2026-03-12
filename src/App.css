@@ -131,8 +131,8 @@ body {
   justify-content: center;
   align-items: center;
   padding: 10px 24px;
-  background-color: var(--header-bg);
-  border-bottom: 1px solid var(--header-border);
+  /* background-color: var(--header-bg);
+  border-bottom: 1px solid var(--header-border); */
 }
 
 .app-main {
@@ -224,7 +224,7 @@ body {
   }
   
   .main-navigation button {
-    padding: 8px 12px;
+    padding: 8px 18px;
     font-size: 12px;
   }
 }

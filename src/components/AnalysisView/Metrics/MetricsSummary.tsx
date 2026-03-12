@@ -40,12 +40,12 @@ const createMetricsData = (data: ComputeResponse): Record<string, MetricItem[]> 
     actual: [
       { 
         value: formatNumber(parseFloat(data.actual_avg_stock.toFixed(0))), 
-        label: "Ср днейвной остаток, ед.", 
+        label: "Ср. дневной остаток, ед.", 
         type: "actual" 
       },
       { 
         value: `${formatCurrency(data.actual_total_price)} ₽`, 
-        label: "Стоимость остатка, руб.", 
+        label: "Ср. дневной остаток, руб.", 
         type: "actual" 
       },
       { 
@@ -67,7 +67,7 @@ const createMetricsData = (data: ComputeResponse): Record<string, MetricItem[]> 
       },
       { 
         value: `${formatCurrency(data.total_price)} ₽`, 
-        label: "Стоимость остатка, руб.", 
+        label: "Ср. дневной остаток, руб.", 
         type: "simulation" 
       },
       { 

@@ -24,6 +24,10 @@
   z-index: 1;
 }
 
+.about-modal__image-button {
+  z-index: 20;
+}
+
 .about-modal__image {
   width: 70px;
   height: 70px;
@@ -61,7 +65,41 @@
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.5;
-  padding: 0 12px;
+  padding: 0 12px 10px;
+}
+
+.about-modal__links {
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--text-secondary);
+}
+
+.about-modal__link {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.about-modal__link path {
+  stroke: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.about-modal__link:hover {
+  color: var(--text-primary);
+}
+
+.about-modal__link:hover path {
+  stroke: var(--text-primary);
+}
+
+.about-modal__link svg {
+  width: 10px;
+  height: 10px;
 }
 
 /* Футер */

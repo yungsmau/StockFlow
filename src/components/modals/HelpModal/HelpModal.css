@@ -25,6 +25,7 @@
   font-size: 12px;
   font-weight: 300;
   line-height: 1.4;
+  color: var(--text-secondary);
 }
 
 .help-modal__instructions li {
@@ -178,7 +179,8 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
   color: var(--text-primary);
-  font-weight: 300;
+  font-weight: 200;
+  font-size: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -205,7 +207,6 @@
 .help-modal__menu-btn:hover {
   background: rgba(100, 149, 237, 0.35);
   border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(100, 149, 237, 0.25);
 }
 
@@ -215,7 +216,8 @@
 
 .help-modal__param {
   margin-bottom: 3px;
-  padding: 5px;
+  padding: 10px 5px;
+  border-top: 1px solid var(--text-secondary);
 }
 
 .help-modal__param-title {
@@ -227,6 +229,7 @@
   font-size: 12px;
   line-height: 1.4;
   font-weight: 300;
+  color: var(--text-secondary);
 }
 
 .help-modal .modal-header {
@@ -274,5 +277,3 @@
   font-size: 0.9rem;
   line-height: 1.5;
 }
-
-/* ... остальные стили ... */

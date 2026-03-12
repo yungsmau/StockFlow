@@ -17,6 +17,21 @@
     "sql:default",
     "sql:default",
     "sql:allow-execute",
-    "sql:allow-select"
+    "sql:allow-select",
+    "opener:default",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        {
+          "url": "https://github.com/yungsmau/StockFlow"
+        },
+        {
+          "url": "https://github.com/yungsmau/StockFlow/releases"
+        },
+        {
+          "url": "https://github.com/yungsmau/StockFlow/issues"
+        }
+      ]
+    }
   ]
 }

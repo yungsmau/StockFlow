@@ -1,8 +1,27 @@
+/* === Основной контейнер === */
 .history-view {
   padding: 24px;
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+/* === Заголовок с поиском === */
+.history-header {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.history-header__title {
+  width: 20%;
+  min-width: 0;
+}
+
+.history-selector {
+  width: 60%;
+  min-width: 0;
 }
 
 .history-header h2 {
@@ -14,12 +33,48 @@
 
 .history-header p {
   margin: 0;
-  margin-bottom: 16px;
   color: var(--text-secondary);
   font-size: 14px;
   font-weight: 200;
 }
 
+/* Действия в режиме редактирования */
+.history-edit-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.history-action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.history-delete-btn {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.history-export-btn {
+  background-color: #4ecdc4;
+  color: white;
+}
+
+.history-cancel-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.history-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* === Пустое состояние === */
 .history-empty {
   text-align: center;
   padding: 40px;
@@ -40,6 +95,7 @@
   cursor: pointer;
 }
 
+/* === Таблица === */
 .history-table-container {
   overflow-x: auto;
   margin-bottom: 24px;
@@ -51,7 +107,6 @@
   height: 100%;
   overflow-y: auto;
   border-radius: 8px;
-  
   scrollbar-width: thin;
   scrollbar-color: var(--button-bg) var(--bg-secondary);
 }
@@ -78,6 +133,11 @@
   width: 100%;
   border-collapse: collapse;
   background: var(--bg-secondary);
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .history-table th,
@@ -116,34 +176,20 @@
   border-bottom: none;
 }
 
-.history-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-top: auto;
+/* Чекбоксы */
+.history-table__checkbox-header,
+.history-table__checkbox-cell {
+  width: 40px;
+  text-align: center;
 }
 
-.clear-history-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
+.history-table__checkbox-header input,
+.history-table__checkbox-cell input {
+  transform: scale(1.2);
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  background: #dc3545;
-  color: white;
 }
 
-.clear-history-btn:hover {
-  opacity: 0.9;
-}
-
-.clear-history-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Эффективность */
+/* === Эффективность === */
 .efficiency-positive {
   color: #4caf50;
 }
@@ -152,7 +198,72 @@
   color: #f44336;
 }
 
-/* Модальное окно подтверждения */
+/* === Стили для селектора (переиспользуем из InventoryView) === */
+.product-search-card {
+  padding: 0;
+}
+
+.product-select__control {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  min-height: 36px;
+}
+
+.product-select__control--is-focused {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.product-select__value-container {
+  padding: 4px 12px;
+}
+
+.product-select__indicators {
+  padding-right: 8px;
+}
+
+.product-select__indicator-separator {
+  display: none;
+}
+
+.product-select__menu {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  margin-top: 4px;
+  z-index: 100;
+}
+
+.product-select__menu-list {
+  padding: 4px 0;
+}
+
+.product-select__option {
+  padding: 8px 12px;
+  color: var(--text-primary);
+}
+
+.product-select__option--is-selected {
+  background: rgba(74, 144, 226, 0.15);
+  color: var(--text-primary);
+}
+
+.product-select__option--is-focused {
+  background: rgba(74, 144, 226, 0.1);
+}
+
+/* Тёмная тема для селектора */
+[data-theme="dark"] .product-select__control {
+  background: var(--bg-primary);
+}
+
+[data-theme="dark"] .product-select__menu {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+/* === Модальные окна === */
 .history-confirm-overlay {
   position: fixed;
   top: 0;
@@ -192,6 +303,7 @@
   font-weight: 200;
 }
 
+/* Кнопки подтверждения */
 .history-confirm-buttons {
   display: flex;
   gap: 12px;
@@ -233,14 +345,67 @@
   cursor: not-allowed;
 }
 
-/* Тёмная тема */
-[data-theme="dark"] .history-confirm-modal {
-  border-color: #444;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+/* Модальное окно экспорта */
+.history-export-options {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
 }
 
-/* Адаптивность */
+.history-export-option {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #4A90E2;
+  border-radius: 8px;
+  background: rgba(74, 144, 226, 0.1);
+  color: var(--text-primary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.history-export-option:hover {
+  background: rgba(74, 144, 226, 0.2);
+  transform: translateY(-2px);
+}
+
+.history-export-xlsx {
+  border-color: #217346;
+  background: rgba(33, 115, 70, 0.1);
+}
+
+.history-export-xlsx:hover {
+  background: rgba(33, 115, 70, 0.2);
+}
+
+.history-export-cancel {
+  width: 100%;
+  padding: 8px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+/* === Адаптивность === */
 @media (max-width: 768px) {
+  .history-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .history-header__title,
+  .history-selector {
+    width: 100%;
+  }
+  
+  .history-edit-actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
   .history-table {
     font-size: 12px;
   }
@@ -258,5 +423,92 @@
   .history-confirm-cancel,
   .history-confirm-confirm {
     width: 100%;
+  }
+}
+
+/* Темная тема для модального окна */
+[data-theme="dark"] .history-confirm-modal {
+  border-color: #444;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Кнопка "Изменить" */
+.history-edit-btn {
+  display: flex;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.history-actions-container {
+  margin-left: auto;
+}
+
+/* Светлая тема — мягкий акцент */
+.history-edit-btn {
+  background: linear-gradient(
+    135deg,
+    rgba(100, 149, 237, 0.2),
+    rgba(74, 144, 226, 0.15)
+  );
+}
+
+/* Тёмная тема — более насыщенный акцент */
+[data-theme="dark"] .history-edit-btn {
+  background: linear-gradient(
+    135deg,
+    rgba(100, 149, 237, 0.25),
+    rgba(74, 144, 226, 0.2)
+  );
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.history-edit-btn svg {
+  height: 14px;
+  width: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.history-edit-btn path {
+  stroke: var(--text-primary);
+}
+
+.history-edit-btn:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(
+    135deg,
+    rgba(100, 149, 237, 0.3),
+    rgba(74, 144, 226, 0.25)
+  );
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Фолбэк без backdrop-filter */
+@supports not (backdrop-filter: blur(12px)) {
+  .history-edit-btn {
+    background: rgba(100, 149, 237, 0.2);
+    backdrop-filter: none;
+  }
+
+  [data-theme="dark"] .history-edit-btn {
+    background: rgba(100, 149, 237, 0.25);
   }
 }

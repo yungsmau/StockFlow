@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { readTextFile, readFile } from '@tauri-apps/plugin-fs';
 
 import UploadArea from './UploadArea';
@@ -27,7 +27,11 @@ interface FileUploadSectionProps {
   uploadedFiles: { name: string; format: string }[];
   uploadedReferenceFiles: { name: string; format: string }[];
   onFileAdd: (file: { name: string; format: string; data: RowData[] }) => void;
-  onReferenceDataAdd: (data: Map<string, ReferenceItem>) => void;
+  onReferenceDataAdd: (
+    data: Map<string, ReferenceItem>,
+    fileName: string,
+    format: string
+  ) => void;
   onRemoveFile: (index: number) => void;
   onRemoveReferenceFile: (index: number) => void;
   onCancelAll: () => void;
@@ -39,8 +43,7 @@ const MAX_FILES = 5;
 const isReferenceFile = (fileName: string): boolean => {
   const lowerName = fileName.toLowerCase();
   return lowerName.includes('справочник') || 
-         lowerName.includes('reference') || 
-         lowerName.includes('справочник');
+         lowerName.includes('reference');
 };
 
 export default function FileUploadSection({
@@ -56,6 +59,25 @@ export default function FileUploadSection({
 }: FileUploadSectionProps) {
   const [processing, setProcessing] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
+  
+  // Сохраняем предыдущее количество файлов для сравнения
+  const [prevFilesCount, setPrevFilesCount] = useState(0);
+
+  // Сбрасываем ошибку ТОЛЬКО при реальном изменении количества файлов
+  useEffect(() => {
+    const currentCount = uploadedFiles.length + uploadedReferenceFiles.length;
+    
+    // Если количество файлов изменилось (добавление/удаление)
+    if (currentCount !== prevFilesCount && fileError) {
+      setFileError(null);
+      setPrevFilesCount(currentCount);
+    }
+    
+    // Инициализация
+    if (prevFilesCount === 0) {
+      setPrevFilesCount(currentCount);
+    }
+  }, [uploadedFiles, uploadedReferenceFiles, fileError, prevFilesCount]);
 
   const getFileFormat = (fileName: string): string => {
     const ext = fileName.split('.').pop()?.toLowerCase() || '';
@@ -70,18 +92,20 @@ export default function FileUploadSection({
   const handleFilePath = async (filePaths: string[]) => {
     if (isBlocked || processing) return;
 
+    // НЕ сбрасываем ошибку здесь — пусть показывается
+
     if (uploadedFiles.length + uploadedReferenceFiles.length + filePaths.length > MAX_FILES) {
       setFileError(`Можно загрузить не более ${MAX_FILES} файлов`);
       return;
     }
 
     setProcessing(true);
-    setFileError(null);
 
     try {
       for (const filePath of filePaths) {
         const fileName = filePath.split('/').pop() || 'файл';
 
+        // Проверяем, загружен ли файл уже
         if (uploadedFiles.some((f) => f.name === fileName) || 
             uploadedReferenceFiles.some((f) => f.name === fileName)) {
           setFileError(`Файл "${fileName}" уже загружен`);
@@ -108,7 +132,8 @@ export default function FileUploadSection({
             referenceData = await parseReferenceExcel(file);
           }
           
-          onReferenceDataAdd(referenceData);
+          // ← ИЗМЕНЕНО: передаём имя и формат файла
+          onReferenceDataAdd(referenceData, fileName, getFileFormat(fileName));
         } else {
           let data: RowData[];
           if (filePath.toLowerCase().endsWith('.csv')) {
@@ -215,22 +240,24 @@ export default function FileUploadSection({
           </>
         )}
         
-        {/* Остальной контент показывается только когда НЕ загружаем */}
+        {/* Основной контент */}
         {!processing && (
           <>
-            {allFiles.length > 0 ? (
-              <FileList
-                files={allFiles}
-                onRemove={handleRemove}
-                onFileSelect={handleSelectClick}
-                onAnalyzeClick={onAnalyzeClick}
-                onCancelAll={onCancelAll}
-                isBlocked={isBlocked}
-                processing={processing}
-                maxFilesReached={maxFilesReached}
-                hasDataFiles={hasDataFiles}
-              />
-            ) : (
+            {/* FileList показывается ВСЕГДА — блоки "Справочник/Данные" всегда видны */}
+            <FileList
+              files={allFiles}
+              onRemove={handleRemove}
+              onFileSelect={handleSelectClick}
+              onAnalyzeClick={onAnalyzeClick}
+              onCancelAll={onCancelAll}
+              isBlocked={isBlocked}
+              processing={processing}
+              maxFilesReached={maxFilesReached}
+              hasDataFiles={hasDataFiles}
+            />
+            
+            {/* UploadPlaceholder показывается ТОЛЬКО когда нет файлов */}
+            {allFiles.length === 0 && (
               <UploadPlaceholder
                 isBlocked={isBlocked}
                 onFileSelect={handleSelectClick}

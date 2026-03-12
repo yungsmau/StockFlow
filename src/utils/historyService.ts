@@ -156,8 +156,7 @@ export const getLastProcessed = async (
   return dbToHistoryItem(rows[0]);
 };
 
-// Удаление записи по номенклатуре
-export const deleteHistoryItem = async (product: string): Promise<void> => {
+export const deleteHistoryItemById = async (id: number): Promise<void> => {
   const db = await getDatabase();
-  await db.execute("DELETE FROM processed_items WHERE product = $1", [product]);
+  await db.execute("DELETE FROM processed_items WHERE id = $1", [id]);
 };

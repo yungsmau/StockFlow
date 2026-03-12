@@ -27,7 +27,7 @@ export default function FiltersPanel({ uploadedFiles }: FiltersPanelProps) {
 
   return (
     <div className="filters-panel-grid">
-      <div className="product-selector-container">
+      <div className="product-selector-container panel-selector">
         <ProductSelector
           uploadedFiles={uploadedFiles}
           selectedProduct={state.selectedProduct}

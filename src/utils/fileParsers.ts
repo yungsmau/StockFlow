@@ -14,7 +14,7 @@ export type ReferenceItem = {
   deliveryDays?: number;
   unitCost?: number;
   optimalOrder?: number;
-  minimalOrder?: number; // ← ДОБАВЛЕНО
+  minimalOrder?: number;
 };
 
 function toStringSafe(value: any): string {
@@ -256,7 +256,6 @@ export async function parseReferenceExcel(
   const headerMap = validation.headerMap;
   const normalizedHeaders = headers.map((h) => h.trim().toLowerCase());
 
-  // Создаем индексы для каждой колонки
   const indices: Record<string, number> = {};
   Object.keys(headerMap).forEach((originalHeader) => {
     const field = headerMap[originalHeader];
@@ -378,7 +377,6 @@ export async function parseReferenceCSV(
             }
 
             const minimalOrderKey = Object.keys(headerMap).find(
-              // ← ДОБАВЛЕНО
               (k) => headerMap[k] === "minimalOrder",
             );
             if (minimalOrderKey && row[minimalOrderKey]) {

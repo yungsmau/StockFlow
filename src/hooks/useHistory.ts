@@ -23,10 +23,8 @@ export function useHistory() {
   useEffect(() => {
     const initDb = async () => {
       try {
-        // Загружаем БД (миграции применяются автоматически)
         dbInstance = await Database.load("sqlite:stockflow.db");
 
-        // Загружаем все записи
         const rows = await dbInstance.select(
           "SELECT * FROM processed_items ORDER BY processed_at DESC",
         );
@@ -62,7 +60,6 @@ export function useHistory() {
         ],
       );
 
-      // Обновляем список
       const rows = await dbInstance.select(
         "SELECT * FROM processed_items ORDER BY processed_at DESC",
       );

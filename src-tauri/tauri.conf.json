@@ -43,6 +43,9 @@
     "fs": {
       "requireLiteralLeadingDot": true
     },
+    "shell": {
+      "open": true
+    },
     "sql": {
       "migrationsPath": "../migrations",
       "preload": [

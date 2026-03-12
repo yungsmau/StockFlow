@@ -1,4 +1,4 @@
-import { open } from '@tauri-apps/plugin-shell';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import Modal from '../Modal';
 import '../Modal.css'
 import './NotificationModal.css'
@@ -49,7 +49,13 @@ export default function NotificationsModal({
           )}
           <button
             className="notifications-modal__update-link"
-            onClick={() => open(updateNotification.downloadUrl.trim())}
+            onClick={async () => {
+              try {
+                await openUrl(updateNotification.downloadUrl.trim());
+              } catch (err) {
+                alert('Не удалось открыть страницу репозитория');
+              }
+            }}
           >
             Скачать обновление
           </button>

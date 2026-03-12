@@ -76,7 +76,6 @@ export default function ParameterField({
     onConfirm(String(formatted));
   };
 
-  // Обработчик сброса
   const handleReset = () => {
     if (onResetToDefault) {
       onResetToDefault();

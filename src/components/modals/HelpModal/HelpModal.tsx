@@ -46,7 +46,6 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
     }
   };
 
-  // НОВАЯ ФУНКЦИЯ для скачивания справочника
   const downloadReferenceExample = async () => {
     try {
       const workbook = new ExcelJS.Workbook();
@@ -81,7 +80,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
       case 'usage':
         return <UsageGuide 
           onDownloadExample={downloadExample} 
-          onDownloadReferenceExample={downloadReferenceExample} // ← ПЕРЕДАЁМ НОВУЮ ФУНКЦИЮ
+          onDownloadReferenceExample={downloadReferenceExample}
         />;
       case 'parameters':
         return <ParametersGuide />;
