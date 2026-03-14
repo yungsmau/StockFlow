@@ -8,76 +8,69 @@ import UploadPlaceholder from './UploadPlaceholder';
 import './FileUploadButtons.css';
 import './FileUploadField.css';
 
-interface RowData {
-  nomenclature: string;
-  date: string;
-  income: number;
-  expense: number;
-  stock: number;
-}
-
-interface ReferenceItem {
-  deliveryDays?: number;
-  unitCost?: number;
-  optimalOrder?: number;
-}
+import type { RowData, ReferenceItem, HistoryItem } from '../../utils/fileParsers';
+import {
+  parseCSV,
+  parseExcel,
+  parseReferenceCSV,
+  parseReferenceExcel,
+  parseHistoryCSV,
+  parseHistoryExcel,
+  detectFileType,
+} from '../../utils/fileParsers';
 
 interface FileUploadSectionProps {
   isBlocked?: boolean;
   uploadedFiles: { name: string; format: string }[];
   uploadedReferenceFiles: { name: string; format: string }[];
+  uploadedHistoryFiles: { name: string; format: string }[];
   onFileAdd: (file: { name: string; format: string; data: RowData[] }) => void;
   onReferenceDataAdd: (
     data: Map<string, ReferenceItem>,
     fileName: string,
     format: string
   ) => void;
+  onHistoryDataAdd: (data: HistoryItem[], fileName: string, format: string) => void;
   onRemoveFile: (index: number) => void;
   onRemoveReferenceFile: (index: number) => void;
+  onRemoveHistoryFile: (index: number) => void;
   onCancelAll: () => void;
   onAnalyzeClick?: () => void;
 }
 
 const MAX_FILES = 5;
 
-const isReferenceFile = (fileName: string): boolean => {
-  const lowerName = fileName.toLowerCase();
-  return lowerName.includes('справочник') || 
-         lowerName.includes('reference');
-};
-
 export default function FileUploadSection({
   isBlocked = false,
   uploadedFiles,
   uploadedReferenceFiles,
+  uploadedHistoryFiles,
   onFileAdd,
   onReferenceDataAdd,
+  onHistoryDataAdd,
   onRemoveFile,
   onRemoveReferenceFile,
+  onRemoveHistoryFile,
   onCancelAll,
   onAnalyzeClick
 }: FileUploadSectionProps) {
   const [processing, setProcessing] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
   
-  // Сохраняем предыдущее количество файлов для сравнения
   const [prevFilesCount, setPrevFilesCount] = useState(0);
 
-  // Сбрасываем ошибку ТОЛЬКО при реальном изменении количества файлов
   useEffect(() => {
-    const currentCount = uploadedFiles.length + uploadedReferenceFiles.length;
+    const currentCount = uploadedFiles.length + uploadedReferenceFiles.length + uploadedHistoryFiles.length;
     
-    // Если количество файлов изменилось (добавление/удаление)
     if (currentCount !== prevFilesCount && fileError) {
       setFileError(null);
       setPrevFilesCount(currentCount);
     }
     
-    // Инициализация
     if (prevFilesCount === 0) {
       setPrevFilesCount(currentCount);
     }
-  }, [uploadedFiles, uploadedReferenceFiles, fileError, prevFilesCount]);
+  }, [uploadedFiles, uploadedReferenceFiles, uploadedHistoryFiles, fileError, prevFilesCount]);
 
   const getFileFormat = (fileName: string): string => {
     const ext = fileName.split('.').pop()?.toLowerCase() || '';
@@ -92,9 +85,8 @@ export default function FileUploadSection({
   const handleFilePath = async (filePaths: string[]) => {
     if (isBlocked || processing) return;
 
-    // НЕ сбрасываем ошибку здесь — пусть показывается
-
-    if (uploadedFiles.length + uploadedReferenceFiles.length + filePaths.length > MAX_FILES) {
+    const totalFiles = uploadedFiles.length + uploadedReferenceFiles.length + uploadedHistoryFiles.length;
+    if (totalFiles + filePaths.length > MAX_FILES) {
       setFileError(`Можно загрузить не более ${MAX_FILES} файлов`);
       return;
     }
@@ -104,10 +96,10 @@ export default function FileUploadSection({
     try {
       for (const filePath of filePaths) {
         const fileName = filePath.split('/').pop() || 'файл';
+        const fileType = detectFileType(fileName);
 
-        // Проверяем, загружен ли файл уже
-        if (uploadedFiles.some((f) => f.name === fileName) || 
-            uploadedReferenceFiles.some((f) => f.name === fileName)) {
+        const allFileNames = [...uploadedFiles, ...uploadedReferenceFiles, ...uploadedHistoryFiles].map(f => f.name);
+        if (allFileNames.includes(fileName)) {
           setFileError(`Файл "${fileName}" уже загружен`);
           continue;
         }
@@ -116,37 +108,52 @@ export default function FileUploadSection({
           throw new Error('Поддерживаются только файлы .csv, .xls, .xlsx');
         }
 
-        if (isReferenceFile(fileName)) {
-          let referenceData: Map<string, ReferenceItem>;
+        if (fileType === 'history') {
+          let historyData: HistoryItem[];
+          
           if (filePath.toLowerCase().endsWith('.csv')) {
             const content = await readTextFile(filePath);
             const file = new File([content], fileName, { type: 'text/csv' });
-            const { parseReferenceCSV } = await import('../../utils/fileParsers');
+            historyData = await parseHistoryCSV(file);
+          } else {
+            const uint8Array = await readFile(filePath);
+            const file = new File([uint8Array], fileName, {
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            historyData = await parseHistoryExcel(file);
+          }
+          
+          onHistoryDataAdd(historyData, fileName, getFileFormat(fileName));
+          
+        } else if (fileType === 'reference') {
+          let referenceData: Map<string, ReferenceItem>;
+          
+          if (filePath.toLowerCase().endsWith('.csv')) {
+            const content = await readTextFile(filePath);
+            const file = new File([content], fileName, { type: 'text/csv' });
             referenceData = await parseReferenceCSV(file);
           } else {
             const uint8Array = await readFile(filePath);
             const file = new File([uint8Array], fileName, {
               type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             });
-            const { parseReferenceExcel } = await import('../../utils/fileParsers');
             referenceData = await parseReferenceExcel(file);
           }
           
-          // ← ИЗМЕНЕНО: передаём имя и формат файла
           onReferenceDataAdd(referenceData, fileName, getFileFormat(fileName));
+          
         } else {
           let data: RowData[];
+          
           if (filePath.toLowerCase().endsWith('.csv')) {
             const content = await readTextFile(filePath);
             const file = new File([content], fileName, { type: 'text/csv' });
-            const { parseCSV } = await import('../../utils/fileParsers');
             data = await parseCSV(file);
           } else {
             const uint8Array = await readFile(filePath);
             const file = new File([uint8Array], fileName, {
               type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             });
-            const { parseExcel } = await import('../../utils/fileParsers');
             data = await parseExcel(file);
           }
 
@@ -193,8 +200,10 @@ export default function FileUploadSection({
     }
   };
 
-  const handleRemove = (index: number, isReference: boolean) => {
-    if (isReference) {
+  const handleRemove = (index: number, isReference: boolean, isHistory?: boolean) => {
+    if (isHistory) {
+      onRemoveHistoryFile(index);
+    } else if (isReference) {
       onRemoveReferenceFile(index);
     } else {
       onRemoveFile(index);
@@ -202,8 +211,9 @@ export default function FileUploadSection({
   };
 
   const allFiles = [
-    ...uploadedFiles.map(f => ({ ...f, isReference: false })),
-    ...uploadedReferenceFiles.map(f => ({ ...f, isReference: true }))
+    ...uploadedFiles.map(f => ({ ...f, isReference: false, isHistory: false })),
+    ...uploadedReferenceFiles.map(f => ({ ...f, isReference: true, isHistory: false })),
+    ...uploadedHistoryFiles.map(f => ({ ...f, isReference: false, isHistory: true })),
   ];
 
   const maxFilesReached = allFiles.length >= MAX_FILES;
@@ -216,7 +226,6 @@ export default function FileUploadSection({
         processing={processing}
         onFileDrop={handleFilePath}
       >
-        {/* Лоадер показывается ВСЕГДА при processing */}
         {processing && (
           <>
             <svg
@@ -240,10 +249,8 @@ export default function FileUploadSection({
           </>
         )}
         
-        {/* Основной контент */}
         {!processing && (
           <>
-            {/* FileList показывается ВСЕГДА — блоки "Справочник/Данные" всегда видны */}
             <FileList
               files={allFiles}
               onRemove={handleRemove}
@@ -256,7 +263,6 @@ export default function FileUploadSection({
               hasDataFiles={hasDataFiles}
             />
             
-            {/* UploadPlaceholder показывается ТОЛЬКО когда нет файлов */}
             {allFiles.length === 0 && (
               <UploadPlaceholder
                 isBlocked={isBlocked}

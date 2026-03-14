@@ -62,6 +62,7 @@ interface AnalysisState {
   actualData: ActualDataPoint[];
   loading: boolean;
   errorMessage: { message: string; rawMessage: string } | null;
+  chartMode: "comparison" | "actual" | "simulation" | "frequency"; 
 }
 
 interface AnalysisContextType {
@@ -86,6 +87,7 @@ interface AnalysisContextType {
     minimalOrder?: number;
   }>) => void;
   retry: () => void;
+  setChartMode: (mode: "comparison" | "actual" | "simulation" | "frequency") => void;
 }
 
 const AnalysisContext = createContext<AnalysisContextType | undefined>(undefined);
@@ -93,6 +95,7 @@ const AnalysisContext = createContext<AnalysisContextType | undefined>(undefined
 export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [referenceData, setReferenceData] = useState<Map<string, ReferenceItem>>(new Map());
+  
   const [state, setState] = useState<AnalysisState>({
     selectedProduct: "",
     initialStock: 100,
@@ -104,8 +107,13 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     result: null,
     actualData: [],
     loading: false,
-    errorMessage: null
+    errorMessage: null,
+    chartMode: "comparison",
   });
+
+  const setChartMode = (mode: "comparison" | "actual" | "simulation" | "frequency") => {
+    setState(prev => ({ ...prev, chartMode: mode }));
+  };
 
   const calculateActualData = (product: string): ActualDataPoint[] => {
     const allRows = uploadedFiles.flatMap(f => f.data);
@@ -260,7 +268,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       setReferenceData,
       computeForProduct,
       updateParameter,
-      retry
+      retry,
+      setChartMode 
     }}>
       {children}
     </AnalysisContext.Provider>

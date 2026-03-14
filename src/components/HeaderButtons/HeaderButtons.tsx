@@ -156,7 +156,7 @@ export default function HeaderButtons({
       </HeaderButton>
 
       <HeaderButton 
-        title={theme === 'light' ? "Переключить на тёмную тему" : "Переключить на светлую тему"}
+        title={theme === 'light' ? "Переключить на темную тему" : "Переключить на светлую тему"}
         className="dark-mode-button"
         onClick={toggleTheme}
       >

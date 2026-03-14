@@ -253,7 +253,7 @@
   background: rgba(74, 144, 226, 0.1);
 }
 
-/* Тёмная тема для селектора */
+/* Темная тема для селектора */
 [data-theme="dark"] .product-select__control {
   background: var(--bg-primary);
 }
@@ -466,7 +466,7 @@
   );
 }
 
-/* Тёмная тема — более насыщенный акцент */
+/* Темная тема — более насыщенный акцент */
 [data-theme="dark"] .history-edit-btn {
   background: linear-gradient(
     135deg,
@@ -511,4 +511,33 @@
   [data-theme="dark"] .history-edit-btn {
     background: rgba(100, 149, 237, 0.25);
   }
+}
+
+.history-table .history-table__header-nomenclature {
+  text-align: left;
+}
+
+/* === Разделение секций === */
+.history-section {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+}
+
+.history-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* === Внешняя история — рамка + фон === */
+.history-section--external {
+  border: 1px dashed var(--warning-color, #F5A623);
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(245, 166, 35, 0.03);
+}
+
+/* === Тёмная тема === */
+[data-theme="dark"] .history-section--external {
+  background: rgba(245, 166, 35, 0.08);
+  border-color: var(--warning-color, #F5A623);
 }

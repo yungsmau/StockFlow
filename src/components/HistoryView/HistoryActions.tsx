@@ -29,7 +29,7 @@ export default function HistoryActions({
       {/* Заголовок */}
       <div className="history-header__title">
         <h2>История обработки</h2>
-        <p>Сохранённые результаты моделирования</p>
+        <p>Сохраненные результаты моделирования</p>
       </div>
 
       {/* ПОИСК — ВСЕГДА ВИДЕН */}
@@ -82,7 +82,7 @@ export default function HistoryActions({
               onClick={onDeleteClick}
               disabled={selectedIdsCount === 0}
             >
-              Удалить ({selectedIdsCount})
+              Удалить
             </button>
             <button 
               className="history-action-btn history-export-btn"

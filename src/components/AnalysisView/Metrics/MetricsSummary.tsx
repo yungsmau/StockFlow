@@ -44,7 +44,7 @@ const createMetricsData = (data: ComputeResponse): Record<string, MetricItem[]> 
         type: "actual" 
       },
       { 
-        value: `${formatCurrency(data.actual_total_price)} ₽`, 
+        value: `${formatCurrency(data.actual_total_price)}`, 
         label: "Ср. дневной остаток, руб.", 
         type: "actual" 
       },
@@ -66,7 +66,7 @@ const createMetricsData = (data: ComputeResponse): Record<string, MetricItem[]> 
         type: "simulation" 
       },
       { 
-        value: `${formatCurrency(data.total_price)} ₽`, 
+        value: `${formatCurrency(data.total_price)}`, 
         label: "Ср. дневной остаток, руб.", 
         type: "simulation" 
       },
@@ -90,7 +90,7 @@ const createMetricsData = (data: ComputeResponse): Record<string, MetricItem[]> 
       },
       { 
         value: `${formatCurrency(data.efficiency_abs)}`, 
-        label: "Эффективность, руб",
+        label: "Эффективность, руб.",
         type: "efficiency",
         color: getEfficiencyColor(data.efficiency_abs)
       }
@@ -121,9 +121,9 @@ export default function MetricsSummary({ data, isLoading = false }: MetricsSumma
   const metricsData = createMetricsData(data);
   
   const metricsToDisplay = [
-    ...metricsData.actual,
-    metricsData.efficiency[0],
     ...metricsData.simulation,
+    metricsData.efficiency[0],
+    ...metricsData.actual,
     metricsData.efficiency[1],
   ];
 

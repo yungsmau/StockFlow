@@ -5,15 +5,16 @@
 ## ✅ **1. Линтинг кода (Code Quality)**
 
 ### **Для TypeScript/React:**
+
 ```yaml
 - name: Run ESLint
   run: npm run lint
-
 # В package.json:
 # "scripts": { "lint": "eslint . --ext .ts,.tsx,.js" }
 ```
 
 ### **Для Rust (Tauri backend):**
+
 ```yaml
 - name: Run Rust fmt & clippy
   run: |
@@ -30,7 +31,6 @@
 ```yaml
 - name: Type check with TypeScript
   run: npm run type-check
-
 # В package.json:
 # "scripts": { "type-check": "tsc --noEmit" }
 ```
@@ -42,12 +42,14 @@
 ## ✅ **3. Тесты (Unit & Integration)**
 
 ### **Frontend (Vitest/Jest):**
+
 ```yaml
 - name: Run frontend tests
   run: npm run test
 ```
 
 ### **Backend (Rust):**
+
 ```yaml
 - name: Run Rust tests
   run: cargo test
@@ -60,17 +62,19 @@
 ## ✅ **4. Проверка безопасности**
 
 ### **Dependency Scanning:**
+
 ```yaml
 - name: Audit npm dependencies
   run: npm audit --audit-level high
 
-- name: Audit Rust dependencies  
+- name: Audit Rust dependencies
   run: cargo audit
 ```
 
 > 🔍 **Польза**: находит уязвимости в зависимостях (CVE).
 
 ### **Secrets Detection (опционально):**
+
 Используйте [`gitleaks`](https://github.com/gitleaks/gitleaks) чтобы не закоммитить токены/ключи.
 
 ---
@@ -90,7 +94,8 @@
 
 ## ✅ **6. Статический анализ (SAST)**
 
-Для более серьёзных проектов можно подключить:
+Для более серьезных проектов можно подключить:
+
 - **SonarCloud** — глубокий анализ качества кода
 - **CodeQL** — поиск уязвимостей безопасности (бесплатно для публичных репозиториев)
 
@@ -125,7 +130,7 @@ jobs:
       - uses: actions/setup-node@v3
         with: { node-version: 18 }
       - uses: dtolnay/rust-toolchain@stable
-      
+
       - run: npm install
       - run: npm run lint
       - run: npm run type-check
@@ -137,8 +142,12 @@ jobs:
       - run: cargo audit
 
   build-tauri:
-    needs: lint-and-test  # ← Запускается ТОЛЬКО если тесты прошли
-    strategy: { fail-fast: false, matrix: { platform: [macos-latest, ubuntu-20.04, windows-latest] } }
+    needs: lint-and-test # ← Запускается ТОЛЬКО если тесты прошли
+    strategy:
+      {
+        fail-fast: false,
+        matrix: { platform: [macos-latest, ubuntu-20.04, windows-latest] },
+      }
     runs-on: ${{ matrix.platform }}
     steps:
       # ... ваши текущие шаги сборки
@@ -148,20 +157,21 @@ jobs:
 
 ## 💡 **Рекомендации для вашего проекта:**
 
-| Аспект | Приоритет | Команда |
-|-------|----------|--------|
-| **ESLint + Prettier** | 🔥 Высокий | `npm run lint && npx prettier --check .` |
-| **TypeScript check** | 🔥 Высокий | `tsc --noEmit` |
-| **Rust clippy/fmt** | 🔥 Высокий | `cargo clippy -- -D warnings && cargo fmt --check` |
-| **npm audit** | 🟡 Средний | `npm audit --audit-level high` |
-| **Тесты** | 🟢 По мере роста кодовой базы | Начните с простых unit-тестов |
+| Аспект                | Приоритет                     | Команда                                            |
+| --------------------- | ----------------------------- | -------------------------------------------------- |
+| **ESLint + Prettier** | 🔥 Высокий                    | `npm run lint && npx prettier --check .`           |
+| **TypeScript check**  | 🔥 Высокий                    | `tsc --noEmit`                                     |
+| **Rust clippy/fmt**   | 🔥 Высокий                    | `cargo clippy -- -D warnings && cargo fmt --check` |
+| **npm audit**         | 🟡 Средний                    | `npm audit --audit-level high`                     |
+| **Тесты**             | 🟢 По мере роста кодовой базы | Начните с простых unit-тестов                      |
 
 ---
 
 ✅ **Итог**:  
-Добавление этих шагов превратит ваш pipeline из **просто сборки** в **надёжную систему качества**, которая:
+Добавление этих шагов превратит ваш pipeline из **просто сборки** в **надежную систему качества**, которая:
+
 - Предотвращает баги
-- Обеспечивает безопасность  
+- Обеспечивает безопасность
 - Поддерживает чистоту кода
 - Экономит время на ревью
 

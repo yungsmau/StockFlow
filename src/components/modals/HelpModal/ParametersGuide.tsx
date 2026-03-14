@@ -13,11 +13,11 @@ export default function ParametersGuide() {
         </div>
         <div className="help-modal__param">
           <span className="help-modal__param-title">Срок поставки, дни</span>
-          <p className="help-modal__param-discription">Количество дней между оформлением заказа и приходом товара на склад. Используется для расчёта рекомендуемого порога.</p>
+          <p className="help-modal__param-discription">Количество дней между оформлением заказа и приходом товара на склад. Используется для расчета рекомендуемого порога.</p>
         </div>
         <div className="help-modal__param">
           <span className="help-modal__param-title">Цена, руб./ед</span>
-          <p className="help-modal__param-discription">Себестоимость одной единицы товара. Используется для расчёта стоимости запасов и эффективности модели.</p>
+          <p className="help-modal__param-discription">Себестоимость одной единицы товара. Используется для расчета стоимости запасов и эффективности модели.</p>
         </div>
         <div className="help-modal__param">
           <span className="help-modal__param-title">Максимальный расход, ед.</span>

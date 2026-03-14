@@ -1,8 +1,11 @@
 use crate::features::stock_simulation::date_parser;
-use crate::features::stock_simulation::models::{ComputeRequest, ComputeResponse, UploadedFile};
+use crate::features::stock_simulation::models::{
+    ComputeRequest, ComputeResponse, DateRangeResponse, UploadedFile, ValueFrequencyBin,
+    ValueFrequencyRequest, ValueFrequencyResult,
+};
 use crate::shared::errors::detailed_error::DetailedError;
 use chrono::{Duration, NaiveDate};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 fn calculate_actual_metrics(
     uploaded_files: &[UploadedFile],
@@ -326,7 +329,7 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
     let first_real_date = match date_to_spent.keys().next() {
         Some(d) => *d,
         None => {
-            return Err("Нет корректных дат для расчёта".into());
+            return Err("Нет корректных дат для расчета".into());
         }
     };
 
@@ -353,11 +356,13 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
         current_stock += incoming_amount;
 
         let spent_today = date_to_spent.get(&today).copied().unwrap_or(0);
-        let start_stock = current_stock;
+
         current_stock = (current_stock - spent_today).max(0);
 
         result_dates.push(today.format("%Y-%m-%d").to_string());
-        starting_stock.push(start_stock);
+        // Примечание: starting_stock теперь содержит остаток ПОСЛЕ применения расхода за день
+        // (ранее содержал остаток ДО расхода)
+        starting_stock.push(current_stock);
         spent.push(spent_today);
         incoming.push(incoming_amount);
 
@@ -432,5 +437,189 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
         recommended_threshold,
         avg_delivery_interval_actual,
         avg_delivery_interval_model,
+    })
+}
+
+pub fn calculate_value_frequency(
+    uploaded_files: &[UploadedFile],
+    product: &str,
+    value_type: &str,
+    window_size: usize,
+) -> Result<ValueFrequencyResult, String> {
+    if window_size == 0 {
+        return Err("Window size must be positive".into());
+    }
+
+    if value_type != "stock" && value_type != "expense" {
+        return Err("value_type must be 'stock' or 'expense'".into());
+    }
+
+    // 1. Собираем значения по датам (как в calculate_average_expense)
+    let mut date_to_values: BTreeMap<NaiveDate, f64> = BTreeMap::new();
+
+    for file in uploaded_files {
+        for (row_index, r) in file.data.iter().enumerate() {
+            if r.nomenclature == product {
+                match date_parser::parse_date_safe(&r.date, &file.name, row_index, "Дата") {
+                    Ok(date) => {
+                        let value = if value_type == "stock" {
+                            r.stock
+                        } else {
+                            r.expense
+                        };
+                        if value.is_finite() && value >= 0.0 {
+                            *date_to_values.entry(date).or_insert(0.0) += value;
+                        }
+                    }
+                    Err(_) => continue,
+                }
+            }
+        }
+    }
+
+    if date_to_values.is_empty() {
+        return Err(format!(
+            "No valid {} values found for product '{}'",
+            value_type, product
+        ));
+    }
+
+    // 2. Превращаем в вектор значений (отсортирован по дате)
+    let values: Vec<f64> = date_to_values.values().copied().collect();
+
+    if values.len() < window_size {
+        // Если данных меньше окна — считаем среднее по всем доступным точкам
+        let avg_value = values.iter().sum::<f64>() / values.len() as f64;
+        return Ok(ValueFrequencyResult {
+            bins: vec![],
+            total_windows: 0,
+            window_size,
+            value_type: value_type.to_string(),
+            min_value: values.iter().cloned().fold(f64::INFINITY, f64::min),
+            max_value: values.iter().cloned().fold(f64::NEG_INFINITY, f64::max),
+            avg_value,
+        });
+    }
+
+    // 3. Скользящее окно: считаем суммы ВСЕХ окон (как в calculate_average_expense)
+    let mut window_sums: Vec<f64> = Vec::new(); // ✅ Храним все суммы для расчёта среднего
+    let mut value_counts: HashMap<i64, u32> = HashMap::new();
+
+    for i in 0..=(values.len() - window_size) {
+        let window_sum: f64 = values[i..i + window_size].iter().sum();
+
+        // ✅ Сохраняем сумму для расчёта среднего (как в calculate_average_expense)
+        window_sums.push(window_sum);
+
+        // ✅ Округляем до 2 знаков для группировки частот
+        let key = (window_sum * 100.0).round() as i64;
+        *value_counts.entry(key).or_insert(0) += 1;
+    }
+
+    if window_sums.is_empty() {
+        return Err("No windows could be calculated".into());
+    }
+
+    // 4. ✅ Считаем среднее ПО ВСЕМ окнам (как в calculate_average_expense)
+    let total_sum: f64 = window_sums.iter().sum();
+    let avg_value = total_sum / window_sums.len() as f64;
+
+    // 5. Формируем результат для графика
+    let total_windows = value_counts.values().sum::<u32>();
+
+    let mut sorted_entries: Vec<(f64, u32)> = value_counts
+        .into_iter()
+        .map(|(key, count)| ((key as f64) / 100.0, count))
+        .collect();
+    sorted_entries.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+
+    let min_value = sorted_entries.first().map(|(v, _)| *v).unwrap_or(0.0);
+    let max_value = sorted_entries.last().map(|(v, _)| *v).unwrap_or(0.0);
+
+    let bins: Vec<ValueFrequencyBin> = sorted_entries
+        .into_iter()
+        .map(|(value, count)| {
+            let percentage = (count as f64 / total_windows as f64) * 100.0;
+            ValueFrequencyBin {
+                value,
+                count,
+                percentage,
+            }
+        })
+        .collect();
+
+    Ok(ValueFrequencyResult {
+        bins,
+        total_windows,
+        window_size,
+        value_type: value_type.to_string(),
+        min_value,
+        max_value,
+        avg_value, // ✅ Теперь считается как среднее всех окон (как в calculate_average_expense)
+    })
+}
+
+// === Обертка под паттерн Request/Response (для Tauri command) ===
+pub fn calculate_value_frequency_request(
+    req: ValueFrequencyRequest,
+) -> Result<ValueFrequencyResult, String> {
+    calculate_value_frequency(
+        &req.uploaded_files,
+        &req.product,
+        &req.value_type,
+        req.window_size,
+    )
+}
+
+// фильтр
+// === Получение диапазона дат для продукта ===
+
+/// Возвращает минимальную и максимальную дату для указанного продукта
+/// Использует тот же парсер дат, что и остальные функции
+pub fn get_date_range_for_product(
+    uploaded_files: &[UploadedFile],
+    product_name: &str,
+) -> Result<DateRangeResponse, String> {
+    let mut min_date: Option<NaiveDate> = None;
+    let mut max_date: Option<NaiveDate> = None;
+
+    // Нормализуем имя продукта для надёжного сравнения
+    let normalized_product = product_name.trim().to_lowercase();
+
+    for file in uploaded_files {
+        for (row_index, row) in file.data.iter().enumerate() {
+            // Сравниваем с нормализацией (пробелы, регистр)
+            let row_product = row.nomenclature.trim().to_lowercase();
+            if row_product != normalized_product {
+                continue;
+            }
+
+            // ✅ Используем твой надёжный парсер дат
+            if let Ok(date) = date_parser::parse_date_safe(&row.date, &file.name, row_index, "Дата")
+            {
+                // Обновляем мин/макс
+                match (min_date, max_date) {
+                    (None, None) => {
+                        min_date = Some(date);
+                        max_date = Some(date);
+                    }
+                    (Some(min), Some(max)) => {
+                        if date < min {
+                            min_date = Some(date);
+                        }
+                        if date > max {
+                            max_date = Some(date);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            // Если дата не распарсилась — просто пропускаем строку
+        }
+    }
+
+    Ok(DateRangeResponse {
+        min: min_date.map(|d| d.format("%Y-%m-%d").to_string()),
+        max: max_date.map(|d| d.format("%Y-%m-%d").to_string()),
     })
 }

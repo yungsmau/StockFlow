@@ -257,7 +257,7 @@ export default function InventoryView({ onNavigateToAnalysis }: InventoryViewPro
                 <th className='inventory-table__header'>
                   <span>#</span>
                 </th>
-                <th className='inventory-table__header'>
+                <th className='inventory-table__header inventory-table__header-nomenclature'>
                   <span>Номенклатура</span>
                 </th>
                 <th onClick={() => handleSort('avgStock')} className="inventory-table__header sortable-header">
@@ -305,7 +305,7 @@ export default function InventoryView({ onNavigateToAnalysis }: InventoryViewPro
                   title="Клик → Выбор | Двойной клик → Анализ"
                 >
                   <td>{index + 1}</td>
-                  <td>{item.product}</td>
+                  <td className="inventory-table__header-nomenclature">{item.product}</td>
                   <td>{formatNumber(Math.round(item.avgStock))}</td>
                   <td>{item.stockValue > 0 ? formatNumber(Math.round(item.stockValue)) : '—'}</td>
                   <td>{formatNumber(item.deliveriesCount)}</td>

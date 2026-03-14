@@ -6,6 +6,8 @@ import {
   type ExportHistoryItem 
 } from '../../utils/historyService';
 
+import type { HistoryItem } from '../../utils/fileParsers';
+
 import HistoryTable from './HistoryTable';
 import HistoryActions from './HistoryActions';
 import HistoryDeleteModal from './HistoryDeleteModal';
@@ -18,9 +20,30 @@ interface HistoryViewProps {
     deliveryDays: number;
     unitCost: number;
   }) => void;
+  externalHistory?: HistoryItem[];
 }
 
-export default function HistoryView({ onNavigateToAnalysis }: HistoryViewProps) {
+function mapExternalToExportItem(item: HistoryItem, index: number): ExportHistoryItem {
+  return {
+    id: -1000 - index,
+    processedAt: item.processedAt,
+    product: item.nomenclature,
+    initialStock: item.supply,
+    threshold: item.threshold,
+    unitCost: item.unitCost,
+    deliveryDays: item.deliveryDays,
+    avgStock: item.avgStockUnits,
+    actualAvgStock: item.avgStockUnits, 
+    stockValue: item.avgStockRub,
+    efficiency: item.efficiencyPercent,
+    efficiencyAbs: item.efficiencyRub,
+  };
+}
+
+export default function HistoryView({ 
+  onNavigateToAnalysis, 
+  externalHistory = [] 
+}: HistoryViewProps) {
   const [items, setItems] = useState<ExportHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +53,7 @@ export default function HistoryView({ onNavigateToAnalysis }: HistoryViewProps) 
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [filterProduct, setFilterProduct] = useState<string>(''); // ← ДОБАВЛЕНО
+  const [filterProduct, setFilterProduct] = useState<string>('');
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -49,18 +72,28 @@ export default function HistoryView({ onNavigateToAnalysis }: HistoryViewProps) 
     loadHistory();
   }, []);
 
-  // Уникальные номенклатуры для фильтра
   const uniqueProducts = useMemo(() => {
-    return [...new Set(items.map(item => item.product))].sort();
-  }, [items]);
+    const local = items.map(item => item.product);
+    const external = externalHistory.map(item => item.nomenclature);
+    return [...new Set([...local, ...external])].sort();
+  }, [items, externalHistory]);
 
-  // Отфильтрованные записи
   const filteredItems = useMemo(() => {
     if (!filterProduct) return items;
     return items.filter(item => item.product === filterProduct);
   }, [items, filterProduct]);
 
+  const mappedExternalHistory = useMemo(() => {
+    const filtered = filterProduct 
+      ? externalHistory.filter(item => item.nomenclature === filterProduct)
+      : externalHistory;
+    
+    return filtered.map((item, idx) => mapExternalToExportItem(item, idx));
+  }, [externalHistory, filterProduct]);
+
   const toggleSelectItem = (id: number) => {
+    if (id < 0) return;
+    
     setSelectedIds(prev => {
       const newSet = new Set(prev);
       if (newSet.has(id)) newSet.delete(id);
@@ -104,7 +137,7 @@ export default function HistoryView({ onNavigateToAnalysis }: HistoryViewProps) 
     if (selectedIds.size > 0) setIsExportModalOpen(true);
   };
 
-  const handleRowClick = (item: ExportHistoryItem) => {
+  const handleRowDoubleClick = (item: ExportHistoryItem) => {
     if (onNavigateToAnalysis) {
       onNavigateToAnalysis(item.product, {
         initialStock: item.initialStock,
@@ -124,40 +157,59 @@ export default function HistoryView({ onNavigateToAnalysis }: HistoryViewProps) 
   }
 
   const selectedItems = filteredItems.filter(item => selectedIds.has(item.id));
+  const hasExternalHistory = mappedExternalHistory.length > 0;
 
   return (
     <div className="history-view">
-      <HistoryActions
-        isEditMode={isEditMode}
-        selectedIdsCount={selectedIds.size}
-        onEditClick={() => setIsEditMode(true)}
-        onDeleteClick={handleDeleteSelected}
-        onExportClick={handleExportSelected}
-        onCancelClick={() => {
-          setIsEditMode(false);
-          setSelectedIds(new Set());
-        }}
-        filterProduct={filterProduct}
-        onFilterChange={setFilterProduct}
-        uniqueProducts={uniqueProducts}
-      />
-
-      {items.length === 0 ? (
-        <div className="history-empty">
-          <p>Нет записей в истории обработки</p>
-          <p>Обработайте номенклатуру и нажмите "Сохранить", чтобы сохранить запись.</p>
-        </div>
-      ) : (
-        <HistoryTable
-          items={filteredItems}
+      {/* === ЛОКАЛЬНАЯ ИСТОРИЯ === */}
+      <section className="history-section">
+        <HistoryActions
           isEditMode={isEditMode}
-          selectedIds={selectedIds}
-          onRowDoubleClick={handleRowClick}
-          onToggleSelectAll={toggleSelectAll}
-          onToggleSelectItem={toggleSelectItem}
+          selectedIdsCount={selectedIds.size}
+          onEditClick={() => setIsEditMode(true)}
+          onDeleteClick={handleDeleteSelected}
+          onExportClick={handleExportSelected}
+          onCancelClick={() => {
+            setIsEditMode(false);
+            setSelectedIds(new Set());
+          }}
+          filterProduct={filterProduct}
+          onFilterChange={setFilterProduct}
+          uniqueProducts={uniqueProducts}
         />
+
+        {items.length === 0 && !hasExternalHistory ? (
+          <div className="history-empty">
+            <p>Нет записей в истории обработки</p>
+            <p>Обработайте номенклатуру и нажмите "Сохранить", чтобы сохранить запись.</p>
+          </div>
+        ) : (
+          <HistoryTable
+            items={filteredItems}
+            isEditMode={isEditMode}
+            selectedIds={selectedIds}
+            onRowDoubleClick={handleRowDoubleClick}
+            onToggleSelectAll={toggleSelectAll}
+            onToggleSelectItem={toggleSelectItem}
+          />
+        )}
+      </section>
+
+      {/* === ВНЕШНЯЯ ИСТОРИЯ — только если есть данные === */}
+      {hasExternalHistory && (
+        <section className="history-section history-section--external">
+          <HistoryTable
+            items={mappedExternalHistory}
+            isEditMode={false} 
+            selectedIds={new Set()}
+            onRowDoubleClick={handleRowDoubleClick}
+            onToggleSelectAll={() => {}} 
+            onToggleSelectItem={() => {}}
+          />
+        </section>
       )}
 
+      {/* === Модальные окна (только для локальной истории) === */}
       <HistoryDeleteModal
         isOpen={isDeleteConfirmOpen}
         selectedIdsCount={selectedIds.size}

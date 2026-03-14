@@ -51,7 +51,7 @@ export default function HistoryTable({
           <thead>
             <tr>
               <th>Дата обработки</th>
-              <th>Номенклатура</th>
+              <th className="history-table__header-nomenclature">Номенклатура</th>
               <th>Поставка, ед.</th>
               <th>Порог, ед.</th>
               <th>Цена, руб./ед.</th>
@@ -81,7 +81,7 @@ export default function HistoryTable({
                 title="Двойной клик → Анализ"
               >
                 <td>{formatDate(item.processedAt)}</td>
-                <td>{item.product}</td>
+                <td className="history-table__header-nomenclature">{item.product}</td>
                 <td>{formatNumber(item.initialStock)}</td>
                 <td>{formatNumber(item.threshold)}</td>
                 <td>{formatCurrency(item.unitCost)}</td>

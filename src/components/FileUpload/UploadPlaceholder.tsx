@@ -15,9 +15,8 @@ export default function UploadPlaceholder({
     <>
       <div className="upload-field__bottom-content">
         <div className="upload-field__description">
-          <div className="upload-field__instruction">Перетащите файл сюда</div>
+          {/* <div className="upload-field__instruction">Перетащите файл сюда</div> */}
           <div className="upload-field__formats">CSV / XLS / XLSX</div>
-          <div className="upload-field__instruction">или</div>
         </div>
         <button
           type="button"

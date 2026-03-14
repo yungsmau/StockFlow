@@ -38,7 +38,7 @@ export default function ModelParameters({
   const maxThreshold = Math.min(recommendedMax, values.initialStock);
 
   const resetInitialStock = () => {
-    const newValue = optimalOrder ?? 100;
+    const newValue = minimalOrder ?? 100;
     updateField("initialStock", String(newValue));
     onChange({
       initialStock: newValue,
@@ -49,7 +49,7 @@ export default function ModelParameters({
   };
 
   const resetThreshold = () => {
-    const newValue = optimalOrder ?? 100;
+    const newValue = minimalOrder ?? 100;
     updateField("threshold", String(newValue));
     onChange({
       initialStock: values.initialStock,

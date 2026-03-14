@@ -1,7 +1,4 @@
-/* === Параметры и рекомендации === */
-
-.param-card-parameters,
-.param-recommendation {
+.param-card-parameters {
   padding: 5px;
 }
 
@@ -10,7 +7,15 @@
   border-bottom: 1px solid var(--upload-hover-bg);
 }
 
-/* Тёмная тема: граница */
+.param-card .param-label {
+  -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+        user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Темная тема: граница */
 [data-theme="dark"] .param-card {
   border-bottom-color: rgba(255, 255, 255, 0.1);
 }
@@ -27,7 +32,7 @@
   color: var(--text-primary);
 }
 
-/* Тёмная тема: метка */
+/* Темная тема: метка */
 [data-theme="dark"] .param-label {
   color: var(--text-primary);
 }
@@ -53,7 +58,7 @@
   text-align: center;
 }
 
-/* Тёмная тема: инпут и значение */
+/* Темная тема: инпут и значение */
 [data-theme="dark"] .param-input,
 [data-theme="dark"] .recommendation-value-display {
   color: var(--text-primary);
@@ -139,8 +144,57 @@
   cursor: grabbing;
 }
 
-/* Тёмная тема (если нужно) */
+/* Темная тема (если нужно) */
 [data-theme="dark"] .param-slider .rc-slider-handle {
   background-color: #2a2a2a;
   border-color: var(--button-bg);
+}
+
+.param-recommendation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 8px;
+  padding: 7px 15px;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.2));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.15);
+  box-shadow: 
+    0 2px 8px rgba(0,0,0,0.08),
+    0 1px 3px rgba(0,0,0,0.05),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+  margin-bottom: 15px;
+}
+
+[data-theme="dark"] .param-recommendation {
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 
+    0 2px 8px rgba(0,0,0,0.2),
+    0 1px 3px rgba(0,0,0,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.param-recommendation .param-label {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0;
+  color: var(--text-secondary);  
+  font-size: 12px;
+}
+
+.param-recommendation .recommendation-value-display {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  border: none;
+  padding: none;
+  color: var(--text-primary);
+  font-size: 16px;
 }

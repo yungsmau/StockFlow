@@ -10,6 +10,12 @@ export type RowData = {
   stock: number;
 };
 
+export type UploadedFile = {
+  name: string;
+  format: string;
+  data: RowData[];
+};
+
 export type ReferenceItem = {
   deliveryDays?: number;
   unitCost?: number;
@@ -403,4 +409,350 @@ export async function parseReferenceCSV(
       },
     });
   });
+}
+
+// === Парсеры для файла истории ===
+
+export type HistoryItem = {
+  processedAt: string;
+  nomenclature: string;
+  supply: number;
+  threshold: number;
+  unitCost: number;
+  deliveryDays: number;
+  avgStockUnits: number;
+  avgStockRub: number;
+  efficiencyPercent: number;
+  efficiencyRub: number;
+  source?: "internal" | "external";
+};
+
+function validateHistoryHeaders(headers: string[]): {
+  valid: boolean;
+  error?: string;
+  headerMap: Record<string, string>;
+} {
+  const normalized = headers.map((h) => h.trim().toLowerCase());
+
+  // Обязательные колонки
+  const required = [
+    "номенклатура",
+    "поставка",
+    "порог",
+    "цена",
+    "срок поставки",
+  ];
+  const missing = required.filter(
+    (req) => !normalized.some((h) => h.includes(req)),
+  );
+
+  if (missing.length > 0) {
+    return {
+      valid: false,
+      error: `Отсутствуют обязательные колонки: ${missing.join(", ")}`,
+      headerMap: {},
+    };
+  }
+
+  const headerMap: Record<string, string> = {};
+  const mappings: Record<string, string[]> = {
+    processedAt: [
+      "дата обработки",
+      "дата",
+      "обработано",
+      "processed_at",
+      "processed at",
+    ],
+    nomenclature: [
+      "номенклатура",
+      "товар",
+      "продукт",
+      "nomenclature",
+      "product",
+    ],
+    supply: [
+      "поставка",
+      "поставка, ед.",
+      "поставка (ед.)",
+      "supply",
+      "initial_stock",
+    ],
+    threshold: [
+      "порог",
+      "порог, ед.",
+      "порог (ед.)",
+      "threshold",
+      "мин. остаток",
+    ],
+    unitCost: [
+      "цена",
+      "цена, руб./ед.",
+      "цена (руб./ед.)",
+      "unit_cost",
+      "price",
+    ],
+    deliveryDays: [
+      "срок поставки",
+      "срок поставки, дни",
+      "дней доставки",
+      "delivery_days",
+      "delivery days",
+    ],
+    avgStockUnits: [
+      "ср. дневной остаток, ед.",
+      "средний остаток, ед.",
+      "avg_stock_units",
+      "avg stock",
+    ],
+    avgStockRub: [
+      "ср. дневной остаток, руб.",
+      "средний остаток, руб.",
+      "avg_stock_rub",
+    ],
+    efficiencyPercent: [
+      "эффективность, %",
+      "эффективность (проценты)",
+      "efficiency_percent",
+      "efficiency %",
+    ],
+    efficiencyRub: [
+      "эффективность, руб.",
+      "эффективность (рубли)",
+      "efficiency_rub",
+      "efficiency rub",
+    ],
+  };
+
+  for (const [field, possibleNames] of Object.entries(mappings)) {
+    const found = normalized.find((header) =>
+      possibleNames.some((name) => header.includes(name)),
+    );
+    if (found) {
+      const originalHeader = headers[normalized.indexOf(found)];
+      headerMap[originalHeader] = field;
+    }
+  }
+
+  return { valid: true, headerMap };
+}
+
+export async function parseHistoryExcel(file: File): Promise<HistoryItem[]> {
+  const buffer = await file.arrayBuffer();
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+
+  const worksheet = workbook.worksheets[0];
+  if (!worksheet) throw new Error("Файл не содержит листов");
+
+  const rows: HistoryItem[] = [];
+  const headerRow = worksheet.getRow(1);
+  const headers = Array.isArray(headerRow.values)
+    ? headerRow.values.slice(1).map(String)
+    : [];
+
+  const validation = validateHistoryHeaders(headers);
+  if (!validation.valid) throw new Error(validation.error);
+
+  const headerMap = validation.headerMap;
+  const normalizedHeaders = headers.map((h) => h.trim().toLowerCase());
+
+  // Создаём маппинг: field -> index
+  const indices: Record<string, number> = {};
+  Object.entries(headerMap).forEach(([originalHeader, field]) => {
+    const idx = normalizedHeaders.findIndex(
+      (h) => h === originalHeader.toLowerCase(),
+    );
+    if (idx !== -1) {
+      indices[field] = idx;
+    }
+  });
+
+  worksheet.eachRow((row, idx) => {
+    if (idx === 1) return; // Пропускаем заголовок
+
+    const valuesArray = Array.isArray(row.values) ? row.values.slice(1) : [];
+
+    const item: HistoryItem = {
+      processedAt: toStringSafe(valuesArray[indices["processedAt"]]),
+      nomenclature: toStringSafe(valuesArray[indices["nomenclature"]]),
+      supply: toNumberSafe(valuesArray[indices["supply"]]),
+      threshold: toNumberSafe(valuesArray[indices["threshold"]]),
+      unitCost: toNumberSafe(valuesArray[indices["unitCost"]]),
+      deliveryDays: toNumberSafe(valuesArray[indices["deliveryDays"]]),
+      avgStockUnits: toNumberSafe(valuesArray[indices["avgStockUnits"]]),
+      avgStockRub: toNumberSafe(valuesArray[indices["avgStockRub"]]),
+      efficiencyPercent: toNumberSafe(
+        valuesArray[indices["efficiencyPercent"]],
+      ),
+      efficiencyRub: toNumberSafe(valuesArray[indices["efficiencyRub"]]),
+      source: "external", // ✅ Помечаем как внешний файл
+    };
+
+    // Пропускаем строки без номенклатуры
+    if (item.nomenclature) {
+      rows.push(item);
+    }
+  });
+
+  if (rows.length === 0) {
+    throw new Error("Файл истории не содержит данных");
+  }
+
+  return rows;
+}
+
+export async function parseHistoryCSV(file: File): Promise<HistoryItem[]> {
+  return new Promise((resolve, reject) => {
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      encoding: "UTF-8",
+      dynamicTyping: false,
+      complete: (results) => {
+        if (results.errors.length > 0) {
+          const criticalErrors = results.errors.filter(
+            (e) => e.type !== "FieldMismatch",
+          );
+          if (criticalErrors.length > 0) {
+            reject(
+              new Error(`Ошибка парсинга CSV: ${criticalErrors[0].message}`),
+            );
+            return;
+          }
+        }
+
+        const headers = results.meta.fields || [];
+        if (headers.length === 0) {
+          reject(new Error("Файл CSV не содержит заголовков"));
+          return;
+        }
+
+        const validation = validateHistoryHeaders(headers);
+        if (!validation.valid) {
+          reject(new Error(validation.error));
+          return;
+        }
+
+        const headerMap = validation.headerMap;
+        const data: HistoryItem[] = [];
+
+        for (const row of results.data as any[]) {
+          try {
+            const item: HistoryItem = {
+              processedAt: toStringSafe(
+                row[
+                  Object.keys(headerMap).find(
+                    (k) => headerMap[k] === "processedAt",
+                  )!
+                ],
+              ),
+              nomenclature: toStringSafe(
+                row[
+                  Object.keys(headerMap).find(
+                    (k) => headerMap[k] === "nomenclature",
+                  )!
+                ],
+              ),
+              supply: toNumberSafe(
+                row[
+                  Object.keys(headerMap).find((k) => headerMap[k] === "supply")!
+                ],
+              ),
+              threshold: toNumberSafe(
+                row[
+                  Object.keys(headerMap).find(
+                    (k) => headerMap[k] === "threshold",
+                  )!
+                ],
+              ),
+              unitCost: toNumberSafe(
+                row[
+                  Object.keys(headerMap).find(
+                    (k) => headerMap[k] === "unitCost",
+                  )!
+                ],
+              ),
+              deliveryDays: toNumberSafe(
+                row[
+                  Object.keys(headerMap).find(
+                    (k) => headerMap[k] === "deliveryDays",
+                  )!
+                ],
+              ),
+              avgStockUnits: toNumberSafe(
+                row[
+                  Object.keys(headerMap).find(
+                    (k) => headerMap[k] === "avgStockUnits",
+                  )!
+                ],
+              ),
+              avgStockRub: toNumberSafe(
+                row[
+                  Object.keys(headerMap).find(
+                    (k) => headerMap[k] === "avgStockRub",
+                  )!
+                ],
+              ),
+              efficiencyPercent: toNumberSafe(
+                row[
+                  Object.keys(headerMap).find(
+                    (k) => headerMap[k] === "efficiencyPercent",
+                  )!
+                ],
+              ),
+              efficiencyRub: toNumberSafe(
+                row[
+                  Object.keys(headerMap).find(
+                    (k) => headerMap[k] === "efficiencyRub",
+                  )!
+                ],
+              ),
+              source: "external",
+            };
+
+            if (item.nomenclature) {
+              data.push(item);
+            }
+          } catch (e) {
+            reject(new Error(`Ошибка обработки строки истории: ${e}`));
+            return;
+          }
+        }
+
+        if (data.length === 0) {
+          reject(new Error("Файл истории не содержит данных"));
+          return;
+        }
+
+        resolve(data);
+      },
+      error: (error) => {
+        reject(new Error(`Ошибка чтения CSV: ${error.message}`));
+      },
+    });
+  });
+}
+
+// === Хелпер для определения типа файла ===
+export function detectFileType(
+  fileName: string,
+): "data" | "reference" | "history" {
+  const lower = fileName.toLowerCase();
+
+  // История: по ключевым словам в имени или наличию специфичных колонок (проверяется при парсинге)
+  if (
+    lower.includes("история") ||
+    lower.includes("history") ||
+    lower.includes("shared")
+  ) {
+    return "history";
+  }
+
+  // Справочник
+  if (lower.includes("справочник") || lower.includes("reference")) {
+    return "reference";
+  }
+
+  // По умолчанию — данные остатков
+  return "data";
 }

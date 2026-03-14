@@ -12,6 +12,8 @@ import AboutModal from "./components/modals/AboutModal/AboutModal";
 import { useUpdateCheck } from "./hooks/useUpdateCheck";
 import { AnalysisProvider, useAnalysis } from "./context/AnalysisContext";
 
+import type { HistoryItem } from "./utils/fileParsers";
+
 import "./App.css";
 import "./styles/theme.css";
 
@@ -27,6 +29,12 @@ function AppContent() {
   const [uploadedReferenceFiles, setUploadedReferenceFiles] = useState<
     { name: string; format: string }[]
   >([]);
+
+  const [uploadedHistoryFiles, setUploadedHistoryFiles] = useState<
+    { name: string; format: string }[]
+  >([]);
+
+  const [externalHistory, setExternalHistory] = useState<HistoryItem[]>([]);
 
   const { uploadedFiles, setUploadedFiles, setReferenceData, updateParameter } =
     useAnalysis();
@@ -49,6 +57,31 @@ function AppContent() {
       );
       setUploadedReferenceFiles(newReferenceFiles);
       setReferenceData(new Map());
+    }
+  };
+
+  const handleHistoryDataAdd = (data: HistoryItem[], fileName: string, format: string) => {
+    const dataWithSource = data.map(item => ({
+      ...item,
+      source: 'external' as const,
+      _sourceFile: fileName
+    }));
+    
+    setExternalHistory(prev => [...prev, ...dataWithSource]);
+    setUploadedHistoryFiles(prev => [...prev, { name: fileName, format }]);
+  };
+
+  const handleRemoveHistoryFile = (index: number) => {
+    const fileName = uploadedHistoryFiles[index]?.name;
+    
+    const newFiles = uploadedHistoryFiles.filter((_, i) => i !== index);
+    setUploadedHistoryFiles(newFiles);
+
+    if (fileName) {
+      setExternalHistory(prev => prev.filter(item => {
+        const itemWithSource = item as HistoryItem & { _sourceFile?: string };
+        return itemWithSource._sourceFile !== fileName;
+      }));
     }
   };
 
@@ -106,6 +139,7 @@ function AppContent() {
             isBlocked={isUploadBlocked}
             uploadedFiles={uploadedFiles}
             uploadedReferenceFiles={uploadedReferenceFiles}
+            uploadedHistoryFiles={uploadedHistoryFiles}
             onFileAdd={(file) => {
               setUploadedFiles([...uploadedFiles, file]);
             }}
@@ -113,16 +147,20 @@ function AppContent() {
               setReferenceData(data);
               setUploadedReferenceFiles([{ name: fileName, format }]);
             }}
+            onHistoryDataAdd={handleHistoryDataAdd}
             onRemoveFile={(index) => {
               setUploadedFiles(
                 uploadedFiles.filter((_, i: number) => i !== index),
               );
             }}
             onRemoveReferenceFile={handleRemoveReferenceFile}
+            onRemoveHistoryFile={handleRemoveHistoryFile}
             onCancelAll={() => {
               setUploadedFiles([]);
               setUploadedReferenceFiles([]);
+              setUploadedHistoryFiles([]);
               setReferenceData(new Map());
+              setExternalHistory([]);
             }}
             onAnalyzeClick={() => {
               if (uploadedFiles.length > 0) {
@@ -153,6 +191,7 @@ function AppContent() {
               });
               setCurrentPage("analysis");
             }}
+            externalHistory={externalHistory}
           />
         )}
       </main>
