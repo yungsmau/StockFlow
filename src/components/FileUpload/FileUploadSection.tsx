@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { readTextFile, readFile } from '@tauri-apps/plugin-fs';
 
 import UploadArea from './UploadArea';
-import FileList from './FileList';
+import SimpleFileList from './SimpleFileList';        // ✅ Новый импорт
+import DetailedFileList from './DetailedFileList';    // ✅ Переименованный импорт
 import UploadPlaceholder from './UploadPlaceholder';
+import ToggleSwitch from '../UI/ToggleSwitch/ToggleSwitch';
 
 import './FileUploadButtons.css';
 import './FileUploadField.css';
@@ -18,6 +20,14 @@ import {
   parseHistoryExcel,
   detectFileType,
 } from '../../utils/fileParsers';
+
+interface ExtendedFileItem {
+  name: string;
+  format: string;
+  isReference?: boolean;
+  isHistory?: boolean;
+  originalIndex: number;
+}
 
 interface FileUploadSectionProps {
   isBlocked?: boolean;
@@ -39,6 +49,7 @@ interface FileUploadSectionProps {
 }
 
 const MAX_FILES = 5;
+const TOGGLE_STORAGE_KEY = 'uploadViewMode';
 
 export default function FileUploadSection({
   isBlocked = false,
@@ -56,8 +67,24 @@ export default function FileUploadSection({
 }: FileUploadSectionProps) {
   const [processing, setProcessing] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
-  
   const [prevFilesCount, setPrevFilesCount] = useState(0);
+  
+  const processingFilesRef = useRef<Set<string>>(new Set());
+  const processingStartTimeRef = useRef<number>(0);
+  
+  // ✅ Изменено: по умолчанию 'simple', и инвертирована логика
+  const [viewMode, setViewMode] = useState<'simple' | 'detailed'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(TOGGLE_STORAGE_KEY);
+      // Если сохранено 'detailed' — используем его, иначе 'simple'
+      return (saved === 'detailed') ? 'detailed' : 'simple';
+    }
+    return 'simple'; // ✅ По умолчанию простой режим
+  });
+
+  useEffect(() => {
+    localStorage.setItem(TOGGLE_STORAGE_KEY, viewMode);
+  }, [viewMode]);
 
   useEffect(() => {
     const currentCount = uploadedFiles.length + uploadedReferenceFiles.length + uploadedHistoryFiles.length;
@@ -91,93 +118,108 @@ export default function FileUploadSection({
       return;
     }
 
+    processingStartTimeRef.current = Date.now();
     setProcessing(true);
 
     try {
       for (const filePath of filePaths) {
         const fileName = filePath.split('/').pop() || 'файл';
-        const fileType = detectFileType(fileName);
-
+        
         const allFileNames = [...uploadedFiles, ...uploadedReferenceFiles, ...uploadedHistoryFiles].map(f => f.name);
         if (allFileNames.includes(fileName)) {
           setFileError(`Файл "${fileName}" уже загружен`);
           continue;
         }
 
+        if (processingFilesRef.current.has(fileName)) {
+          continue;
+        }
+        processingFilesRef.current.add(fileName);
+
         if (!isValidFileType(filePath)) {
+          processingFilesRef.current.delete(fileName);
           throw new Error('Поддерживаются только файлы .csv, .xls, .xlsx');
         }
 
-        if (fileType === 'history') {
-          let historyData: HistoryItem[];
-          
-          if (filePath.toLowerCase().endsWith('.csv')) {
-            const content = await readTextFile(filePath);
-            const file = new File([content], fileName, { type: 'text/csv' });
-            historyData = await parseHistoryCSV(file);
-          } else {
-            const uint8Array = await readFile(filePath);
-            const file = new File([uint8Array], fileName, {
-              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            });
-            historyData = await parseHistoryExcel(file);
-          }
-          
-          onHistoryDataAdd(historyData, fileName, getFileFormat(fileName));
-          
-        } else if (fileType === 'reference') {
-          let referenceData: Map<string, ReferenceItem>;
-          
-          if (filePath.toLowerCase().endsWith('.csv')) {
-            const content = await readTextFile(filePath);
-            const file = new File([content], fileName, { type: 'text/csv' });
-            referenceData = await parseReferenceCSV(file);
-          } else {
-            const uint8Array = await readFile(filePath);
-            const file = new File([uint8Array], fileName, {
-              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            });
-            referenceData = await parseReferenceExcel(file);
-          }
-          
-          onReferenceDataAdd(referenceData, fileName, getFileFormat(fileName));
-          
-        } else {
-          let data: RowData[];
-          
-          if (filePath.toLowerCase().endsWith('.csv')) {
-            const content = await readTextFile(filePath);
-            const file = new File([content], fileName, { type: 'text/csv' });
-            data = await parseCSV(file);
-          } else {
-            const uint8Array = await readFile(filePath);
-            const file = new File([uint8Array], fileName, {
-              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            });
-            data = await parseExcel(file);
-          }
+        try {
+          const fileType = detectFileType(fileName);
 
-          const requiredFields: (keyof RowData)[] = ['nomenclature', 'date', 'income', 'expense', 'stock'];
-          for (const row of data) {
-            for (const field of requiredFields) {
-              if (row[field] === undefined || row[field] === null) {
-                throw new Error(`Файл некорректен: отсутствует поле "${field}"`);
+          if (fileType === 'history') {
+            let historyData: HistoryItem[];
+            if (filePath.toLowerCase().endsWith('.csv')) {
+              const content = await readTextFile(filePath);
+              const file = new File([content], fileName, { type: 'text/csv' });
+              historyData = await parseHistoryCSV(file);
+            } else {
+              const uint8Array = await readFile(filePath);
+              const file = new File([uint8Array], fileName, {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+              });
+              historyData = await parseHistoryExcel(file);
+            }
+            onHistoryDataAdd(historyData, fileName, getFileFormat(fileName));
+            
+          } else if (fileType === 'reference') {
+            let referenceData: Map<string, ReferenceItem>;
+            if (filePath.toLowerCase().endsWith('.csv')) {
+              const content = await readTextFile(filePath);
+              const file = new File([content], fileName, { type: 'text/csv' });
+              referenceData = await parseReferenceCSV(file);
+            } else {
+              const uint8Array = await readFile(filePath);
+              const file = new File([uint8Array], fileName, {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+              });
+              referenceData = await parseReferenceExcel(file);
+            }
+            onReferenceDataAdd(referenceData, fileName, getFileFormat(fileName));
+            
+          } else {
+            let data: RowData[];
+            if (filePath.toLowerCase().endsWith('.csv')) {
+              const content = await readTextFile(filePath);
+              const file = new File([content], fileName, { type: 'text/csv' });
+              data = await parseCSV(file);
+            } else {
+              const uint8Array = await readFile(filePath);
+              const file = new File([uint8Array], fileName, {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+              });
+              data = await parseExcel(file);
+            }
+
+            const requiredFields: (keyof RowData)[] = ['nomenclature', 'date', 'income', 'expense', 'stock'];
+            for (const row of data) {
+              for (const field of requiredFields) {
+                if (row[field] === undefined || row[field] === null) {
+                  throw new Error(`Файл некорректен: отсутствует поле "${field}"`);
+                }
               }
             }
-          }
 
-          onFileAdd({
-            name: fileName,
-            format: getFileFormat(fileName),
-            data
-          });
+            onFileAdd({
+              name: fileName,
+              format: getFileFormat(fileName),
+              data
+            });
+          }
+        } finally {
+          processingFilesRef.current.delete(fileName);
         }
       }
     } catch (err: any) {
       const message = err?.message || 'Неизвестная ошибка при обработке файла';
       setFileError(message);
+      processingFilesRef.current.clear();
     } finally {
-      setProcessing(false);
+      const elapsed = Date.now() - processingStartTimeRef.current;
+      const MIN_LOADING_TIME = 150;
+      
+      if (elapsed < MIN_LOADING_TIME) {
+        setTimeout(() => setProcessing(false), MIN_LOADING_TIME - elapsed);
+      } else {
+        setProcessing(false);
+      }
     }
   };
 
@@ -210,10 +252,25 @@ export default function FileUploadSection({
     }
   };
 
-  const allFiles = [
-    ...uploadedFiles.map(f => ({ ...f, isReference: false, isHistory: false })),
-    ...uploadedReferenceFiles.map(f => ({ ...f, isReference: true, isHistory: false })),
-    ...uploadedHistoryFiles.map(f => ({ ...f, isReference: false, isHistory: true })),
+  const allFiles: ExtendedFileItem[] = [
+    ...uploadedFiles.map((f, idx) => ({ 
+      ...f, 
+      isReference: false, 
+      isHistory: false,
+      originalIndex: idx 
+    })),
+    ...uploadedReferenceFiles.map((f, idx) => ({ 
+      ...f, 
+      isReference: true, 
+      isHistory: false,
+      originalIndex: idx 
+    })),
+    ...uploadedHistoryFiles.map((f, idx) => ({ 
+      ...f, 
+      isReference: false, 
+      isHistory: true,
+      originalIndex: idx 
+    })),
   ];
 
   const maxFilesReached = allFiles.length >= MAX_FILES;
@@ -221,6 +278,15 @@ export default function FileUploadSection({
 
   return (
     <div className="file-upload-section">
+      {/* Переключатель: включено = подробный режим */}
+      <div className="view-mode-toggle-wrapper">
+        <ToggleSwitch
+          enabled={viewMode === 'detailed'}  // ✅ Инвертировано: ON = detailed
+          onChange={(enabled) => setViewMode(enabled ? 'detailed' : 'simple')}
+          title={viewMode === 'detailed' ? 'Подробный режим' : 'Простой режим'}
+        />
+      </div>
+
       <UploadArea
         isBlocked={isBlocked}
         processing={processing}
@@ -251,18 +317,34 @@ export default function FileUploadSection({
         
         {!processing && (
           <>
-            <FileList
-              files={allFiles}
-              onRemove={handleRemove}
-              onFileSelect={handleSelectClick}
-              onAnalyzeClick={onAnalyzeClick}
-              onCancelAll={onCancelAll}
-              isBlocked={isBlocked}
-              processing={processing}
-              maxFilesReached={maxFilesReached}
-              hasDataFiles={hasDataFiles}
-            />
+            {/* ✅ Условный рендеринг: простой или подробный список */}
+            {viewMode === 'simple' ? (
+              <SimpleFileList
+                files={allFiles}
+                onRemove={handleRemove}
+                onFileSelect={handleSelectClick}
+                onAnalyzeClick={onAnalyzeClick}
+                onCancelAll={onCancelAll}
+                isBlocked={isBlocked}
+                processing={processing}
+                maxFilesReached={maxFilesReached}
+                hasDataFiles={hasDataFiles}
+              />
+            ) : (
+              <DetailedFileList
+                files={allFiles}
+                onRemove={handleRemove}
+                onFileSelect={handleSelectClick}
+                onAnalyzeClick={onAnalyzeClick}
+                onCancelAll={onCancelAll}
+                isBlocked={isBlocked}
+                processing={processing}
+                maxFilesReached={maxFilesReached}
+                hasDataFiles={hasDataFiles}
+              />
+            )}
             
+            {/* Плейсхолдер только если файлов нет И режим подробный */}
             {allFiles.length === 0 && (
               <UploadPlaceholder
                 isBlocked={isBlocked}

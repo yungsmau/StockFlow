@@ -1,0 +1,89 @@
+/* === iOS-style toggle switch === */
+.toggle-switch {
+  /* Сброс стилей кнопки */
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  outline: none;
+  
+  /* Размеры как у iOS */
+  width: 35px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 15.5px;
+  transition: background-color 0.2s ease;
+}
+
+.toggle-switch__track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #e9e9ea;
+  border-radius: 15.5px;
+  transition: background-color 0.2s ease;
+  box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background-color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* === Состояние: включено === */
+.toggle-switch--on .toggle-switch__track {
+  background-color: #34c759; /* iOS green */
+}
+
+.toggle-switch--on .toggle-switch__thumb {
+  transform: translateX(15px);
+}
+
+/* === Состояние: отключено (disabled) === */
+.toggle-switch--disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.toggle-switch--disabled .toggle-switch__track {
+  background-color: #e9e9ea;
+}
+
+.toggle-switch--disabled.toggle-switch--on .toggle-switch__track {
+  background-color: #34c759;
+  opacity: 0.5;
+}
+
+/* === Фокус для доступности === */
+.toggle-switch:focus-visible {
+  outline: 2px solid var(--focus-color, #0066cc);
+  outline-offset: 2px;
+}
+
+/* === Тёмная тема === */
+[data-theme="dark"] .toggle-switch__track {
+  background-color: #3a3a3c;
+}
+
+[data-theme="dark"] .toggle-switch__thumb {
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .toggle-switch--on .toggle-switch__track {
+  background-color: #30d158; /* iOS green для тёмной темы */
+}
+
+/* === Анимация при наведении (опционально) === */
+.toggle-switch:not(.toggle-switch--disabled):hover .toggle-switch__thumb {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 0 2px 3px rgba(0, 0, 0, 0.15);
+}

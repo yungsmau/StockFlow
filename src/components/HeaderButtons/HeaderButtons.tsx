@@ -1,6 +1,8 @@
 import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import './HeaderButtons.css';
+import ToggleSwitch from '../UI/ToggleSwitch/ToggleSwitch';
+
 
 interface HeaderButtonsProps {
   onHelpClick: () => void;

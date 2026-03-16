@@ -3,12 +3,11 @@
   flex-direction: column;
   align-items: center;
   padding: 0;
-  gap: 24px;
+  gap: 12px;
   position: absolute;
   width: 578px;
-  height: 400px;
   left: calc(50% - 578px / 2);
-  top: calc(45% - 400px / 2 + 23px);
+  top: calc(35% - 400px / 2 + 23px);
 }
 
 .upload-field__loading-state {
@@ -59,7 +58,7 @@
   padding: 24px;
   gap: 24px;
   width: 580px;
-  height: auto;
+  min-height: 400px;
   border-radius: 10px;
   position: relative;
   background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.2));
@@ -161,6 +160,7 @@
   align-items: center;
   padding: 8px 12px;
   min-height: 40px;
+  width: auto;
   font-size: 14px;
   font-weight: 200;
   background: var(--bg-secondary);
@@ -178,7 +178,7 @@
 }
 
 .uploaded-file-card__format {
-  padding: 2px 6px;
+  padding: 4px 10px;
   border-radius: 4px;
   font-size: 11px;
   font-weight: 400; 
@@ -318,7 +318,48 @@
   box-shadow: none;
 }
 
-/* Анимация появления */
-.file-slot--clickable:hover {
-  animation: slotHover 0.3s ease;
+/* === Контейнер переключателя === */
+.view-mode-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.view-mode-toggle__label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* === Адаптив === */
+@media (max-width: 768px) {
+  .view-mode-toggle-container {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* === Простой режим списка файлов === */
+.file-list--simple {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.file-list__simple-items {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.file-list--simple .uploaded-file-card__format {
+  padding: 4px 10px;
 }
