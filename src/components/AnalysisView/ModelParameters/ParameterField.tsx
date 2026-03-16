@@ -87,7 +87,6 @@ export default function ParameterField({
       <div className="param-content">
         <span className="param-label">{label}</span>
         
-        {/* Контейнер для инпута и кнопки */}
         <div className="param-input-container">
           <NumericFormat
             className="param-input"
@@ -106,7 +105,6 @@ export default function ParameterField({
             }}
           />
           
-          {/* Кнопка сброса */}
           {onResetToDefault && (
             <button
               className="param-reset-btn"
@@ -118,7 +116,6 @@ export default function ParameterField({
           )}
         </div>
 
-        {/* Ползунок */}
         {isFinite(min) && isFinite(max) && (
           <div className="param-slider">
             <Slider

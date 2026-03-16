@@ -122,26 +122,6 @@ export default function ValueFrequencyPlot({
     }
   ];
 
-  const avgAnnotation: Layout["annotations"] = [
-    {
-      x: avgPosition,
-      y: 1.02,
-      yref: "paper",
-      xref: "x",
-      text: `Ср: ${Math.round(data.avg_value)}`,
-      showarrow: false,
-      font: {
-        size: 10,
-        color: "#EF553B",
-        family: '"Helvetica", sans-serif'
-      },
-      bgcolor: colors.bgPrimary || "#fff",
-      borderpad: 4,
-      borderwidth: 1,
-      bordercolor: "#EF553B"
-    }
-  ];
-
   if (!data || data.bins.length === 0) {
     return (
       <div className="plot-container" style={{ height: `${heightPercent}vh` }}>
@@ -197,7 +177,6 @@ export default function ValueFrequencyPlot({
           },
           
           shapes: avgLineShape,
-          // annotations: avgAnnotation,
           
           margin: { l: 30, r: 30, t: 40, b: 0 },
           hovermode: "x unified"

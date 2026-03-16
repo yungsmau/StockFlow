@@ -1,0 +1,197 @@
+.date-filter {
+  display: flex;
+  align-items: top;
+  height: 45px;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.date-filter__label {
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.date-filter__inputs-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.date-filter__input {
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-family: 'Rubik';
+  width: 100px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.date-filter__input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.date-filter__custom {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(1, 1fr);
+  gap: 20px;
+}
+
+.react-datepicker__tab-loop {
+  grid-row-start: 2;
+}
+
+.date-filter__separator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-secondary);
+  font-weight: 300;
+  font-size: 14px;
+}
+
+.date-filter__popper {
+  z-index: 1000 !important;
+}
+
+.react-datepicker {
+  font-family: 'Rubik', inherit !important;
+  border: 1px solid var(--border-color) !important;
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+.react-datepicker-popper {
+  z-index: 1000 !important;
+}
+
+.react-datepicker-popper[data-placement^="bottom"] {
+  transform: translateX(-50%) !important;
+  left: 50% !important;
+  top: 100% !important;
+}
+
+.react-datepicker__header {
+  background-color: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  border-top-left-radius: 8px !important;
+  border-top-right-radius: 8px !important;
+}
+
+.react-datepicker__header h2 {
+  color: var(--text-primary) !important;
+  font-size: 12px;
+}
+
+.react-datepicker__day-name,
+.react-datepicker__day {
+  color: var(--text-primary) !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: var(--back-button-hover) !important;
+  border-radius: 50% !important;
+}
+
+.react-datepicker__day--selected {
+  background-color: var(--bg-secondary) !important;
+  color: white !important;
+  border-radius: 50% !important;
+}
+
+.react-datepicker__day--disabled {
+  color: var(--text-secondary) !important;
+  opacity: 0.5;
+}
+
+.react-datepicker__day--in-range {
+  background-color: var(--button-bg) !important;
+  color: white !important;
+  border-radius: 50% !important;
+}
+
+.date-filter__reset {
+  padding: 6px 10px;
+  border: none;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.date-filter__reset:hover {
+  background: #ff6b6b;
+  color: white;
+}
+
+.date-filter__placeholder {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-left: auto;
+}
+
+[data-theme="dark"] .date-filter {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .date-filter__input {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .react-datepicker {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+@media (max-width: 768px) {
+  .date-filter {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .date-filter__inputs-wrapper {
+    width: 100%;
+  }
+  
+  .date-filter__input {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .date-filter__reset {
+    margin-left: auto;
+  }
+  
+  .react-datepicker-popper[data-placement^="bottom"] {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+}
+

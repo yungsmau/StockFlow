@@ -195,7 +195,6 @@ export default function HistoryView({
         )}
       </section>
 
-      {/* === ВНЕШНЯЯ ИСТОРИЯ — только если есть данные === */}
       {hasExternalHistory && (
         <section className="history-section history-section--external">
           <HistoryTable
@@ -209,7 +208,6 @@ export default function HistoryView({
         </section>
       )}
 
-      {/* === Модальные окна (только для локальной истории) === */}
       <HistoryDeleteModal
         isOpen={isDeleteConfirmOpen}
         selectedIdsCount={selectedIds.size}

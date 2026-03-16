@@ -412,7 +412,6 @@ export async function parseReferenceCSV(
 }
 
 // === Парсеры для файла истории ===
-
 export type HistoryItem = {
   processedAt: string;
   nomenclature: string;
@@ -556,7 +555,6 @@ export async function parseHistoryExcel(file: File): Promise<HistoryItem[]> {
   const headerMap = validation.headerMap;
   const normalizedHeaders = headers.map((h) => h.trim().toLowerCase());
 
-  // Создаём маппинг: field -> index
   const indices: Record<string, number> = {};
   Object.entries(headerMap).forEach(([originalHeader, field]) => {
     const idx = normalizedHeaders.findIndex(
@@ -568,7 +566,7 @@ export async function parseHistoryExcel(file: File): Promise<HistoryItem[]> {
   });
 
   worksheet.eachRow((row, idx) => {
-    if (idx === 1) return; // Пропускаем заголовок
+    if (idx === 1) return;
 
     const valuesArray = Array.isArray(row.values) ? row.values.slice(1) : [];
 
@@ -585,10 +583,9 @@ export async function parseHistoryExcel(file: File): Promise<HistoryItem[]> {
         valuesArray[indices["efficiencyPercent"]],
       ),
       efficiencyRub: toNumberSafe(valuesArray[indices["efficiencyRub"]]),
-      source: "external", // ✅ Помечаем как внешний файл
+      source: "external",
     };
 
-    // Пропускаем строки без номенклатуры
     if (item.nomenclature) {
       rows.push(item);
     }
@@ -739,7 +736,6 @@ export function detectFileType(
 ): "data" | "reference" | "history" {
   const lower = fileName.toLowerCase();
 
-  // История: по ключевым словам в имени или наличию специфичных колонок (проверяется при парсинге)
   if (
     lower.includes("история") ||
     lower.includes("history") ||
@@ -748,11 +744,9 @@ export function detectFileType(
     return "history";
   }
 
-  // Справочник
   if (lower.includes("справочник") || lower.includes("reference")) {
     return "reference";
   }
 
-  // По умолчанию — данные остатков
   return "data";
 }

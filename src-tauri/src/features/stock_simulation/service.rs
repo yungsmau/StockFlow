@@ -502,16 +502,14 @@ pub fn calculate_value_frequency(
     }
 
     // 3. Скользящее окно: считаем суммы ВСЕХ окон (как в calculate_average_expense)
-    let mut window_sums: Vec<f64> = Vec::new(); // ✅ Храним все суммы для расчёта среднего
+    let mut window_sums: Vec<f64> = Vec::new();
     let mut value_counts: HashMap<i64, u32> = HashMap::new();
 
     for i in 0..=(values.len() - window_size) {
         let window_sum: f64 = values[i..i + window_size].iter().sum();
 
-        // ✅ Сохраняем сумму для расчёта среднего (как в calculate_average_expense)
         window_sums.push(window_sum);
 
-        // ✅ Округляем до 2 знаков для группировки частот
         let key = (window_sum * 100.0).round() as i64;
         *value_counts.entry(key).or_insert(0) += 1;
     }
@@ -520,11 +518,9 @@ pub fn calculate_value_frequency(
         return Err("No windows could be calculated".into());
     }
 
-    // 4. ✅ Считаем среднее ПО ВСЕМ окнам (как в calculate_average_expense)
     let total_sum: f64 = window_sums.iter().sum();
     let avg_value = total_sum / window_sums.len() as f64;
 
-    // 5. Формируем результат для графика
     let total_windows = value_counts.values().sum::<u32>();
 
     let mut sorted_entries: Vec<(f64, u32)> = value_counts
@@ -555,7 +551,7 @@ pub fn calculate_value_frequency(
         value_type: value_type.to_string(),
         min_value,
         max_value,
-        avg_value, // ✅ Теперь считается как среднее всех окон (как в calculate_average_expense)
+        avg_value,
     })
 }
 
@@ -571,11 +567,7 @@ pub fn calculate_value_frequency_request(
     )
 }
 
-// фильтр
 // === Получение диапазона дат для продукта ===
-
-/// Возвращает минимальную и максимальную дату для указанного продукта
-/// Использует тот же парсер дат, что и остальные функции
 pub fn get_date_range_for_product(
     uploaded_files: &[UploadedFile],
     product_name: &str,
@@ -594,7 +586,6 @@ pub fn get_date_range_for_product(
                 continue;
             }
 
-            // ✅ Используем твой надёжный парсер дат
             if let Ok(date) = date_parser::parse_date_safe(&row.date, &file.name, row_index, "Дата")
             {
                 // Обновляем мин/макс

@@ -175,7 +175,7 @@ body {
   cursor: pointer;
   font-size: 13px;
   font-weight: 400;
-  transition: all 0.2s ease;
+  transition: border-color 0.3s ease;
   white-space: nowrap;
   position: relative;
   margin: 0;

@@ -19,7 +19,6 @@ pub fn calculate_value_frequency(
     service::calculate_value_frequency_request(req)
 }
 
-// ✅ Новая команда для получения диапазона дат
 #[command]
 pub fn get_date_range_for_product(
     files: Vec<crate::features::stock_simulation::models::UploadedFile>,

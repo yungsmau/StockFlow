@@ -322,8 +322,3 @@
 .file-slot--clickable:hover {
   animation: slotHover 0.3s ease;
 }
-
-/* Темная тема */
-[data-theme="dark"] .file-slot--clickable:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}

@@ -4,12 +4,12 @@ interface FileItem {
   name: string;
   format: string;
   isReference?: boolean;
-  isHistory?: boolean; // ✅ Новый флаг для файлов истории
+  isHistory?: boolean; 
 }
 
 interface FileListProps {
   files: FileItem[];
-  onRemove: (index: number, isReference: boolean, isHistory?: boolean) => void; // ✅ Добавлен isHistory
+  onRemove: (index: number, isReference: boolean, isHistory?: boolean) => void;
   onFileSelect: () => void;
   onAnalyzeClick?: () => void;
   onCancelAll: () => void;
@@ -32,9 +32,8 @@ export default function FileList({
 }: FileListProps) {
   const dataFiles = files.filter(f => !f.isReference && !f.isHistory);
   const referenceFiles = files.filter(f => f.isReference);
-  const historyFiles = files.filter(f => f.isHistory); // ✅ Фильтруем файлы истории
+  const historyFiles = files.filter(f => f.isHistory);
 
-  // Обработчик клика по слоту
   const handleSlotClick = (e: React.MouseEvent) => {
     if (isBlocked || processing || maxFilesReached) return;
     e.stopPropagation();
@@ -43,7 +42,6 @@ export default function FileList({
 
   return (
     <>
-      {/* Блок "Справочник" — кликабельный */}
       <div 
         className={`file-slot file-slot--reference ${!isBlocked && !processing && !maxFilesReached ? 'file-slot--clickable' : ''}`}
         onClick={handleSlotClick}
@@ -67,7 +65,6 @@ export default function FileList({
         </div>
       </div>
 
-      {/* Блок "Данные" — кликабельный */}
       <div 
         className={`file-slot file-slot--data ${!isBlocked && !processing && !maxFilesReached ? 'file-slot--clickable' : ''}`}
         onClick={handleSlotClick}
@@ -91,7 +88,6 @@ export default function FileList({
         </div>
       </div>
 
-      {/* ✅ Блок "История" — кликабельный */}
       <div 
         className={`file-slot file-slot--history ${!isBlocked && !processing && !maxFilesReached ? 'file-slot--clickable' : ''}`}
         onClick={handleSlotClick}
@@ -105,7 +101,7 @@ export default function FileList({
                 file={{ ...file, isHistory: true }}
                 onRemove={(e) => {
                   e.stopPropagation();
-                  onRemove(index, false, true); // ✅ isHistory = true
+                  onRemove(index, false, true);
                 }}
               />
             ))
@@ -115,7 +111,6 @@ export default function FileList({
         </div>
       </div>
 
-      {/* Кнопки показываются ТОЛЬКО если есть файлы */}
       {files.length > 0 && (
         <div className="upload-field__buttons">
           <button

@@ -3,13 +3,14 @@ import "./FilterPanel.css";
 
 import ProductSelector from "../ProductSelector/ProductSelector";
 import ModelParameters from "../ModelParameters/ModelParameters";
+import DateFilter from "../DateFilter/DateFilter";
 
 interface FiltersPanelProps {
   uploadedFiles: any[];
 }
 
 export default function FiltersPanel({ uploadedFiles }: FiltersPanelProps) {
-  const { state, updateParameter } = useAnalysis();
+  const { state, updateParameter, setDateFilter } = useAnalysis();
 
   const handleModelChange = (newData: {
     initialStock: number;
@@ -32,6 +33,14 @@ export default function FiltersPanel({ uploadedFiles }: FiltersPanelProps) {
           uploadedFiles={uploadedFiles}
           selectedProduct={state.selectedProduct}
           onProductChange={(product) => updateParameter({ selectedProduct: product })}
+        />
+      </div>
+
+      <div className="date-filter-container panel-selector">
+        <DateFilter
+          value={state.dateFilter}
+          onChange={setDateFilter}
+          availableRange={state.availableDateRange}
         />
       </div>
 

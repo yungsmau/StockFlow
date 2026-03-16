@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-// ✅ Добавили Serialize + Debug для полной совместимости
+// Добавили Serialize + Debug для полной совместимости
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct RowData {
     pub nomenclature: String,
@@ -10,7 +10,7 @@ pub struct RowData {
     pub stock: f64,
 }
 
-// ✅ То же самое для UploadedFile
+// То же самое для UploadedFile
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct UploadedFile {
     pub name: String,

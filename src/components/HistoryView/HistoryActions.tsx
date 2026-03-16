@@ -26,13 +26,11 @@ export default function HistoryActions({
 }: HistoryActionsProps) {
   return (
     <div className="history-header">
-      {/* Заголовок */}
       <div className="history-header__title">
         <h2>История обработки</h2>
         <p>Сохраненные результаты моделирования</p>
       </div>
 
-      {/* ПОИСК — ВСЕГДА ВИДЕН */}
       <div className="history-selector">
         <Select
           options={[
@@ -54,7 +52,6 @@ export default function HistoryActions({
         />
       </div>
 
-      {/* КНОПКИ УПРАВЛЕНИЯ */}
       <div className="history-actions-container">
         {!isEditMode ? (
           <button className="history-edit-btn" onClick={onEditClick}>

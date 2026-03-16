@@ -194,7 +194,6 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
         </div>
       </div>
 
-      {/* Графики */}
       <div className="analysis-bottom-section">
         {chartMode === "comparison" && state.result && state.actualData.length > 0 && (
           <>
@@ -211,7 +210,6 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
           <ActualDataPlot data={state.actualData} product={state.selectedProduct} threshold={state.threshold} heightPercent={75} />
         )}
 
-        {/* ✅ Режим: Распределение */}
         {chartMode === "frequency" && (
           <div className="frequency-plot-wrapper">
             {frequencyLoading ? (
