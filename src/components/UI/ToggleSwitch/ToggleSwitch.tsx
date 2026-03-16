@@ -1,6 +1,7 @@
 import './ToggleSwitch.css';
 
 interface ToggleSwitchProps {
+  className?: string;
   enabled: boolean;
   onChange: (enabled: boolean) => void;
   disabled?: boolean;
@@ -8,6 +9,7 @@ interface ToggleSwitchProps {
 }
 
 export default function ToggleSwitch({
+  className,
   enabled,
   onChange,
   disabled = false,
@@ -29,7 +31,7 @@ export default function ToggleSwitch({
 
   return (
     <button
-      className={`toggle-switch ${enabled ? 'toggle-switch--on' : ''} ${disabled ? 'toggle-switch--disabled' : ''}`}
+      className={`toggle-switch ${enabled ? 'toggle-switch--on' : ''} ${disabled ? 'toggle-switch--disabled' : ''} ${className}`}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       role="switch"

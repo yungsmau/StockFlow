@@ -3,7 +3,6 @@ import { useTheme } from '../../context/ThemeContext';
 import './HeaderButtons.css';
 import ToggleSwitch from '../UI/ToggleSwitch/ToggleSwitch';
 
-
 interface HeaderButtonsProps {
   onHelpClick: () => void;
   onNotificationsClick: () => void;
@@ -34,35 +33,6 @@ const HeaderButton: React.FC<HeaderButtonProps> = ({
   >
     {children}
   </button>
-);
-
-const MoonIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g clipPath="url(#clip0_3_1504)">
-      <path
-        d="M8.85059 16C11.3182 16 13.5718 14.8773 15.0649 13.0378C15.2857 12.7656 15.0449 12.3681 14.7036 12.4331C10.8222 13.1722 7.25787 10.1963 7.25787 6.27825C7.25787 4.02131 8.46606 1.94591 10.4297 0.828438C10.7324 0.656187 10.6562 0.197281 10.3123 0.13375C9.83014 0.0448416 9.34088 7.30105e-05 8.85059 0C4.43468 0 0.850586 3.57847 0.850586 8C0.850586 12.4159 4.42906 16 8.85059 16Z"
-        fill="currentColor"
-      />
-    </g>
-    <defs>
-      <clipPath id="clip0_3_1504">
-        <rect width="16" height="16" fill="white"/>
-      </clipPath>
-    </defs>
-  </svg>
-);
-
-const SunIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g clipPath="url(#clip0_19_37)">
-      <path d="M9.99998 0.833313V2.49998M9.99998 17.5V19.1666M3.51665 3.51665L4.69998 4.69998M15.3 15.3L16.4833 16.4833M0.833313 9.99998H2.49998M17.5 9.99998H19.1666M3.51665 16.4833L4.69998 15.3M15.3 4.69998L16.4833 3.51665M14.1666 9.99998C14.1666 12.3012 12.3012 14.1666 9.99998 14.1666C7.69879 14.1666 5.83331 12.3012 5.83331 9.99998C5.83331 7.69879 7.69879 5.83331 9.99998 5.83331C12.3012 5.83331 14.1666 7.69879 14.1666 9.99998Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </g>
-    <defs>
-      <clipPath id="clip0_19_37">
-        <rect width="20" height="20" fill="white"/>
-      </clipPath>
-    </defs>
-  </svg>
 );
 
 export default function HeaderButtons({ 
@@ -157,13 +127,15 @@ export default function HeaderButtons({
         </svg>
       </HeaderButton>
 
-      <HeaderButton 
-        title={theme === 'light' ? "Переключить на темную тему" : "Переключить на светлую тему"}
-        className="dark-mode-button"
-        onClick={toggleTheme}
-      >
-        {theme === 'light' ? <MoonIcon /> : <SunIcon />}
-      </HeaderButton>
+      {/* ✅ ToggleSwitch для переключения темы с иконками внутри thumb */}
+      <div className="header-buttons__theme-toggle">
+        <ToggleSwitch
+          className='header-buttons__theme-thumb'
+          enabled={theme === 'dark'}
+          onChange={toggleTheme}
+          title={theme === 'dark' ? "Переключить на светлую тему" : "Переключить на темную тему"}
+        />
+      </div>
     </div>
   );
 }

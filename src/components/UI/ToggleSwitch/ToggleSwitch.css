@@ -1,6 +1,4 @@
-/* === iOS-style toggle switch === */
 .toggle-switch {
-  /* Сброс стилей кнопки */
   background: none;
   border: none;
   padding: 0;
@@ -8,7 +6,6 @@
   cursor: pointer;
   outline: none;
   
-  /* Размеры как у iOS */
   width: 35px;
   height: 20px;
   display: inline-flex;
@@ -33,43 +30,43 @@
   left: 2px;
   width: 16px;
   height: 16px;
-  background-color: #fff;
+  background-color: var(--text-primary);
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* ✅ Для позиционирования иконок */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
-/* === Состояние: включено === */
 .toggle-switch--on .toggle-switch__track {
-  background-color: #34c759; /* iOS green */
+  background-color: #34c759;
 }
 
 .toggle-switch--on .toggle-switch__thumb {
   transform: translateX(15px);
 }
 
-/* === Состояние: отключено (disabled) === */
 .toggle-switch--disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
 
-.toggle-switch--disabled .toggle-switch__track {
-  background-color: #e9e9ea;
+/* ✅ Стили для иконок внутри thumb */
+.toggle-switch__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #666; /* Цвет иконки по умолчанию */
+  transition: color 0.2s ease;
 }
 
-.toggle-switch--disabled.toggle-switch--on .toggle-switch__track {
-  background-color: #34c759;
-  opacity: 0.5;
-}
-
-/* === Фокус для доступности === */
-.toggle-switch:focus-visible {
-  outline: 2px solid var(--focus-color, #0066cc);
-  outline-offset: 2px;
-}
-
-/* === Тёмная тема === */
+/* ✅ Тёмная тема */
 [data-theme="dark"] .toggle-switch__track {
   background-color: #3a3a3c;
 }
@@ -80,10 +77,38 @@
 }
 
 [data-theme="dark"] .toggle-switch--on .toggle-switch__track {
-  background-color: #30d158; /* iOS green для тёмной темы */
+  background-color: #30d158;
 }
 
-/* === Анимация при наведении (опционально) === */
+.toggle-switch:focus-visible {
+  outline: 2px solid var(--focus-color, #0066cc);
+  outline-offset: 2px;
+}
+
+/* ✅ Hover-эффект */
 .toggle-switch:not(.toggle-switch--disabled):hover .toggle-switch__thumb {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 0 2px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* ✅ Уменьшенная версия */
+.toggle-switch--small {
+  width: 40px;
+  height: 24px;
+  border-radius: 12px;
+}
+
+.toggle-switch--small .toggle-switch__thumb {
+  width: 20px;
+  height: 20px;
+  top: 2px;
+  left: 2px;
+}
+
+.toggle-switch--small.toggle-switch--on .toggle-switch__thumb {
+  transform: translateX(16px);
+}
+
+.toggle-switch--small .toggle-switch__icon svg {
+  width: 12px;
+  height: 12px;
 }
