@@ -16,7 +16,7 @@
   box-shadow: 0 0 0 2px rgba(15, 145, 210, 0.2);
 }
 
-/* Тёмная тема: фокус */
+/* Темная тема: фокус */
 [data-theme="dark"] .product-select__control--is-focused {
   box-shadow: 0 0 0 2px rgba(15, 145, 210, 0.4);
 }

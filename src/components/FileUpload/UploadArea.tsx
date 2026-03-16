@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
 interface UploadAreaProps {
@@ -15,32 +15,56 @@ export default function UploadArea({
   children 
 }: UploadAreaProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const unlistenRef = useRef<(() => void) | null>(null);
+  
+  const isBlockedRef = useRef(isBlocked);
+  const processingRef = useRef(processing);
+  const onFileDropRef = useRef(onFileDrop);
 
   useEffect(() => {
-    const unlisten = getCurrentWindow().onDragDropEvent(async (event) => {
-      if (isBlocked || processing) return;
+    isBlockedRef.current = isBlocked;
+    processingRef.current = processing;
+    onFileDropRef.current = onFileDrop;
+  }, [isBlocked, processing, onFileDrop]);
 
-      switch (event.payload.type) {
-        case 'enter':
-          setIsDragging(true);
-          break;
-        case 'leave':
-          setIsDragging(false);
-          break;
-        case 'drop':
-          setIsDragging(false);
-          const paths = event.payload.paths;
-          if (paths?.length) {
-            onFileDrop(paths);
+  useEffect(() => {
+    const setupDragDrop = async () => {
+      const unlisten = await getCurrentWindow().onDragDropEvent((event) => {
+        if (isBlockedRef.current || processingRef.current) {
+          if (event.payload.type === 'drop') {
+            setIsDragging(false);
           }
-          break;
-      }
-    });
+          return;
+        }
+
+        switch (event.payload.type) {
+          case 'enter':
+            setIsDragging(true);
+            break;
+          case 'leave':
+            setIsDragging(false);
+            break;
+          case 'drop':
+            setIsDragging(false);
+            const paths = event.payload.paths;
+            if (paths?.length) {
+              onFileDropRef.current(paths);
+            }
+            break;
+        }
+      });
+
+      unlistenRef.current = unlisten;
+    };
+
+    setupDragDrop();
 
     return () => {
-      unlisten.then((f) => f());
+      if (unlistenRef.current) {
+        unlistenRef.current();
+      }
     };
-  }, [isBlocked, processing]);
+  }, []);
 
   return (
     <div

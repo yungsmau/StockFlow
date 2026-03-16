@@ -22,19 +22,18 @@ export default function UsageGuide({ onDownloadExample, onDownloadReferenceExamp
         <li>В разделе "Анализ" подберите значения объема поставки и порога, используя рекомендованный начальный порог.</li>
         <li>В разделе "Данные" вы можете увидеть данные о номенклатуре.</li>
         <li>После подбора параметров, сохраните их.</li>
-        <li>В разделе "Экспорт" вы можете посмотреть и выгрузить подобранные параметры для номенклатуры.</li>
         <li>В разделе "История" вы можете посмотреть историю работы.</li>
       </ol>
 
       <h3 className="help-modal__heading file-download">Пример данных остатков</h3>
       <p className="help-modal__description">Скачайте пример файла для быстрого начала работы:</p>
       <button className="help-modal__download-btn" onClick={onDownloadExample}>
-        Пример
+        Данные 
       </button>
       <h3 className="help-modal__heading file-download">Пример справочника</h3>
       <p className="help-modal__description">Скачайте пример файла для быстрого начала работы:</p>
       <button className="help-modal__download-btn" onClick={onDownloadReferenceExample}>
-        Пример
+        Справочник 
       </button>
     </>
   );

@@ -100,7 +100,6 @@ const ActualDataPlot = ({
               namelength: 0
             }
           },
-          // === Линия порога ===
           {
             x: dates,
             y: dates.map(() => threshold),

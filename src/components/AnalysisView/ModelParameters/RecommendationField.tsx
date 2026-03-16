@@ -30,10 +30,10 @@ export default function RecommendationField({
   return (
     <div className="param-card param-recommendation">
       <div className="param-content">
-        <span className="param-label">{label}</span>
         <div className="recommendation-value-display">
           {formattedValue}
         </div>
+        <span className="param-label">{label}</span>
       </div>
     </div>
   );

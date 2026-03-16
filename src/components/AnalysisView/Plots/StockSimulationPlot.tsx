@@ -40,6 +40,13 @@ const StockSimulationPlot = ({
   const tooltipBg = theme === 'dark' ? '#2d2d2d' : '#ffffff';
   const tooltipBorder = theme === 'dark' ? '#444' : '#ddd';
 
+  const expenseColors = data.spent.map((spent, i) => {
+    if (spent > 0 && data.starting_stock[i] === 0) {
+      return '#dc3545';
+    }
+    return 'orange';
+  });
+
   const plotKey = `${theme}-${product}-${data.threshold}-${data.dates.length}-${data.dates[0]}-${data.dates[data.dates.length - 1]}`;
 
   return (
@@ -69,7 +76,7 @@ const StockSimulationPlot = ({
             text: data.spent.map(v => v > 0 ? v.toString() : ''),
             type: "bar",
             name: "Расход",
-            marker: { color: "orange" },
+            marker: { color: expenseColors },
             textposition: "outside",
             hovertemplate: `Расход: %{text}`,
             hoverlabel: { 

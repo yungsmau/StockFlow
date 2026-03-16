@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  position: relative; /* для абсолютного позиционирования кнопок */
+  position: relative;
 }
 
 .analysis-top-section {
@@ -109,7 +109,6 @@
     inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
-/* ИСПРАВЛЕНО: filter, а не filtet */
 .filter-toggle-btn::before {
   content: '';
   position: absolute;
@@ -134,34 +133,54 @@
   left: 100%;
 }
 
-/* === Выбор режима графика (под фильтром) === */
 .chart-mode-toggle-wrapper {
   width: 150px;
 }
 
 .chart-mode-toggle__control {
   min-height: 0 !important;
-  font-size: 12px; /* исправлено: было 10px, но label 12px — лучше согласовать */
+  font-size: 12px;
   font-weight: 300;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 6px !important; 
   cursor: pointer;
+  overflow: hidden !important;
 }
 
-/* Тёмная тема: контроль */
+/* Темная тема: контроль */
 [data-theme="dark"] .chart-mode-toggle__control {
   background: var(--bg-primary);
   border-color: var(--border-color);
 }
 
-.chart-mode-toggle__single-value,
+.chart-mode-toggle__single-value {
+  color: var(--text-primary);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 4px;
+}
+
 .chart-mode-toggle__option {
   color: var(--text-primary);
   font-size: 12px;
+  cursor: pointer;
+  border-radius: 0;
 }
 
-/* Тёмная тема: текст */
+.chart-mode-toggle__menu-list > .chart-mode-toggle__option:first-child {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.chart-mode-toggle__menu-list > .chart-mode-toggle__option:last-child {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+/* Темная тема: текст */
 [data-theme="dark"] .chart-mode-toggle__single-value,
 [data-theme="dark"] .chart-mode-toggle__option {
   color: var(--text-primary);
@@ -177,7 +196,7 @@
   color: var(--text-secondary);
 }
 
-/* Тёмная тема: иконка */
+/* Темная тема: иконка */
 [data-theme="dark"] .chart-mode-toggle__indicator svg {
   color: var(--text-secondary);
 }
@@ -185,13 +204,15 @@
 .chart-mode-toggle__menu {
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 6px !important;
   font-size: 12px;
   font-weight: 300;
   z-index: 6;
+  overflow: hidden !important; 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Тёмная тема: меню */
+/* Темная тема: меню */
 [data-theme="dark"] .chart-mode-toggle__menu {
   background: var(--bg-primary);
   border-color: var(--border-color);
@@ -212,7 +233,7 @@
   color: var(--button-text);
 }
 
-/* Тёмная тема: активная опция */
+/* Темная тема: активная опция */
 [data-theme="dark"] .chart-mode-toggle__option--is-selected {
   background: var(--button-bg);
   color: var(--button-text);

@@ -34,30 +34,13 @@ const darkColors: ThemeColors = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const getPreferredTheme = (): Theme => {
-  const saved = localStorage.getItem('theme') as Theme | null;
-  if (saved) return saved;
-  
-  if (typeof window !== 'undefined' && window.matchMedia) {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    return prefersDark ? 'dark' : 'light';
-  }
-  
-  return 'light';
-};
-
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('light');
+  const initialTheme = (window as any).INITIAL_THEME || 'light';
+  const [theme, setTheme] = useState<Theme>(initialTheme as Theme);
 
   useEffect(() => {
-    const initialTheme = getPreferredTheme();
-    setTheme(initialTheme);
-    document.documentElement.setAttribute('data-theme', initialTheme);
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {

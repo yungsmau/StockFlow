@@ -70,7 +70,6 @@ export default function ErrorDisplay({
       
       <div className="error-message">{parsedError.message}</div>
       
-      {/* Раскрывающиеся детали */}
       {hasDetails && (
         <div className={`error-details ${isExpanded ? 'expanded' : ''}`}>
           <div><span>Детали:</span></div>

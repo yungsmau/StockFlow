@@ -4,11 +4,12 @@ interface FileItem {
   name: string;
   format: string;
   isReference?: boolean;
+  isHistory?: boolean; 
 }
 
 interface FileListProps {
   files: FileItem[];
-  onRemove: (index: number, isReference: boolean) => void;
+  onRemove: (index: number, isReference: boolean, isHistory?: boolean) => void;
   onFileSelect: () => void;
   onAnalyzeClick?: () => void;
   onCancelAll: () => void;
@@ -29,67 +30,127 @@ export default function FileList({
   maxFilesReached,
   hasDataFiles
 }: FileListProps) {
-  const dataFiles = files.filter(f => !f.isReference);
+  const dataFiles = files.filter(f => !f.isReference && !f.isHistory);
   const referenceFiles = files.filter(f => f.isReference);
+  const historyFiles = files.filter(f => f.isHistory);
+
+  const handleSlotClick = (e: React.MouseEvent) => {
+    if (isBlocked || processing || maxFilesReached) return;
+    e.stopPropagation();
+    onFileSelect();
+  };
 
   return (
     <>
-      <div className="uploaded-files-list">
-        {dataFiles.map((file, index) => (
-          <FileCard
-            key={`data-${index}`}
-            file={file}
-            onRemove={() => onRemove(index, false)}
-          />
-        ))}
-        
-        {referenceFiles.map((file, index) => (
-          <FileCard
-            key={`ref-${index}`}
-            file={{ ...file, isReference: true }}
-            onRemove={() => onRemove(index, true)}
-          />
-        ))}
+      <div 
+        className={`file-slot file-slot--reference ${!isBlocked && !processing && !maxFilesReached ? 'file-slot--clickable' : ''}`}
+        onClick={handleSlotClick}
+      >
+        <span className="file-slot__name">Справочник</span>
+        <div className="file-slot__content">
+          {referenceFiles.length > 0 ? (
+            referenceFiles.map((file, index) => (
+              <FileCard
+                key={`ref-${index}`}
+                file={{ ...file, isReference: true }}
+                onRemove={(e) => {
+                  e.stopPropagation();
+                  onRemove(index, true, false);
+                }}
+              />
+            ))
+          ) : (
+            <div className="file-slot__placeholder" />
+          )}
+        </div>
       </div>
 
-      <div className="upload-field__buttons">
-        <button
-          type="button"
-          className="upload-field__select-button"
-          onClick={onFileSelect}
-          disabled={isBlocked || processing || maxFilesReached}
-        >
-          Выбрать файл
-        </button>
-        <button
-          type="button"
-          className="upload-field__analyze-button"
-          onClick={onAnalyzeClick}
-          disabled={!onAnalyzeClick || !hasDataFiles || processing || isBlocked}
-        >
-          Анализ
-        </button>
-        <button
-          type="button"
-          className="upload-field__cancel-button"
-          onClick={onCancelAll}
-          disabled={files.length === 0 || processing}
-        >
-          Отмена
-        </button>
+      <div 
+        className={`file-slot file-slot--data ${!isBlocked && !processing && !maxFilesReached ? 'file-slot--clickable' : ''}`}
+        onClick={handleSlotClick}
+      >
+        <span className="file-slot__name">Данные</span>
+        <div className="file-slot__content">
+          {dataFiles.length > 0 ? (
+            dataFiles.map((file, index) => (
+              <FileCard
+                key={`data-${index}`}
+                file={file}
+                onRemove={(e) => {
+                  e.stopPropagation();
+                  onRemove(index, false, false);
+                }}
+              />
+            ))
+          ) : (
+            <div className="file-slot__placeholder" />
+          )}
+        </div>
       </div>
+
+      <div 
+        className={`file-slot file-slot--history ${!isBlocked && !processing && !maxFilesReached ? 'file-slot--clickable' : ''}`}
+        onClick={handleSlotClick}
+      >
+        <span className="file-slot__name">История</span>
+        <div className="file-slot__content">
+          {historyFiles.length > 0 ? (
+            historyFiles.map((file, index) => (
+              <FileCard
+                key={`hist-${index}`}
+                file={{ ...file, isHistory: true }}
+                onRemove={(e) => {
+                  e.stopPropagation();
+                  onRemove(index, false, true);
+                }}
+              />
+            ))
+          ) : (
+            <div className="file-slot__placeholder" />
+          )}
+        </div>
+      </div>
+
+      {files.length > 0 && (
+        <div className="upload-field__buttons">
+          <button
+            type="button"
+            className="upload-field__select-button"
+            onClick={onFileSelect}
+            disabled={isBlocked || processing || maxFilesReached}
+          >
+            Добавить файл
+          </button>
+          <button
+            type="button"
+            className="upload-field__analyze-button"
+            onClick={onAnalyzeClick}
+            disabled={!onAnalyzeClick || !hasDataFiles || processing || isBlocked}
+          >
+            Анализ
+          </button>
+          <button
+            type="button"
+            className="upload-field__cancel-button"
+            onClick={onCancelAll}
+            disabled={processing}
+          >
+            Очистить всё
+          </button>
+        </div>
+      )}
     </>
   );
 }
 
 interface FileCardProps {
   file: FileItem;
-  onRemove: () => void;
+  onRemove: (e: React.MouseEvent) => void;
 }
 
 function FileCard({ file, onRemove }: FileCardProps) {
   return (
-    <div className={`uploaded-file-card ${file.isReference ? 'uploaded-file-card--reference' : ''}`}>
+    <div className={`uploaded-file-card ${file.isReference ? 'uploaded-file-card--reference' : ''} ${file.isHistory ? 'uploaded-file-card--history' : ''}`}>
       <div className="uploaded-file-card__name" title={file.name}>
         {file.name}
       </div>
