@@ -131,7 +131,7 @@ const ActualDataPlot = ({
             gridcolor: gridColor,
             zeroline: false
           },
-          paper_bgcolor: bgColor,
+          paper_bgcolor: plotBgColor,
           plot_bgcolor: plotBgColor,
           font: {
             family: '"Helvetica", sans-serif',
@@ -140,12 +140,13 @@ const ActualDataPlot = ({
           legend: {
             font: { color: textColor, size: 10 },
             orientation: "h",
-            yanchor: "bottom",
-            x: 0,
+            x: 0.5,
             y: 1,
-            xanchor: "left"
+            yanchor: "bottom",
+            xanchor: "center",
+            bgcolor: plotBgColor,
           },
-          margin: { l: 30, r: 30, t: 20, b: 0 },
+          margin: { l: 0, r: 0, t: 0, b: 0 },
           hovermode: "x unified"
         }}
         config={{ 
@@ -153,6 +154,7 @@ const ActualDataPlot = ({
           displaylogo: false,
           doubleClick: 'reset'
         }}
+        useResizeHandler={true}
         style={{ width: "100%", height: "100%" }}
       />
     </div>

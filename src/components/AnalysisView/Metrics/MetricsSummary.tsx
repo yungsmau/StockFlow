@@ -142,6 +142,7 @@ export default function MetricsSummary({ data, isLoading = false }: MetricsSumma
         
         return (
           <div key={index} className={className.trim()}>
+            <div className="metric-color"></div>
             <div className="metric-value">{metric.value}</div>
             <div className="metric-label">{metric.label}</div>
           </div>

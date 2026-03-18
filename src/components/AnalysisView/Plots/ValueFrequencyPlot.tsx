@@ -161,7 +161,7 @@ export default function ValueFrequencyPlot({
             ticklabelposition: 'inside top',
             zeroline: false
           },
-          paper_bgcolor: colors.bgPrimary,
+          paper_bgcolor: colors.bgSecondary,
           plot_bgcolor: colors.bgSecondary,
           font: {
             family: '"Helvetica", sans-serif',
@@ -178,7 +178,7 @@ export default function ValueFrequencyPlot({
           
           shapes: avgLineShape,
           
-          margin: { l: 30, r: 30, t: 40, b: 0 },
+          margin: { l: 0, r: 0, t: 0, b: 0 },
           hovermode: "x unified"
         }}
         config={{
