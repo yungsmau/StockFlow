@@ -1,9 +1,18 @@
+/* ════════════════════════════════════════════════════════
+   INVENTORY VIEW — ОСНОВНОЙ МАКЕТ
+   ════════════════════════════════════════════════════════ */
+
 .inventory-view {
   padding: 24px;
   height: 100%;
   display: flex;
   flex-direction: column;
+  background: var(--main-bg);
 }
+
+/* ════════════════════════════════════════════════════════
+   ЗАГОЛОВОК (ОСТАВЛЕНО БЕЗ ИЗМЕНЕНИЙ)
+   ════════════════════════════════════════════════════════ */
 
 .inventory-header {
   display: flex;
@@ -14,7 +23,7 @@
 
 .inventory-header__description {
   width: 20%;
-  min-width: 0; /* Предотвращает переполнение */
+  min-width: 0;
 }
 
 .inventory-header h2 {
@@ -33,23 +42,38 @@
 
 .inventory-selector {
   width: 60%;
-  min-width: 0; /* Предотвращает переполнение */
+  min-width: 0;
 }
+
+/* ════════════════════════════════════════════════════════
+   SELECT (react-select)
+   ════════════════════════════════════════════════════════ */
 
 .product-search-card {
   padding: 0;
 }
 
-/* Стили для ProductSelector (если нужно) */
 .product-select__menu-list {
   padding: 0 !important;
 }
+
+.product-select__menu {
+  z-index: 20 !important;
+}
+
+/* ════════════════════════════════════════════════════════
+   ПУСТОЕ СОСТОЯНИЕ
+   ════════════════════════════════════════════════════════ */
 
 .inventory-empty {
   text-align: center;
   padding: 40px;
   color: var(--text-secondary);
 }
+
+/* ════════════════════════════════════════════════════════
+   ТАБЛИЦА
+   ════════════════════════════════════════════════════════ */
 
 .inventory-table-container {
   overflow-x: auto;
@@ -61,7 +85,6 @@
   height: 100%;
   overflow-y: auto;
   border-radius: 8px;
-  
   scrollbar-width: thin;
   scrollbar-color: var(--button-bg) var(--bg-secondary);
 }
@@ -88,6 +111,8 @@
   width: 100%;
   border-collapse: collapse;
   background: var(--bg-secondary);
+  user-select: none; /* ✅ Стандартный префикс вместо всех вендорных */
+  -webkit-touch-callout: none;
 }
 
 .inventory-table th,
@@ -121,7 +146,105 @@
   border-bottom: none;
 }
 
-/* Адаптивность */
+.inventory-table .inventory-table__header-nomenclature {
+  text-align: left;
+}
+
+/* Нумерация строк */
+.inventory-table th:first-child,
+.inventory-table td:first-child {
+  width: 40px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+/* ════════════════════════════════════════════════════════
+   СОРТИРОВКА ЗАГОЛОВКОВ
+   ════════════════════════════════════════════════════════ */
+.inventory-table__header.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 24px; /* Место для иконки */
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.inventory-table__header.sortable-header:hover {
+  background-color: var(--upload-hover-bg);
+}
+
+.inventory-table__header.sortable-header.sorted {
+  background-color: var(--bg-tertiary);
+}
+
+.inventory-table__header.sortable-header .sort-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+}
+
+.inventory-table__header.sortable-header:hover .sort-icon {
+  opacity: 1;
+}
+
+.inventory-table__header.sortable-header.sorted .sort-icon {
+  opacity: 1;
+}
+
+
+/* ════════════════════════════════════════════════════════
+   СОСТОЯНИЯ СТРОК (выбор, подсветка, обработка)
+   ════════════════════════════════════════════════════════ */
+
+/* Курсор при наведении */
+.inventory-table tr:hover {
+  background: var(--upload-hover-bg);
+  cursor: pointer;
+}
+
+/* Подсветка выбранной строки */
+.inventory-table tr.selected-row {
+  background: var(--upload-hover-bg) !important;
+  border-left: 3px solid var(--button-bg);
+}
+
+.inventory-table tr.selected-row:hover {
+  background: var(--upload-hover-bg) !important;
+}
+
+/* Временная анимация подсветки */
+.inventory-table tr.highlighted {
+  animation: highlight 2s ease-in-out;
+}
+
+@keyframes highlight {
+  0% { background-color: rgba(255, 255, 0, 0.3); }
+  50% { background-color: rgba(255, 255, 0, 0.5); }
+  100% { background-color: var(--upload-hover-bg); }
+}
+
+/* Зеленая подсветка для обработанных номенклатур */
+.inventory-table tr.processed-row {
+  background-color: rgba(76, 175, 79, 0.357) !important;
+}
+
+.inventory-table tr.processed-row:hover {
+  background-color: rgba(48, 189, 53, 0.493) !important;
+}
+
+/* Приоритет: выбранная строка важнее обработанной */
+.inventory-table tr.selected-row.processed-row {
+  background: var(--upload-hover-bg) !important;
+  border-left: 3px solid var(--button-bg);
+}
+
+/* ════════════════════════════════════════════════════════
+   АДАПТИВ
+   ════════════════════════════════════════════════════════ */
+
 @media (max-width: 768px) {
   .inventory-header {
     flex-direction: column;
@@ -145,127 +268,15 @@
   .inventory-table td {
     padding: 6px;
   }
-}
-
-.product-select__menu {
-  z-index: 20 !important;
-}
-
-/* Нумерация строк */
-.inventory-table th:first-child,
-.inventory-table td:first-child {
-  width: 40px;
-  text-align: center;
-  color: var(--text-primary);
-}
-
-/* Подсветка выбранной строки */
-.inventory-table tr.selected-row {
-  background: var(--upload-hover-bg) !important;
-  border-left: 3px solid var(--button-bg);
-}
-
-/* Временная анимация подсветки */
-.inventory-table tr.highlighted {
-  animation: highlight 2s ease-in-out;
-}
-
-@keyframes highlight {
-  0% { background-color: rgba(255, 255, 0, 0.3); }
-  50% { background-color: rgba(255, 255, 0, 0.5); }
-  100% { background-color: transparent; }
-}
-
-/* Курсор при наведении */
-.inventory-table tr:hover {
-  background: var(--upload-hover-bg);
-  cursor: pointer;
-}
-
-/* Активное состояние для выбранной строки */
-.inventory-table tr.selected-row:hover {
-  background: var(--upload-hover-bg) !important;
-}
-
-/* Зеленая подсветка для обработанных номенклатур */
-.inventory-table tr.processed-row {
-  background-color: rgba(76, 175, 79, 0.357) !important;
-}
-
-.inventory-table tr.processed-row:hover {
-  background-color: rgba(48, 189, 53, 0.493) !important;
-}
-
-/* Приоритет стилей: выбранная строка важнее обработанной */
-.inventory-table tr.selected-row.processed-row {
-  background: var(--upload-hover-bg) !important;
-  border-left: 3px solid var(--button-bg);
-}
-
-.inventory-table__header.sortable-header:hover {
-  background-color: rgb(231, 231, 231) !important;
-}
-
-[data-theme="dark"] .inventory-table__header.sortable-header:hover {
-  background-color: rgb(193, 193, 193) !important;
-}
-
-/* SVG иконки */
-.inventory-table th.sortable-header svg {
-  flex-shrink: 0;
-  width: 14px;
-  height: 14px;
-}
-
-/* Адаптивность для сортировки */
-@media (max-width: 768px) {
-  .inventory-table th.sortable-header {
-    gap: 4px;
-    padding: 6px 4px;
+  
+  .inventory-table__header.sortable-header {
+    padding-right: 20px;
+    font-size: 11px;
   }
   
-  .inventory-table th.sortable-header svg {
+  .inventory-table__header.sortable-header .sort-icon {
     width: 12px;
     height: 12px;
+    right: 4px;
   }
-}
-
-.inventory-table th.sortable-header {
-  cursor: pointer;
-  user-select: none;
-  transition: background-color 0.2s ease;
-  position: relative;
-  position: sticky;
-}
-
-.inventory-table__header.sortable-header span {
-  margin-right: 5px;
-}
-
-/* Контейнер для текста и иконки */
-.inventory-table th.sortable-header .sort-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-/* SVG иконки */
-.inventory-table th.sortable-header svg {
-  flex-shrink: 0;
-  width: 12px;
-  height: 12px;
-  vertical-align: middle;
-}
-
-.inventory-table {
-  -webkit-user-select: none;
-     -moz-user-select: none;
-      -ms-user-select: none;
-          user-select: none;
-  -webkit-touch-callout: none;
-}
-
-.inventory-table .inventory-table__header-nomenclature {
-  text-align: left;
 }

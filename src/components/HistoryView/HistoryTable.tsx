@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { formatNumber, formatCurrency } from '../../utils/formatNumber';
 import type { ExportHistoryItem } from '../../utils/historyService';
 
@@ -9,6 +10,68 @@ interface HistoryTableProps {
   onToggleSelectAll: () => void;
   onToggleSelectItem: (id: number) => void;
 }
+
+type HistorySortField = 'processedAt' | 'product' | 'initialStock' | 'threshold' | 'unitCost' | 'deliveryDays' | 'avgStock' | 'stockValue' | 'efficiency' | 'efficiencyAbs' | null;
+type SortDirection = 'asc' | 'desc';
+
+const HISTORY_SORT_STORAGE_KEY = 'historySortPreferences';
+
+interface SortPreferences {
+  field: HistorySortField;
+  direction: SortDirection;
+}
+
+const SortIcon = ({ direction }: { direction: 'asc' | 'desc' | 'none' }) => {
+  if (direction === 'none') {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="sort-icon">
+        <path 
+          d="M7 15L12 20L17 15M17 9L12 4L7 9"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.5"
+        />
+      </svg>
+    );
+  }
+  
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="sort-icon">
+      <path 
+        d={direction === 'asc' ? "M12 19V5M12 5L5 12M12 5L19 12" : "M12 5V19M12 19L5 12M12 19L19 12"}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+const loadSortPreferences = (): SortPreferences => {
+  try {
+    const saved = sessionStorage.getItem(HISTORY_SORT_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.field && parsed.direction) {
+        return parsed;
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to load history sort preferences:', error);
+  }
+  return { field: 'processedAt', direction: 'desc' };
+};
+
+const saveSortPreferences = (field: HistorySortField, direction: SortDirection) => {
+  try {
+    sessionStorage.setItem(HISTORY_SORT_STORAGE_KEY, JSON.stringify({ field, direction }));
+  } catch (error) {
+    console.warn('Failed to save history sort preferences:', error);
+  }
+};
 
 const formatDate = (dateString: string) => {
   try {
@@ -44,22 +107,144 @@ export default function HistoryTable({
   onToggleSelectAll,
   onToggleSelectItem
 }: HistoryTableProps) {
+  const [sortField, setSortField] = useState<HistorySortField>(() => {
+    const prefs = loadSortPreferences();
+    return prefs.field;
+  });
+  
+  const [sortDirection, setSortDirection] = useState<SortDirection>(() => {
+    const prefs = loadSortPreferences();
+    return prefs.direction;
+  });
+
+  useEffect(() => {
+    if (sortField) {
+      saveSortPreferences(sortField, sortDirection);
+    }
+  }, [sortField, sortDirection]);
+
+  const handleSort = (field: HistorySortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const sortedItems = [...items].sort((a, b) => {
+    if (!sortField) return 0;
+    
+    let aValue: any = a[sortField];
+    let bValue: any = b[sortField];
+    
+    if (sortField === 'processedAt') {
+      aValue = new Date(a.processedAt).getTime();
+      bValue = new Date(b.processedAt).getTime();
+    }
+    
+    if (sortField === 'product') {
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    }
+    
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      if (sortDirection === 'asc') {
+        return aValue - bValue;
+      } else {
+        return bValue - aValue;
+      }
+    }
+    
+    return 0;
+  });
+
+  const getHeaderClass = (field: HistorySortField) => {
+    const base = 'history-table__header sortable-header';
+    return sortField === field ? `${base} sorted` : base;
+  };
+
+  const getSortDirection = (field: HistorySortField) => {
+    return sortField === field ? sortDirection : 'none';
+  };
+
   return (
     <div className="history-table-container">
       <div className="history-table-wrapper">
         <table className="history-table">
           <thead>
             <tr>
-              <th>Дата обработки</th>
-              <th className="history-table__header-nomenclature">Номенклатура</th>
-              <th>Поставка, ед.</th>
-              <th>Порог, ед.</th>
-              <th>Цена, руб./ед.</th>
-              <th>Срок поставки, дни</th>
-              <th>Ср. дневной остаток, ед.</th>
-              <th>Ср. днейвной остаток, руб.</th>
-              <th>Эффективность, %</th>
-              <th>Эффективность, руб.</th>
+              <th 
+                onClick={() => handleSort('processedAt')}
+                className={getHeaderClass('processedAt')}
+              >
+                <span>Дата обработки</span>
+                <SortIcon direction={getSortDirection('processedAt')} />
+              </th>
+              <th 
+                onClick={() => handleSort('product')}
+                className={`${getHeaderClass('product')} history-table__header-nomenclature`}
+              >
+                <span>Номенклатура</span>
+                <SortIcon direction={getSortDirection('product')} />
+              </th>
+              <th 
+                onClick={() => handleSort('initialStock')}
+                className={getHeaderClass('initialStock')}
+              >
+                <span>Поставка, ед.</span>
+                <SortIcon direction={getSortDirection('initialStock')} />
+              </th>
+              <th 
+                onClick={() => handleSort('threshold')}
+                className={getHeaderClass('threshold')}
+              >
+                <span>Порог, ед.</span>
+                <SortIcon direction={getSortDirection('threshold')} />
+              </th>
+              <th 
+                onClick={() => handleSort('unitCost')}
+                className={getHeaderClass('unitCost')}
+              >
+                <span>Цена, руб./ед.</span>
+                <SortIcon direction={getSortDirection('unitCost')} />
+              </th>
+              <th 
+                onClick={() => handleSort('deliveryDays')}
+                className={getHeaderClass('deliveryDays')}
+              >
+                <span>Срок поставки, дни</span>
+                <SortIcon direction={getSortDirection('deliveryDays')} />
+              </th>
+              <th 
+                onClick={() => handleSort('avgStock')}
+                className={getHeaderClass('avgStock')}
+              >
+                <span>Ср. дневной остаток, ед.</span>
+                <SortIcon direction={getSortDirection('avgStock')} />
+              </th>
+              <th 
+                onClick={() => handleSort('stockValue')}
+                className={getHeaderClass('stockValue')}
+              >
+                <span>Ср. дневной остаток, руб.</span>
+                <SortIcon direction={getSortDirection('stockValue')} />
+              </th>
+              <th 
+                onClick={() => handleSort('efficiency')}
+                className={getHeaderClass('efficiency')}
+              >
+                <span>Эффективность, %</span>
+                <SortIcon direction={getSortDirection('efficiency')} />
+              </th>
+              <th 
+                onClick={() => handleSort('efficiencyAbs')}
+                className={getHeaderClass('efficiencyAbs')}
+              >
+                <span>Эффективность, руб.</span>
+                <SortIcon direction={getSortDirection('efficiencyAbs')} />
+              </th>
               
               {isEditMode && (
                 <th className="history-table__checkbox-header">
@@ -73,7 +258,7 @@ export default function HistoryTable({
             </tr>
           </thead>
           <tbody>
-            {items.map(item => (
+            {sortedItems.map(item => (
               <tr 
                 key={item.id}
                 onDoubleClick={() => onRowDoubleClick(item)}
@@ -87,7 +272,7 @@ export default function HistoryTable({
                 <td>{formatCurrency(item.unitCost)}</td>
                 <td>{formatNumber(item.deliveryDays)}</td>
                 <td>{formatNumber(Math.round(item.avgStock))}</td>
-                <td>{item.stockValue !== undefined ? formatCurrency(item.stockValue) : '-'}</td>
+                <td>{item.stockValue !== undefined ? formatCurrency(item.stockValue) : '—'}</td>
                 <td>
                   <span className={getEfficiencyClass(item.efficiency)}>
                     {item.efficiency.toFixed(1)}%

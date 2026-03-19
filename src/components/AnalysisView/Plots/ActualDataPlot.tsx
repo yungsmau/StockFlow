@@ -39,7 +39,6 @@ const ActualDataPlot = ({
   const expenses = data.map(d => -d.expense); 
   const stocks = data.map(d => d.stock);
 
-  const bgColor = colors.bgPrimary;
   const plotBgColor = colors.bgSecondary;
   const textColor = colors.textPrimary;
   const gridColor = colors.borderColor;

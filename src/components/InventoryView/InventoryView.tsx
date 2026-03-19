@@ -19,7 +19,7 @@ interface InventoryViewProps {
   onNavigateToAnalysis?: (product: string) => void;
 }
 
-type SortField = 'avgStock' | 'stockValue' | 'deliveriesCount' | 'avgDeliveryInterval' | 'totalIncome' | 'totalExpense' | null;
+type SortField = 'avgStock' | 'stockValue' | 'deliveriesCount' | 'avgDeliveryInterval' | 'totalIncome' | 'totalExpense' | 'product' | null;
 type SortDirection = 'asc' | 'desc';
 
 const SORT_STORAGE_KEY = 'inventorySortPreferences';
@@ -32,7 +32,7 @@ interface SortPreferences {
 const SortIcon = ({ direction }: { direction: 'asc' | 'desc' | 'none' }) => {
   if (direction === 'none') {
     return (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="sort-icon">
         <path 
           d="M7 15L12 20L17 15M17 9L12 4L7 9"
           stroke="currentColor"
@@ -46,7 +46,7 @@ const SortIcon = ({ direction }: { direction: 'asc' | 'desc' | 'none' }) => {
   }
   
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="sort-icon">
       <path 
         d={direction === 'asc' ? "M12 19V5M12 5L5 12M12 5L19 12" : "M12 5V19M12 19L5 12M12 19L19 12"}
         stroke="currentColor"
@@ -63,7 +63,6 @@ const loadSortPreferences = (): SortPreferences => {
     const saved = sessionStorage.getItem(SORT_STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Валидация данных
       if (parsed.field && parsed.direction) {
         return parsed;
       }
@@ -206,8 +205,18 @@ export default function InventoryView({ onNavigateToAnalysis }: InventoryViewPro
     
     if (sortField) {
       return [...items].sort((a, b) => {
-        const aValue = a[sortField];
-        const bValue = b[sortField];
+        // Особая обработка для строк (номенклатура)
+        if (sortField === 'product') {
+          const aValue = a.product.toLowerCase();
+          const bValue = b.product.toLowerCase();
+          if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+          if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+          return 0;
+        }
+        
+        // Числовые значения
+        const aValue = a[sortField] as number;
+        const bValue = b[sortField] as number;
         
         if (typeof aValue === 'number' && typeof bValue === 'number') {
           if (sortDirection === 'asc') {
@@ -220,6 +229,7 @@ export default function InventoryView({ onNavigateToAnalysis }: InventoryViewPro
       });
     }
     
+    // Дефолтная сортировка (по убыванию среднего остатка)
     return [...items].sort((a, b) => b.avgStock - a.avgStock);
   }, [uploadedFiles, referenceData, sortField, sortDirection]);
 
@@ -277,6 +287,15 @@ export default function InventoryView({ onNavigateToAnalysis }: InventoryViewPro
     }
   };
 
+  const getHeaderClass = (field: SortField) => {
+    const base = 'inventory-table__header sortable-header';
+    return sortField === field ? `${base} sorted` : base;
+  };
+
+  const getSortDirection = (field: SortField) => {
+    return sortField === field ? sortDirection : 'none';
+  };
+
   return (
     <div className="inventory-view">
       <div className="inventory-header">
@@ -301,50 +320,54 @@ export default function InventoryView({ onNavigateToAnalysis }: InventoryViewPro
                 <th className='inventory-table__header'>
                   <span>#</span>
                 </th>
-                <th className='inventory-table__header inventory-table__header-nomenclature'>
+                <th 
+                  onClick={() => handleSort('product')}
+                  className={`${getHeaderClass('product')} inventory-table__header-nomenclature`}
+                >
                   <span>Номенклатура</span>
+                  <SortIcon direction={getSortDirection('product')} />
                 </th>
                 <th 
                   onClick={() => handleSort('avgStock')} 
-                  className={`inventory-table__header sortable-header ${sortField === 'avgStock' ? 'sorted' : ''}`}
+                  className={getHeaderClass('avgStock')}
                 >
                   <span>Ср. дневной остаток, ед.</span>
-                  <SortIcon direction={sortField === 'avgStock' ? sortDirection : 'none'} />
+                  <SortIcon direction={getSortDirection('avgStock')} />
                 </th>
                 <th 
                   onClick={() => handleSort('stockValue')} 
-                  className={`inventory-table__header sortable-header ${sortField === 'stockValue' ? 'sorted' : ''}`}
+                  className={getHeaderClass('stockValue')}
                 >
                   <span>Ср. дневной остаток, руб.</span>
-                  <SortIcon direction={sortField === 'stockValue' ? sortDirection : 'none'} />
+                  <SortIcon direction={getSortDirection('stockValue')} />
                 </th>
                 <th 
                   onClick={() => handleSort('deliveriesCount')} 
-                  className={`inventory-table__header sortable-header ${sortField === 'deliveriesCount' ? 'sorted' : ''}`}
+                  className={getHeaderClass('deliveriesCount')}
                 >
                   <span>Поставок</span>
-                  <SortIcon direction={sortField === 'deliveriesCount' ? sortDirection : 'none'} />
+                  <SortIcon direction={getSortDirection('deliveriesCount')} />
                 </th>
                 <th 
                   onClick={() => handleSort('avgDeliveryInterval')} 
-                  className={`inventory-table__header sortable-header ${sortField === 'avgDeliveryInterval' ? 'sorted' : ''}`}
+                  className={getHeaderClass('avgDeliveryInterval')}
                 >
                   <span>Интервал поставок, дни</span>
-                  <SortIcon direction={sortField === 'avgDeliveryInterval' ? sortDirection : 'none'} />
+                  <SortIcon direction={getSortDirection('avgDeliveryInterval')} />
                 </th>
                 <th 
                   onClick={() => handleSort('totalIncome')} 
-                  className={`inventory-table__header sortable-header ${sortField === 'totalIncome' ? 'sorted' : ''}`}
+                  className={getHeaderClass('totalIncome')}
                 >
                   <span>Всего приход, ед.</span>
-                  <SortIcon direction={sortField === 'totalIncome' ? sortDirection : 'none'} />
+                  <SortIcon direction={getSortDirection('totalIncome')} />
                 </th>
                 <th 
                   onClick={() => handleSort('totalExpense')} 
-                  className={`inventory-table__header sortable-header ${sortField === 'totalExpense' ? 'sorted' : ''}`}
+                  className={getHeaderClass('totalExpense')}
                 >
                   <span>Всего расход, ед.</span>
-                  <SortIcon direction={sortField === 'totalExpense' ? sortDirection : 'none'} />
+                  <SortIcon direction={getSortDirection('totalExpense')} />
                 </th>
               </tr>
             </thead>

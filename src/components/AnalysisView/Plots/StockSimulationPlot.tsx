@@ -33,7 +33,6 @@ const StockSimulationPlot = ({
     );
   }
 
-  const bgColor = colors.bgPrimary;
   const plotBgColor = colors.bgSecondary;
   const textColor = colors.textPrimary;
   const gridColor = colors.borderColor;
