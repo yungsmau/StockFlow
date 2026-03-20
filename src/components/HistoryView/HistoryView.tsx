@@ -3,6 +3,7 @@ import './HistoryView.css';
 import { 
   loadHistoryItems, 
   deleteHistoryItemById,
+  saveHistoryItem,
   type ExportHistoryItem 
 } from '../../utils/historyService';
 
@@ -51,8 +52,15 @@ export default function HistoryView({
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   
+  // Локальная история
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  
+  // ✅ Внешняя история — режим выбора и выбранные ID
+  const [isExternalEditMode, setIsExternalEditMode] = useState(false);
+  const [selectedExternalIds, setSelectedExternalIds] = useState<Set<number>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
+  
   const [filterProduct, setFilterProduct] = useState<string>('');
 
   useEffect(() => {
@@ -91,6 +99,7 @@ export default function HistoryView({
     return filtered.map((item, idx) => mapExternalToExportItem(item, idx));
   }, [externalHistory, filterProduct]);
 
+  // === Локальная история ===
   const toggleSelectItem = (id: number) => {
     if (id < 0) return;
     
@@ -137,6 +146,67 @@ export default function HistoryView({
     if (selectedIds.size > 0) setIsExportModalOpen(true);
   };
 
+  // === Внешняя история ===
+  const toggleSelectExternalItem = (id: number) => {
+    setSelectedExternalIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
+  };
+
+  const toggleSelectAllExternal = () => {
+    if (selectedExternalIds.size === mappedExternalHistory.length) {
+      setSelectedExternalIds(new Set());
+    } else {
+      setSelectedExternalIds(new Set(mappedExternalHistory.map(item => item.id)));
+    }
+  };
+
+  // ✅ Сохранение выбранных строк в локальную историю (аналогично AnalysisView)
+  const handleSaveSelectedToHistory = async () => {
+    if (selectedExternalIds.size === 0) return;
+    
+    setIsSaving(true);
+    try {
+      const itemsToSave = mappedExternalHistory.filter(item => selectedExternalIds.has(item.id));
+      
+      for (const item of itemsToSave) {
+        // ✅ Вызываем saveHistoryItem с теми же параметрами, что в AnalysisView
+        await saveHistoryItem(
+          item.product,
+          item.initialStock,
+          item.threshold,
+          item.deliveryDays,
+          item.unitCost,
+          item.efficiency,
+          item.avgStock,
+          item.actualAvgStock,
+          undefined,
+          undefined,
+          item.stockValue || 0,
+          item.efficiencyAbs || 0
+        );
+      }
+      
+      // ✅ Перезагружаем локальную историю
+      const historyItems = await loadHistoryItems();
+      setItems(historyItems);
+      
+      // ✅ Сбрасываем выбор
+      setSelectedExternalIds(new Set());
+      setIsExternalEditMode(false);
+      
+      console.log(`✅ Сохранено ${itemsToSave.length} записей в историю`);
+    } catch (err) {
+      console.error('Failed to save selected items:', err);
+      alert('Не удалось сохранить выбранные записи');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleRowDoubleClick = (item: ExportHistoryItem) => {
     if (onNavigateToAnalysis) {
       onNavigateToAnalysis(item.product, {
@@ -158,6 +228,7 @@ export default function HistoryView({
 
   const selectedItems = filteredItems.filter(item => selectedIds.has(item.id));
   const hasExternalHistory = mappedExternalHistory.length > 0;
+  const selectedExternalItems = mappedExternalHistory.filter(item => selectedExternalIds.has(item.id));
 
   return (
     <div className="history-view">
@@ -195,15 +266,51 @@ export default function HistoryView({
         )}
       </section>
 
+      {/* === ВНЕШНЯЯ ИСТОРИЯ === */}
       {hasExternalHistory && (
         <section className="history-section history-section--external">
+          <div className="history-external-actions">
+            {!isExternalEditMode ? (
+              <button
+                className="history-edit-btn"
+                onClick={() => setIsExternalEditMode(true)}
+                disabled={isSaving}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M18.5 2.50023C18.8978 2.1024 19.4374 1.87891 20 1.87891C20.5626 1.87891 21.1022 2.1024 21.5 2.50023C21.8978 2.89805 22.1213 3.43762 22.1213 4.00023C22.1213 4.56284 21.8978 5.1024 21.5 5.50023L12 15.0002L8 16.0002L9 12.0002L18.5 2.50023Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            ) : (
+              <>
+                <button
+                  className="history-action-btn history-save-btn"
+                  onClick={handleSaveSelectedToHistory}
+                  disabled={selectedExternalIds.size === 0 || isSaving}
+                >
+                  {isSaving ? 'Сохранение...' : `Сохранить в историю`}
+                </button>
+                <button
+                  className="history-action-btn history-cancel-btn"
+                  onClick={() => {
+                    setIsExternalEditMode(false);
+                    setSelectedExternalIds(new Set());
+                  }}
+                  disabled={isSaving}
+                >
+                  Отмена
+                </button>
+              </>
+            )}
+          </div>
+
           <HistoryTable
             items={mappedExternalHistory}
-            isEditMode={false} 
-            selectedIds={new Set()}
+            isEditMode={isExternalEditMode}
+            selectedIds={selectedExternalIds}
             onRowDoubleClick={handleRowDoubleClick}
-            onToggleSelectAll={() => {}} 
-            onToggleSelectItem={() => {}}
+            onToggleSelectAll={toggleSelectAllExternal}
+            onToggleSelectItem={toggleSelectExternalItem}
           />
         </section>
       )}

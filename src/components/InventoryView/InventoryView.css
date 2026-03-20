@@ -164,17 +164,8 @@
 .inventory-table__header.sortable-header {
   cursor: pointer;
   user-select: none;
-  position: relative;
   padding-right: 24px; /* Место для иконки */
   transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.inventory-table__header.sortable-header:hover {
-  background-color: var(--upload-hover-bg);
-}
-
-.inventory-table__header.sortable-header.sorted {
-  background-color: var(--bg-tertiary);
 }
 
 .inventory-table__header.sortable-header .sort-icon {
@@ -184,6 +175,19 @@
   transform: translateY(-50%);
   opacity: 0.5;
   transition: opacity 0.15s ease;
+}
+
+.inventory-table__header.sorted,
+.inventory-table__header:hover {
+  background-color: rgb(242, 242, 242);
+}
+
+[data-theme="dark"] .inventory-table__header.sorted {
+  background-color: rgb(62, 62, 62);
+}
+
+[data-theme="dark"] .inventory-table__header:hover {
+  background-color: rgb(62, 62, 62);
 }
 
 .inventory-table__header.sortable-header:hover .sort-icon {

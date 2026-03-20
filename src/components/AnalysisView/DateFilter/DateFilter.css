@@ -133,7 +133,7 @@
 .date-filter__reset {
   padding: 6px 10px;
   border: none;
-  background: var(--bg-tertiary);
+  background: rgb(62, 62, 62);
   color: var(--text-secondary);
   border-radius: 4px;
   cursor: pointer;

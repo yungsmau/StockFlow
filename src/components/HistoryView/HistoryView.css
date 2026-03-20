@@ -61,12 +61,31 @@
   cursor: pointer;
   font-size: 12px;
   font-weight: 500;
+  background: #eceded;
+  color: whtie;
+  transition: background 0.1s ease;
 }
 
-.history-delete-btn { background-color: #ff6b6b; color: white; }
-.history-export-btn { background-color: #4ecdc4; color: white; }
-.history-cancel-btn { background-color: #6c757d; color: white; }
+[data-theme="dark"] .history-action-btn {
+  background: #6c757d;
+}
+
+.history-delete-btn:hover {
+  background: rgba(255, 107, 107, 0.5);
+}
+
+.history-export-btn:hover {
+  background: rgba(78, 205, 196, 0.5);
+}
+
+.history-cancel-btn:hover {
+  background: rgba(98, 105, 112, 0.5);
+}
+
 .history-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.history-action-btn:disabled:hover { background: #eceded; }
+
+[data-theme="dark"] .history-action-btn:disabled:hover { background: #6c757d; }
 
 .history-actions-container {
   margin-left: auto;
@@ -150,7 +169,6 @@
 
 .history-table-container {
   overflow-x: auto;
-  margin-bottom: 24px;
   flex: 1;
   min-height: 0;
 }
@@ -254,12 +272,17 @@
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
+.history-table__header.sorted,
 .history-table__header:hover {
-  background-color: var(--upload-hover-bg);
+  background-color: rgb(242, 242, 242);
 }
 
-.history-table__header.sorted {
-  background-color: var(--bg-tertiary);
+[data-theme="dark"] .history-table__header:hover {
+  background-color: rgb(62, 62, 62);
+}
+
+[data-theme="dark"] .history-table__header.sorted {
+  background-color: rgb(62, 62, 62);
 }
 
 .history-table__header .sort-icon {
@@ -357,6 +380,9 @@
   width: 90%;
   max-width: 400px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .history-confirm-modal h3 {
@@ -394,7 +420,7 @@
 }
 
 .history-confirm-cancel {
-  background: var(--bg-tertiary);
+  background: rgb(62, 62, 62);
   color: var(--text-primary);
 }
 
@@ -422,6 +448,7 @@
   display: flex;
   gap: 12px;
   margin: 20px 0;
+  width: 100%;
 }
 
 .history-export-option {
@@ -431,7 +458,8 @@
   border-radius: 8px;
   background: rgba(74, 144, 226, 0.1);
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 200;
+  text-align: center;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -451,14 +479,20 @@
 }
 
 .history-export-cancel {
-  width: 100%;
+  width: 50%;
   padding: 8px;
-  background: #6c757d;
+  background-color: #6c757d;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   margin-top: 10px;
+  text-align: center;
+  transition: background 0.2s ease;
+}
+
+.history-export-cancel:hover {
+  background: rgba(255, 107, 107, 0.5);
 }
 
 /* ════════════════════════════════════════════════════════
@@ -470,16 +504,38 @@
   padding-bottom: 24px;
 }
 
-.history-section:last-child {
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
 .history-section--external {
   border: 1px dashed var(--warning-color, #F5A623);
   border-radius: 8px;
   padding: 8px;
   background: rgba(245, 166, 35, 0.03);
+}
+
+.history-external-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: right;
+  margin-bottom: 10px;
+}
+
+/* === Кнопка "Сохранить" === */
+.history-save-btn {
+  padding: 6px 12px;
+  color: (--text-primary);
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.history-save-btn:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.history-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -557,3 +613,9 @@
 
 [data-theme="dark"] .efficiency-positive { color: #4ade80; }
 [data-theme="dark"] .efficiency-negative { color: #f87171; }
+
+
+.history-table__checkbox-header input[type="checkbox"],
+.history-table__checkbox-cell input[type="checkbox"] {
+  accent-color: var(--back-button-hover);
+}
