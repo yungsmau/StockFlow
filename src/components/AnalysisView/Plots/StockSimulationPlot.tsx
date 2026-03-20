@@ -13,19 +13,17 @@ interface ComputeResponse {
 interface StockSimulationPlotProps {
   data: ComputeResponse;
   product: string;
-  heightPercent?: number;
 }
 
 const StockSimulationPlot = ({ 
   data, 
   product,
-  heightPercent = 50 
 }: StockSimulationPlotProps) => {
   const { theme, colors } = useTheme();
 
   if (!data || data.dates.length === 0) {
     return (
-      <div className="plot-container" style={{ height: `${heightPercent}vh` }}>
+      <div className="plot-container">
         <div className="plot-loading">
           Загрузка данных...
         </div>
@@ -49,7 +47,7 @@ const StockSimulationPlot = ({
   const plotKey = `${theme}-${product}-${data.threshold}-${data.dates.length}-${data.dates[0]}-${data.dates[data.dates.length - 1]}`;
 
   return (
-    <div className="plot-container" style={{ height: `${heightPercent}vh` }}>
+    <div className="plot-container">
       <Plot
         key={plotKey}
         data={[

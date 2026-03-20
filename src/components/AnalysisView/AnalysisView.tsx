@@ -261,18 +261,18 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
         <div className="analysis-bottom-section">
           {chartMode === "comparison" && state.result && state.actualData.length > 0 && (
             <>
-              <StockSimulationPlot data={state.result} product={state.selectedProduct} heightPercent={45} />
+              <StockSimulationPlot data={state.result} product={state.selectedProduct} />
               <div className="analysis-bottom-section__devider"></div>
-              <ActualDataPlot data={state.actualData} product={state.selectedProduct} threshold={state.threshold} heightPercent={35} />
+              <ActualDataPlot data={state.actualData} product={state.selectedProduct} threshold={state.threshold} />
             </>
           )}
 
           {chartMode === "simulation" && state.result && (
-            <StockSimulationPlot data={state.result} product={state.selectedProduct} heightPercent={80} />
+            <StockSimulationPlot data={state.result} product={state.selectedProduct} />
           )}
 
           {chartMode === "actual" && state.actualData.length > 0 && (
-            <ActualDataPlot data={state.actualData} product={state.selectedProduct} threshold={state.threshold} heightPercent={75} />
+            <ActualDataPlot data={state.actualData} product={state.selectedProduct} threshold={state.threshold} />
           )}
 
           {chartMode === "frequency" && (
@@ -285,7 +285,6 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
                 <ValueFrequencyPlot 
                   data={frequencyData} 
                   product={state.selectedProduct}
-                  heightPercent={80}
                 />
               ) : (
                 <div className="plot-loading" style={{ height: "35vh", display: "flex", alignItems: "center", justifyContent: "center" }}>

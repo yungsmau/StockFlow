@@ -20,13 +20,12 @@ const ActualDataPlot = ({
   data, 
   product,
   threshold,
-  heightPercent = 30
 }: ActualDataPlotProps) => {
   const { theme, colors } = useTheme();
 
   if (!data || data.length === 0) {
     return (
-      <div className="plot-container" style={{ height: `${heightPercent}vh` }}>
+      <div className="plot-container">
         <div className="plot-loading">
           Загрузка данных...
         </div>
@@ -48,7 +47,7 @@ const ActualDataPlot = ({
   const plotKey = `${theme}-${product}-${threshold}-${data.length}-${data[0]?.date}-${data[data.length - 1]?.date}`;
 
   return (
-    <div className="plot-container" style={{ height: `${heightPercent}vh` }}>
+    <div className="plot-container">
       <Plot
         key={plotKey}
         data={[
