@@ -1,4 +1,3 @@
-// src/components/AnalysisView/AnalysisView.tsx
 import { useState, useEffect } from "react";
 import Select, { SingleValue } from "react-select";
 import "./AnalysisView.css";
@@ -8,7 +7,7 @@ import MetricsSummary from "./Metrics/MetricsSummary";
 import StockSimulationPlot from "./Plots/StockSimulationPlot";
 import ActualDataPlot from "./Plots/ActualDataPlot";
 import ValueFrequencyPlot from "./Plots/ValueFrequencyPlot";
-import PlanPlot from "./Plots/PlanPlot"; // ✅ Новый импорт
+import PlanPlot from "./Plots/PlanPlot";
 import ErrorDisplay from "./ErrorDisplay/ErrorDisplay";
 
 import { saveHistoryItem } from "../../utils/historyService";
@@ -44,7 +43,7 @@ const CHART_MODE_OPTIONS = [
   { value: "simulation", label: "Моделирование" },
   { value: "actual", label: "Фактические данные" },
   { value: "frequency", label: "Анализ расходов" },
-  { value: "plan", label: "План" }, // ✅ Новый режим
+  { value: "plan", label: "План" },
 ];
 
 export default function AnalysisView({ uploadedFiles, externalPlan }: AnalysisViewProps) {
@@ -356,7 +355,7 @@ export default function AnalysisView({ uploadedFiles, externalPlan }: AnalysisVi
             </div>
           )}
 
-          {/* ✅ === План === */}
+          {/* === План === */}
           {chartMode === "plan" && (
             <div className="plan-plot-wrapper">
               {planLoading ? (
@@ -367,7 +366,6 @@ export default function AnalysisView({ uploadedFiles, externalPlan }: AnalysisVi
                 <PlanPlot 
                   planData={planData} 
                   product={state.selectedProduct}
-                  // ✅ Передаём фактические расходы из state.actualData
                   actualExpenses={state.actualData.map(d => ({
                     date: d.date,
                     expense: d.expense
@@ -383,7 +381,7 @@ export default function AnalysisView({ uploadedFiles, externalPlan }: AnalysisVi
         </div>
       </main>
 
-      {/* ✅ Мобильный: оверлей + модальное окно */}
+      {/* Мобильный: оверлей + модальное окно */}
       {!isDesktop && isFilterOpen && (
         <div
           className="filter-overlay"

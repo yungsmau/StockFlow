@@ -13,7 +13,7 @@ import AboutModal from "./components/modals/AboutModal/AboutModal";
 import { useUpdateCheck } from "./hooks/useUpdateCheck";
 import { AnalysisProvider, useAnalysis } from "./context/AnalysisContext";
 
-import type { HistoryItem, PlanItem } from "./utils/fileParsers"; // ✅ Добавлен PlanItem
+import type { HistoryItem, PlanItem } from "./utils/fileParsers";
 
 import "./App.css";
 import "./styles/theme.css";
@@ -35,14 +35,12 @@ function AppContent() {
     { name: string; format: string }[]
   >([]);
   
-  // ✅ Новый стейт для файлов плана (по аналогии с историей)
   const [uploadedPlanFiles, setUploadedPlanFiles] = useState<
     { name: string; format: string }[]
   >([]);
 
   const [externalHistory, setExternalHistory] = useState<HistoryItem[]>([]);
   
-  // ✅ Новый стейт для данных плана (по аналогии с externalHistory)
   const [externalPlan, setExternalPlan] = useState<PlanItem[]>([]);
 
   const { uploadedFiles, setUploadedFiles, setReferenceData, updateParameter } =
@@ -94,7 +92,6 @@ function AppContent() {
     }
   };
 
-  // ✅ Обработчик для добавления файла плана (по аналогии с историей)
   const handlePlanDataAdd = ( data: PlanItem[], fileName: string, format: string) => {
     const dataWithSource = data.map(item => ({
       ...item,
@@ -105,7 +102,6 @@ function AppContent() {
     setUploadedPlanFiles(prev => [...prev, { name: fileName, format }]);
   };
 
-  // ✅ Обработчик для удаления файла плана (по аналогии с историей)
   const handleRemovePlanFile = (index: number) => {
     const fileName = uploadedPlanFiles[index]?.name;
     
@@ -175,7 +171,7 @@ function AppContent() {
             uploadedFiles={uploadedFiles}
             uploadedReferenceFiles={uploadedReferenceFiles}
             uploadedHistoryFiles={uploadedHistoryFiles}
-            uploadedPlanFiles={uploadedPlanFiles} // ✅ Передаём файлы плана
+            uploadedPlanFiles={uploadedPlanFiles}
             onFileAdd={(file) => {
               setUploadedFiles([...uploadedFiles, file]);
             }}
@@ -184,7 +180,7 @@ function AppContent() {
               setUploadedReferenceFiles([{ name: fileName, format }]);
             }}
             onHistoryDataAdd={handleHistoryDataAdd}
-            onPlanDataAdd={handlePlanDataAdd} // ✅ Передаём обработчик для плана
+            onPlanDataAdd={handlePlanDataAdd}
             onRemoveFile={(index) => {
               setUploadedFiles(
                 uploadedFiles.filter((_, i: number) => i !== index),
@@ -192,15 +188,15 @@ function AppContent() {
             }}
             onRemoveReferenceFile={handleRemoveReferenceFile}
             onRemoveHistoryFile={handleRemoveHistoryFile}
-            onRemovePlanFile={handleRemovePlanFile} // ✅ Передаём обработчик удаления плана
+            onRemovePlanFile={handleRemovePlanFile}
             onCancelAll={() => {
               setUploadedFiles([]);
               setUploadedReferenceFiles([]);
               setUploadedHistoryFiles([]);
-              setUploadedPlanFiles([]); // ✅ Очищаем файлы плана
+              setUploadedPlanFiles([]);
               setReferenceData(new Map());
               setExternalHistory([]);
-              setExternalPlan([]); // ✅ Очищаем данные плана
+              setExternalPlan([]);
             }}
             onAnalyzeClick={() => {
               if (uploadedFiles.length > 0) {
@@ -218,7 +214,6 @@ function AppContent() {
         ) : currentPage === "analysis" ? (
           <AnalysisView
             uploadedFiles={uploadedFiles}
-            // ✅ Опционально: передаём данные плана, если нужно
             externalPlan={externalPlan}
           />
         ) : (

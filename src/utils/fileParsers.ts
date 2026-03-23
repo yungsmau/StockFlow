@@ -765,7 +765,6 @@ export function detectFileType(
   return "data";
 }
 
-// ✅ Парсинг русского месяца в полном формате: "январь 2025" → Date
 export function parseRussianMonthFull(monthStr: string): Date | null {
   try {
     const normalized = monthStr.trim().toLowerCase();
@@ -799,14 +798,12 @@ export function parseRussianMonthFull(monthStr: string): Date | null {
     let year = parseInt(yearMatch[1], 10);
     if (year < 100) year = year >= 50 ? 1900 + year : 2000 + year;
 
-    // ✅ Создаём дату в UTC (не локальное время!)
     return new Date(Date.UTC(year, monthIndex, 1));
   } catch {
     return null;
   }
 }
 
-// ✅ Валидация заголовков для файла плана
 function validatePlanHeaders(headers: string[]): {
   valid: boolean;
   error?: string;
@@ -880,7 +877,6 @@ function validatePlanHeaders(headers: string[]): {
   return { valid: true, headerMap };
 }
 
-// ✅ Парсер Excel для файла плана
 export async function parsePlanExcel(file: File): Promise<PlanItem[]> {
   const buffer = await file.arrayBuffer();
   const workbook = new ExcelJS.Workbook();
@@ -938,11 +934,9 @@ export async function parsePlanExcel(file: File): Promise<PlanItem[]> {
     throw new Error("Файл плана не содержит данных");
   }
 
-  // Сортируем по дате
   return rows.sort((a, b) => a.monthDate.getTime() - b.monthDate.getTime());
 }
 
-// ✅ Парсер CSV для файла плана
 export async function parsePlanCSV(file: File): Promise<PlanItem[]> {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {

@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-// Добавили Serialize + Debug для полной совместимости
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct RowData {
     pub nomenclature: String,
@@ -10,14 +9,12 @@ pub struct RowData {
     pub stock: f64,
 }
 
-// То же самое для UploadedFile
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct UploadedFile {
     pub name: String,
     pub data: Vec<RowData>,
 }
 
-// ComputeRequest — только Deserialize (входной параметр команды)
 #[derive(Deserialize, Clone, Debug)]
 pub struct ComputeRequest {
     pub product: String,
@@ -28,7 +25,6 @@ pub struct ComputeRequest {
     pub unit_cost: Option<f64>,
 }
 
-// ComputeResponse — только Serialize (выходной параметр)
 #[derive(Serialize, Debug)]
 pub struct ComputeResponse {
     pub dates: Vec<String>,
@@ -51,8 +47,6 @@ pub struct ComputeResponse {
     pub avg_delivery_interval_model: f64,
 }
 
-// === Частотное распределение значений окон ===
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ValueFrequencyBin {
     pub value: f64,
@@ -73,7 +67,7 @@ pub struct ValueFrequencyResult {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ValueFrequencyRequest {
-    pub uploaded_files: Vec<UploadedFile>, // ← Теперь UploadedFile имеет Serialize ✅
+    pub uploaded_files: Vec<UploadedFile>,
     pub product: String,
     pub value_type: String,
     pub window_size: usize,

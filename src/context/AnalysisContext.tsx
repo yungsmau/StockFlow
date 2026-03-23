@@ -17,7 +17,7 @@ interface UploadedFile {
   name: string;
   format: string;
   data: RowData[];
-  path?: string; // ✅ Для Tauri readFile (нужен для парсинга плана)
+  path?: string;
 }
 
 interface ReferenceItem {
@@ -55,7 +55,6 @@ interface ActualDataPoint {
   stock: number;
 }
 
-// ✅ Тип режима графика (включая "plan")
 type ChartMode = "comparison" | "actual" | "simulation" | "frequency" | "plan";
 
 interface AnalysisState {
@@ -70,7 +69,7 @@ interface AnalysisState {
   actualData: ActualDataPoint[];
   loading: boolean;
   errorMessage: { message: string; rawMessage: string } | null;
-  chartMode: ChartMode; // ✅ Используем объединённый тип
+  chartMode: ChartMode; 
   dateFilter: DateFilter;
   availableDateRange: { min: string; max: string } | null;
 }
@@ -97,7 +96,7 @@ interface AnalysisContextType {
     minimalOrder?: number;
   }>) => void;
   retry: () => void;
-  setChartMode: (mode: ChartMode) => void; // ✅ Обновлён тип
+  setChartMode: (mode: ChartMode) => void; 
   setDateFilter: (filter: DateFilter) => Promise<void>;
   recalculateCurrent: () => Promise<void>;
 }
@@ -140,7 +139,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     availableDateRange: null,
   });
 
-  // ✅ Обновлён тип параметра mode
   const setChartMode = (mode: ChartMode) => {
     setState(prev => ({ ...prev, chartMode: mode }));
   };
