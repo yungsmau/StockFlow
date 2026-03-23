@@ -270,6 +270,7 @@ export default function HistoryView({
       {hasExternalHistory && (
         <section className="history-section history-section--external">
           <div className="history-external-actions">
+            <span className="history-external-actions__header">Внешняя история</span>
             {!isExternalEditMode ? (
               <button
                 className="history-edit-btn"

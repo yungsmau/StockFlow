@@ -1,9 +1,4 @@
-interface UsageGuideProps {
-  onDownloadExample: () => void;
-  onDownloadReferenceExample: () => void;
-}
-
-export default function UsageGuide({ onDownloadExample, onDownloadReferenceExample }: UsageGuideProps) {
+export default function UsageGuide() {
   return (
     <>
       <h3 className="help-modal__heading">Как использовать приложение</h3>
@@ -24,17 +19,6 @@ export default function UsageGuide({ onDownloadExample, onDownloadReferenceExamp
         <li>После подбора параметров, сохраните их.</li>
         <li>В разделе "История" вы можете посмотреть историю работы.</li>
       </ol>
-
-      <h3 className="help-modal__heading file-download">Пример данных остатков</h3>
-      <p className="help-modal__description">Скачайте пример файла для быстрого начала работы:</p>
-      <button className="help-modal__download-btn" onClick={onDownloadExample}>
-        Данные 
-      </button>
-      <h3 className="help-modal__heading file-download">Пример справочника</h3>
-      <p className="help-modal__description">Скачайте пример файла для быстрого начала работы:</p>
-      <button className="help-modal__download-btn" onClick={onDownloadReferenceExample}>
-        Справочник 
-      </button>
     </>
   );
 }

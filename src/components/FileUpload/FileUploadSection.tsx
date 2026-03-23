@@ -1,16 +1,23 @@
+// src/components/FileUpload/FileUploadSection.tsx
 import { useState, useEffect, useRef } from 'react';
 import { readTextFile, readFile } from '@tauri-apps/plugin-fs';
 
 import UploadArea from './UploadArea';
-import SimpleFileList from './SimpleFileList';        // ✅ Новый импорт
-import DetailedFileList from './DetailedFileList';    // ✅ Переименованный импорт
+import SimpleFileList from './SimpleFileList';
+import DetailedFileList from './DetailedFileList';
 import UploadPlaceholder from './UploadPlaceholder';
 import ToggleSwitch from '../UI/ToggleSwitch/ToggleSwitch';
 
 import './FileUploadButtons.css';
 import './FileUploadField.css';
 
-import type { RowData, ReferenceItem, HistoryItem } from '../../utils/fileParsers';
+// ✅ Импорт типов и парсеров для плана
+import type { 
+  RowData, 
+  ReferenceItem, 
+  HistoryItem,
+  PlanItem 
+} from '../../utils/fileParsers';
 import {
   parseCSV,
   parseExcel,
@@ -18,6 +25,8 @@ import {
   parseReferenceExcel,
   parseHistoryCSV,
   parseHistoryExcel,
+  parsePlanCSV,      // ✅ Новый парсер
+  parsePlanExcel,    // ✅ Новый парсер
   detectFileType,
 } from '../../utils/fileParsers';
 
@@ -26,6 +35,7 @@ interface ExtendedFileItem {
   format: string;
   isReference?: boolean;
   isHistory?: boolean;
+  isPlan?: boolean;  // ✅ Флаг для файлов плана
   originalIndex: number;
 }
 
@@ -34,16 +44,19 @@ interface FileUploadSectionProps {
   uploadedFiles: { name: string; format: string }[];
   uploadedReferenceFiles: { name: string; format: string }[];
   uploadedHistoryFiles: { name: string; format: string }[];
-  onFileAdd: (file: { name: string; format: string; data: RowData[] }) => void;
+  uploadedPlanFiles?: { name: string; format: string }[]; // ✅ Опционально
+  onFileAdd: (file: { name: string; format: string; path: string; data: RowData[] }) => void;
   onReferenceDataAdd: (
     data: Map<string, ReferenceItem>,
     fileName: string,
     format: string
   ) => void;
-  onHistoryDataAdd: (data: HistoryItem[], fileName: string, format: string) => void;
+  onHistoryDataAdd: ( data: HistoryItem[], fileName: string, format: string) => void;
+  onPlanDataAdd?: ( data: PlanItem[], fileName: string, format: string) => void; // ✅ Опционально
   onRemoveFile: (index: number) => void;
   onRemoveReferenceFile: (index: number) => void;
   onRemoveHistoryFile: (index: number) => void;
+  onRemovePlanFile?: (index: number) => void; // ✅ Опционально
   onCancelAll: () => void;
   onAnalyzeClick?: () => void;
 }
@@ -56,12 +69,15 @@ export default function FileUploadSection({
   uploadedFiles,
   uploadedReferenceFiles,
   uploadedHistoryFiles,
+  uploadedPlanFiles = [], // ✅ Дефолт: пустой массив
   onFileAdd,
   onReferenceDataAdd,
   onHistoryDataAdd,
+  onPlanDataAdd = () => {}, // ✅ Дефолт: пустая функция
   onRemoveFile,
   onRemoveReferenceFile,
   onRemoveHistoryFile,
+  onRemovePlanFile = () => {}, // ✅ Дефолт: пустая функция
   onCancelAll,
   onAnalyzeClick
 }: FileUploadSectionProps) {
@@ -72,14 +88,12 @@ export default function FileUploadSection({
   const processingFilesRef = useRef<Set<string>>(new Set());
   const processingStartTimeRef = useRef<number>(0);
   
-  // ✅ Изменено: по умолчанию 'simple', и инвертирована логика
   const [viewMode, setViewMode] = useState<'simple' | 'detailed'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(TOGGLE_STORAGE_KEY);
-      // Если сохранено 'detailed' — используем его, иначе 'simple'
       return (saved === 'detailed') ? 'detailed' : 'simple';
     }
-    return 'simple'; // ✅ По умолчанию простой режим
+    return 'simple';
   });
 
   useEffect(() => {
@@ -87,7 +101,8 @@ export default function FileUploadSection({
   }, [viewMode]);
 
   useEffect(() => {
-    const currentCount = uploadedFiles.length + uploadedReferenceFiles.length + uploadedHistoryFiles.length;
+    // ✅ Учитываем файлы плана в подсчёте
+    const currentCount = uploadedFiles.length + uploadedReferenceFiles.length + uploadedHistoryFiles.length + uploadedPlanFiles.length;
     
     if (currentCount !== prevFilesCount && fileError) {
       setFileError(null);
@@ -97,7 +112,7 @@ export default function FileUploadSection({
     if (prevFilesCount === 0) {
       setPrevFilesCount(currentCount);
     }
-  }, [uploadedFiles, uploadedReferenceFiles, uploadedHistoryFiles, fileError, prevFilesCount]);
+  }, [uploadedFiles, uploadedReferenceFiles, uploadedHistoryFiles, uploadedPlanFiles, fileError, prevFilesCount]);
 
   const getFileFormat = (fileName: string): string => {
     const ext = fileName.split('.').pop()?.toLowerCase() || '';
@@ -112,7 +127,8 @@ export default function FileUploadSection({
   const handleFilePath = async (filePaths: string[]) => {
     if (isBlocked || processing) return;
 
-    const totalFiles = uploadedFiles.length + uploadedReferenceFiles.length + uploadedHistoryFiles.length;
+    // ✅ Учитываем файлы плана в лимите
+    const totalFiles = uploadedFiles.length + uploadedReferenceFiles.length + uploadedHistoryFiles.length + uploadedPlanFiles.length;
     if (totalFiles + filePaths.length > MAX_FILES) {
       setFileError(`Можно загрузить не более ${MAX_FILES} файлов`);
       return;
@@ -125,7 +141,14 @@ export default function FileUploadSection({
       for (const filePath of filePaths) {
         const fileName = filePath.split('/').pop() || 'файл';
         
-        const allFileNames = [...uploadedFiles, ...uploadedReferenceFiles, ...uploadedHistoryFiles].map(f => f.name);
+        // ✅ Проверяем все типы файлов на дубликаты
+        const allFileNames = [
+          ...uploadedFiles, 
+          ...uploadedReferenceFiles, 
+          ...uploadedHistoryFiles,
+          ...uploadedPlanFiles
+        ].map(f => f.name);
+        
         if (allFileNames.includes(fileName)) {
           setFileError(`Файл "${fileName}" уже загружен`);
           continue;
@@ -142,9 +165,29 @@ export default function FileUploadSection({
         }
 
         try {
-          const fileType = detectFileType(fileName);
+          // ✅ Определяем тип файла по имени (как для history/reference)
+          const isPlanFile = fileName.toLowerCase().includes('план') || fileName.toLowerCase().includes('plan');
+          const isHistoryFile = fileName.toLowerCase().includes('история') || fileName.toLowerCase().includes('history');
+          const isReferenceFile = fileName.toLowerCase().includes('справочник') || fileName.toLowerCase().includes('reference');
 
-          if (fileType === 'history') {
+          if (isPlanFile) {
+            // ✅ Обработка файла плана (по аналогии с историей/справочником)
+            let planData: PlanItem[];
+            if (filePath.toLowerCase().endsWith('.csv')) {
+              const content = await readTextFile(filePath);
+              const file = new File([content], fileName, { type: 'text/csv' });
+              planData = await parsePlanCSV(file);
+            } else {
+              const uint8Array = await readFile(filePath);
+              const file = new File([uint8Array], fileName, {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+              });
+              planData = await parsePlanExcel(file);
+            }
+            // ✅ Вызываем колбэк с данными и форматом (как для истории)
+            onPlanDataAdd(planData, fileName, getFileFormat(fileName));
+            
+          } else if (isHistoryFile) {
             let historyData: HistoryItem[];
             if (filePath.toLowerCase().endsWith('.csv')) {
               const content = await readTextFile(filePath);
@@ -159,7 +202,7 @@ export default function FileUploadSection({
             }
             onHistoryDataAdd(historyData, fileName, getFileFormat(fileName));
             
-          } else if (fileType === 'reference') {
+          } else if (isReferenceFile) {
             let referenceData: Map<string, ReferenceItem>;
             if (filePath.toLowerCase().endsWith('.csv')) {
               const content = await readTextFile(filePath);
@@ -175,6 +218,7 @@ export default function FileUploadSection({
             onReferenceDataAdd(referenceData, fileName, getFileFormat(fileName));
             
           } else {
+            // ✅ Обычные файлы данных
             let data: RowData[];
             if (filePath.toLowerCase().endsWith('.csv')) {
               const content = await readTextFile(filePath);
@@ -200,6 +244,7 @@ export default function FileUploadSection({
             onFileAdd({
               name: fileName,
               format: getFileFormat(fileName),
+              path: filePath,
               data
             });
           }
@@ -242,8 +287,11 @@ export default function FileUploadSection({
     }
   };
 
-  const handleRemove = (index: number, isReference: boolean, isHistory?: boolean) => {
-    if (isHistory) {
+  // ✅ Обновлённый handleRemove с поддержкой плана
+  const handleRemove = (index: number, isReference: boolean, isHistory?: boolean, isPlan?: boolean) => {
+    if (isPlan) {
+      onRemovePlanFile?.(index);
+    } else if (isHistory) {
       onRemoveHistoryFile(index);
     } else if (isReference) {
       onRemoveReferenceFile(index);
@@ -252,23 +300,35 @@ export default function FileUploadSection({
     }
   };
 
+  // ✅ allFiles теперь включает файлы плана (с определением по имени)
   const allFiles: ExtendedFileItem[] = [
     ...uploadedFiles.map((f, idx) => ({ 
       ...f, 
       isReference: false, 
       isHistory: false,
+      isPlan: false,
       originalIndex: idx 
     })),
     ...uploadedReferenceFiles.map((f, idx) => ({ 
       ...f, 
       isReference: true, 
       isHistory: false,
+      isPlan: false,
       originalIndex: idx 
     })),
     ...uploadedHistoryFiles.map((f, idx) => ({ 
       ...f, 
       isReference: false, 
       isHistory: true,
+      isPlan: false,
+      originalIndex: idx 
+    })),
+    // ✅ Файлы плана (опционально, если переданы)
+    ...uploadedPlanFiles.map((f, idx) => ({ 
+      ...f, 
+      isReference: false, 
+      isHistory: false,
+      isPlan: true,
       originalIndex: idx 
     })),
   ];
@@ -278,10 +338,9 @@ export default function FileUploadSection({
 
   return (
     <div className="file-upload-section">
-      {/* Переключатель: включено = подробный режим */}
       <div className="view-mode-toggle-wrapper">
         <ToggleSwitch
-          enabled={viewMode === 'detailed'}  // ✅ Инвертировано: ON = detailed
+          enabled={viewMode === 'detailed'}
           onChange={(enabled) => setViewMode(enabled ? 'detailed' : 'simple')}
           title={viewMode === 'detailed' ? 'Подробный режим' : 'Простой режим'}
         />
@@ -317,7 +376,6 @@ export default function FileUploadSection({
         
         {!processing && (
           <>
-            {/* ✅ Условный рендеринг: простой или подробный список */}
             {viewMode === 'simple' ? (
               <SimpleFileList
                 files={allFiles}
@@ -344,7 +402,6 @@ export default function FileUploadSection({
               />
             )}
             
-            {/* Плейсхолдер только если файлов нет И режим подробный */}
             {allFiles.length === 0 && (
               <UploadPlaceholder
                 isBlocked={isBlocked}

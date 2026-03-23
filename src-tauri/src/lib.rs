@@ -13,6 +13,10 @@ pub fn run() {
             features::stock_simulation::commands::compute_stock,
             features::stock_simulation::commands::calculate_value_frequency,
             features::stock_simulation::commands::get_date_range_for_product,
+            features::plan::commands::parse_plan_file,
+            features::plan::commands::distribute_plan,
+            features::plan::commands::parse_plan_date,
+            features::plan::commands::validate_plan_file_headers,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

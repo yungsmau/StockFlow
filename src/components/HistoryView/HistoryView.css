@@ -514,8 +514,15 @@
 .history-external-actions {
   display: flex;
   gap: 8px;
-  justify-content: right;
+  justify-content: space-between;
   margin-bottom: 10px;
+}
+
+.history-external-actions__header {
+  align-self: center;
+  font-size: 16px;
+  font-weight: 300;
+  
 }
 
 /* === Кнопка "Сохранить" === */

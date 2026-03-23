@@ -305,6 +305,11 @@
   background: rgba(100, 149, 237, 0.08);
 }
 
+.file-slot--plan.file-slot--clickable .file-slot__content:hover {
+  border-color: #6495ED;
+  background: rgba(100, 149, 237, 0.08);
+}
+
 /* Отключаем курсор при заблокированном состоянии */
 .file-slot.file-slot--clickable:disabled,
 .file-slot[aria-disabled="true"] {

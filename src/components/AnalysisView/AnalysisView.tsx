@@ -1,3 +1,4 @@
+// src/components/AnalysisView/AnalysisView.tsx
 import { useState, useEffect } from "react";
 import Select, { SingleValue } from "react-select";
 import "./AnalysisView.css";
@@ -7,6 +8,7 @@ import MetricsSummary from "./Metrics/MetricsSummary";
 import StockSimulationPlot from "./Plots/StockSimulationPlot";
 import ActualDataPlot from "./Plots/ActualDataPlot";
 import ValueFrequencyPlot from "./Plots/ValueFrequencyPlot";
+import PlanPlot from "./Plots/PlanPlot"; // ✅ Новый импорт
 import ErrorDisplay from "./ErrorDisplay/ErrorDisplay";
 
 import { saveHistoryItem } from "../../utils/historyService";
@@ -14,6 +16,10 @@ import { useAnalysis } from "../../context/AnalysisContext";
 import { invoke } from "@tauri-apps/api/core";
 import Plotly from 'plotly.js-dist-min';
 
+import { 
+  type PlanItem, 
+  type DailyPlanItem 
+} from "../../utils/fileParsers";
 
 const DESKTOP_BREAKPOINT = 1400;
 const SIDEBAR_STORAGE_KEY = 'app_sidebar_open';
@@ -30,6 +36,7 @@ interface ValueFrequencyResult {
 
 interface AnalysisViewProps {
   uploadedFiles: any[];
+  externalPlan: PlanItem[];
 }
 
 const CHART_MODE_OPTIONS = [
@@ -37,10 +44,10 @@ const CHART_MODE_OPTIONS = [
   { value: "simulation", label: "Моделирование" },
   { value: "actual", label: "Фактические данные" },
   { value: "frequency", label: "Анализ расходов" },
-  { value: "frequency", label: "Потребности" },
+  { value: "plan", label: "План" }, // ✅ Новый режим
 ];
 
-export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
+export default function AnalysisView({ uploadedFiles, externalPlan }: AnalysisViewProps) {
   const { state, retry, setChartMode } = useAnalysis(); 
   const chartMode = state.chartMode; 
   
@@ -57,6 +64,9 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
 
   const [frequencyData, setFrequencyData] = useState<ValueFrequencyResult | null>(null);
   const [frequencyLoading, setFrequencyLoading] = useState(false);
+  
+  const [planData, setPlanData] = useState<DailyPlanItem[] | null>(null);
+  const [planLoading, setPlanLoading] = useState(false);
 
   useEffect(() => {
     sessionStorage.setItem(SIDEBAR_STORAGE_KEY, String(isFilterOpen));
@@ -68,7 +78,6 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
     
     const handleResize = (e: MediaQueryListEvent) => {
       setIsDesktop(e.matches);
-      // На мобильном закрываем сайдбар
       if (!e.matches && isFilterOpen) {
         setIsFilterOpen(false);
       }
@@ -78,7 +87,7 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
     mediaQuery.addEventListener('change', handleResize);
     
     return () => mediaQuery.removeEventListener('change', handleResize);
-  }, [isFilterOpen]); // Добавь isFilterOpen в зависимости
+  }, [isFilterOpen]);
 
   // Закрытие по Escape
   useEffect(() => {
@@ -91,6 +100,7 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isFilterOpen]);
 
+  // === Частота расходов ===
   const needsFrequencyData = chartMode === "frequency";
   const frequencyParamsKey = `${state.selectedProduct}|${state.deliveryDays}|${uploadedFiles.length}`;
 
@@ -122,22 +132,71 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
     }
   };
 
+  const needsPlanData = chartMode === "plan";
+  const planParamsKey = `${state.selectedProduct}|${uploadedFiles.length}`;
+
+  useEffect(() => {
+    if (needsPlanData && state.selectedProduct && uploadedFiles.length > 0) {
+      setPlanData(null);
+      loadPlanData();
+    }
+  }, [needsPlanData, planParamsKey, state.selectedProduct]);
+
+  const loadPlanData = async () => {
+    setPlanLoading(true);
+    try {
+      const allPlanItems = externalPlan || [];
+      
+      if (allPlanItems.length === 0) {
+        setPlanData([]);
+        return;
+      }
+      
+      const filteredPlanItems = allPlanItems.filter(
+        item => item.nomenclature === state.selectedProduct
+      );
+      
+      if (filteredPlanItems.length === 0) {
+        setPlanData([]);
+        return;
+      }
+      
+      const rustRequest = {
+        items: filteredPlanItems.map((i: PlanItem) => ({
+          nomenclature: i.nomenclature,
+          month: i.month,
+          month_date: i.monthDate.toISOString().split('T')[0],
+          planned_expense: i.plannedExpense,
+        })),
+        working_days_only: false,
+      };
+      
+      const response = await invoke<{ items: DailyPlanItem[] }>('distribute_plan', { request: rustRequest });
+      setPlanData(response.items);
+      
+    } catch (error) {
+      console.error('Failed to load plan ', error);
+      setPlanData(null);
+    } finally {
+      setPlanLoading(false);
+    }
+  };
+  
+  // Ресайз графиков при изменении сайдбара
   useEffect(() => {
     if (isDesktop) {
       const timer = setTimeout(() => {
-        // Находим все графики и вызываем ресайз
         const plotContainers = document.querySelectorAll('.js-plotly-plot');
         plotContainers.forEach((container) => {
           if (container instanceof HTMLElement) {
             Plotly.Plots.resize(container);
           }
         });
-      }, 200); // 300ms анимация + 50ms запас
+      }, 200);
       
       return () => clearTimeout(timer);
     }
   }, [isFilterOpen, isDesktop]);
-
 
   const handleSaveToHistory = async () => {
     if (state.result && state.selectedProduct) {
@@ -192,7 +251,7 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
         />
       )}
 
-      {/* ✅ Десктоп: сайдбар слева от всего контента */}
+      {/* Десктоп: сайдбар слева от всего контента */}
       {isDesktop && isFilterOpen && (
         <aside className="filter-sidebar">
           <div className="filter-sidebar__header">
@@ -214,12 +273,11 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
         </aside>
       )}
 
-      {/* ✅ Основной контент (сдвигается при открытом сайдбаре) */}
+      {/* Основной контент (сдвигается при открытом сайдбаре) */}
       <main className="analysis-content">
         
         <div className="analysis-top-section">
           <div className="analysis-filter">
-            {/* ✅ Кнопка "Параметры" — показывается ВСЕГДА, и на десктопе, и на мобильном */}
             <button
               className="filter-toggle-btn"
               onClick={() => setIsFilterOpen(true)}
@@ -259,6 +317,7 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
         </div>
 
         <div className="analysis-bottom-section">
+          {/* === Сравнение === */}
           {chartMode === "comparison" && state.result && state.actualData.length > 0 && (
             <>
               <StockSimulationPlot data={state.result} product={state.selectedProduct} />
@@ -267,18 +326,21 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
             </>
           )}
 
+          {/* === Моделирование === */}
           {chartMode === "simulation" && state.result && (
             <StockSimulationPlot data={state.result} product={state.selectedProduct} />
           )}
 
+          {/* === Фактические данные === */}
           {chartMode === "actual" && state.actualData.length > 0 && (
             <ActualDataPlot data={state.actualData} product={state.selectedProduct} threshold={state.threshold} />
           )}
 
+          {/* === Анализ расходов === */}
           {chartMode === "frequency" && (
             <div className="frequency-plot-wrapper">
               {frequencyLoading ? (
-                <div className="plot-loading" style={{ height: "35vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div className="plot-loading" style={{ height: "75vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   Расчет распределения...
                 </div>
               ) : frequencyData ? (
@@ -287,8 +349,33 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
                   product={state.selectedProduct}
                 />
               ) : (
-                <div className="plot-loading" style={{ height: "35vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div className="plot-loading" style={{ height: "75vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   Нет данных для отображения
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ✅ === План === */}
+          {chartMode === "plan" && (
+            <div className="plan-plot-wrapper">
+              {planLoading ? (
+                <div className="plot-loading" style={{ height: "75vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  Распределение плана...
+                </div>
+              ) : planData ? (
+                <PlanPlot 
+                  planData={planData} 
+                  product={state.selectedProduct}
+                  // ✅ Передаём фактические расходы из state.actualData
+                  actualExpenses={state.actualData.map(d => ({
+                    date: d.date,
+                    expense: d.expense
+                  }))}
+                />
+              ) : (
+                <div className="plot-loading" style={{ height: "75vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  Нет данных плана для номенклатуры "{state.selectedProduct}"
                 </div>
               )}
             </div>
@@ -296,7 +383,7 @@ export default function AnalysisView({ uploadedFiles }: AnalysisViewProps) {
         </div>
       </main>
 
-      {/* ✅ Мобильный: оверлей + модальное окно (без изменений) */}
+      {/* ✅ Мобильный: оверлей + модальное окно */}
       {!isDesktop && isFilterOpen && (
         <div
           className="filter-overlay"
