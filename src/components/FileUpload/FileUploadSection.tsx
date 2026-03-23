@@ -1,4 +1,3 @@
-// src/components/FileUpload/FileUploadSection.tsx
 import { useState, useEffect, useRef } from 'react';
 import { readTextFile, readFile } from '@tauri-apps/plugin-fs';
 
@@ -11,7 +10,6 @@ import ToggleSwitch from '../UI/ToggleSwitch/ToggleSwitch';
 import './FileUploadButtons.css';
 import './FileUploadField.css';
 
-// ✅ Импорт типов и парсеров для плана
 import type { 
   RowData, 
   ReferenceItem, 
@@ -25,9 +23,8 @@ import {
   parseReferenceExcel,
   parseHistoryCSV,
   parseHistoryExcel,
-  parsePlanCSV,      // ✅ Новый парсер
-  parsePlanExcel,    // ✅ Новый парсер
-  detectFileType,
+  parsePlanCSV,
+  parsePlanExcel,
 } from '../../utils/fileParsers';
 
 interface ExtendedFileItem {
@@ -35,7 +32,7 @@ interface ExtendedFileItem {
   format: string;
   isReference?: boolean;
   isHistory?: boolean;
-  isPlan?: boolean;  // ✅ Флаг для файлов плана
+  isPlan?: boolean;
   originalIndex: number;
 }
 
@@ -44,7 +41,7 @@ interface FileUploadSectionProps {
   uploadedFiles: { name: string; format: string }[];
   uploadedReferenceFiles: { name: string; format: string }[];
   uploadedHistoryFiles: { name: string; format: string }[];
-  uploadedPlanFiles?: { name: string; format: string }[]; // ✅ Опционально
+  uploadedPlanFiles?: { name: string; format: string }[]; 
   onFileAdd: (file: { name: string; format: string; path: string; data: RowData[] }) => void;
   onReferenceDataAdd: (
     data: Map<string, ReferenceItem>,
@@ -52,11 +49,11 @@ interface FileUploadSectionProps {
     format: string
   ) => void;
   onHistoryDataAdd: ( data: HistoryItem[], fileName: string, format: string) => void;
-  onPlanDataAdd?: ( data: PlanItem[], fileName: string, format: string) => void; // ✅ Опционально
+  onPlanDataAdd?: ( data: PlanItem[], fileName: string, format: string) => void;
   onRemoveFile: (index: number) => void;
   onRemoveReferenceFile: (index: number) => void;
   onRemoveHistoryFile: (index: number) => void;
-  onRemovePlanFile?: (index: number) => void; // ✅ Опционально
+  onRemovePlanFile?: (index: number) => void;
   onCancelAll: () => void;
   onAnalyzeClick?: () => void;
 }
@@ -69,15 +66,15 @@ export default function FileUploadSection({
   uploadedFiles,
   uploadedReferenceFiles,
   uploadedHistoryFiles,
-  uploadedPlanFiles = [], // ✅ Дефолт: пустой массив
+  uploadedPlanFiles = [],
   onFileAdd,
   onReferenceDataAdd,
   onHistoryDataAdd,
-  onPlanDataAdd = () => {}, // ✅ Дефолт: пустая функция
+  onPlanDataAdd = () => {},
   onRemoveFile,
   onRemoveReferenceFile,
   onRemoveHistoryFile,
-  onRemovePlanFile = () => {}, // ✅ Дефолт: пустая функция
+  onRemovePlanFile = () => {},
   onCancelAll,
   onAnalyzeClick
 }: FileUploadSectionProps) {
@@ -101,7 +98,6 @@ export default function FileUploadSection({
   }, [viewMode]);
 
   useEffect(() => {
-    // ✅ Учитываем файлы плана в подсчёте
     const currentCount = uploadedFiles.length + uploadedReferenceFiles.length + uploadedHistoryFiles.length + uploadedPlanFiles.length;
     
     if (currentCount !== prevFilesCount && fileError) {
@@ -127,7 +123,6 @@ export default function FileUploadSection({
   const handleFilePath = async (filePaths: string[]) => {
     if (isBlocked || processing) return;
 
-    // ✅ Учитываем файлы плана в лимите
     const totalFiles = uploadedFiles.length + uploadedReferenceFiles.length + uploadedHistoryFiles.length + uploadedPlanFiles.length;
     if (totalFiles + filePaths.length > MAX_FILES) {
       setFileError(`Можно загрузить не более ${MAX_FILES} файлов`);
@@ -141,7 +136,6 @@ export default function FileUploadSection({
       for (const filePath of filePaths) {
         const fileName = filePath.split('/').pop() || 'файл';
         
-        // ✅ Проверяем все типы файлов на дубликаты
         const allFileNames = [
           ...uploadedFiles, 
           ...uploadedReferenceFiles, 
@@ -165,13 +159,11 @@ export default function FileUploadSection({
         }
 
         try {
-          // ✅ Определяем тип файла по имени (как для history/reference)
           const isPlanFile = fileName.toLowerCase().includes('план') || fileName.toLowerCase().includes('plan');
           const isHistoryFile = fileName.toLowerCase().includes('история') || fileName.toLowerCase().includes('history');
           const isReferenceFile = fileName.toLowerCase().includes('справочник') || fileName.toLowerCase().includes('reference');
 
           if (isPlanFile) {
-            // ✅ Обработка файла плана (по аналогии с историей/справочником)
             let planData: PlanItem[];
             if (filePath.toLowerCase().endsWith('.csv')) {
               const content = await readTextFile(filePath);
@@ -184,7 +176,6 @@ export default function FileUploadSection({
               });
               planData = await parsePlanExcel(file);
             }
-            // ✅ Вызываем колбэк с данными и форматом (как для истории)
             onPlanDataAdd(planData, fileName, getFileFormat(fileName));
             
           } else if (isHistoryFile) {
@@ -218,7 +209,6 @@ export default function FileUploadSection({
             onReferenceDataAdd(referenceData, fileName, getFileFormat(fileName));
             
           } else {
-            // ✅ Обычные файлы данных
             let data: RowData[];
             if (filePath.toLowerCase().endsWith('.csv')) {
               const content = await readTextFile(filePath);
@@ -287,7 +277,6 @@ export default function FileUploadSection({
     }
   };
 
-  // ✅ Обновлённый handleRemove с поддержкой плана
   const handleRemove = (index: number, isReference: boolean, isHistory?: boolean, isPlan?: boolean) => {
     if (isPlan) {
       onRemovePlanFile?.(index);
@@ -300,7 +289,6 @@ export default function FileUploadSection({
     }
   };
 
-  // ✅ allFiles теперь включает файлы плана (с определением по имени)
   const allFiles: ExtendedFileItem[] = [
     ...uploadedFiles.map((f, idx) => ({ 
       ...f, 
@@ -323,7 +311,6 @@ export default function FileUploadSection({
       isPlan: false,
       originalIndex: idx 
     })),
-    // ✅ Файлы плана (опционально, если переданы)
     ...uploadedPlanFiles.map((f, idx) => ({ 
       ...f, 
       isReference: false, 

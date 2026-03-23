@@ -127,7 +127,6 @@ export default function HeaderButtons({
         </svg>
       </HeaderButton>
 
-      {/* ✅ ToggleSwitch для переключения темы с иконками внутри thumb */}
       <div className="header-buttons__theme-toggle">
         <ToggleSwitch
           className='header-buttons__theme-thumb'

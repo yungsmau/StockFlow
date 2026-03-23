@@ -56,7 +56,7 @@ export default function HistoryView({
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   
-  // ✅ Внешняя история — режим выбора и выбранные ID
+  // Внешняя история — режим выбора и выбранные ID
   const [isExternalEditMode, setIsExternalEditMode] = useState(false);
   const [selectedExternalIds, setSelectedExternalIds] = useState<Set<number>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
@@ -164,7 +164,6 @@ export default function HistoryView({
     }
   };
 
-  // ✅ Сохранение выбранных строк в локальную историю (аналогично AnalysisView)
   const handleSaveSelectedToHistory = async () => {
     if (selectedExternalIds.size === 0) return;
     
@@ -173,7 +172,6 @@ export default function HistoryView({
       const itemsToSave = mappedExternalHistory.filter(item => selectedExternalIds.has(item.id));
       
       for (const item of itemsToSave) {
-        // ✅ Вызываем saveHistoryItem с теми же параметрами, что в AnalysisView
         await saveHistoryItem(
           item.product,
           item.initialStock,
@@ -190,17 +188,12 @@ export default function HistoryView({
         );
       }
       
-      // ✅ Перезагружаем локальную историю
       const historyItems = await loadHistoryItems();
       setItems(historyItems);
       
-      // ✅ Сбрасываем выбор
       setSelectedExternalIds(new Set());
       setIsExternalEditMode(false);
-      
-      console.log(`✅ Сохранено ${itemsToSave.length} записей в историю`);
     } catch (err) {
-      console.error('Failed to save selected items:', err);
       alert('Не удалось сохранить выбранные записи');
     } finally {
       setIsSaving(false);
@@ -228,7 +221,6 @@ export default function HistoryView({
 
   const selectedItems = filteredItems.filter(item => selectedIds.has(item.id));
   const hasExternalHistory = mappedExternalHistory.length > 0;
-  const selectedExternalItems = mappedExternalHistory.filter(item => selectedExternalIds.has(item.id));
 
   return (
     <div className="history-view">

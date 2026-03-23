@@ -5,13 +5,13 @@ interface FileItem {
   format: string;
   isReference?: boolean;
   isHistory?: boolean;
-  isPlan?: boolean;  // ✅ Флаг для файлов плана
+  isPlan?: boolean;
   originalIndex: number;
 }
 
 interface DetailedFileListProps {
   files: FileItem[];
-  onRemove: (index: number, isReference: boolean, isHistory?: boolean, isPlan?: boolean) => void; // ✅ Добавлен isPlan
+  onRemove: (index: number, isReference: boolean, isHistory?: boolean, isPlan?: boolean) => void;
   onFileSelect: () => void;
   onAnalyzeClick?: () => void;
   onCancelAll: () => void;
@@ -32,11 +32,10 @@ export default function DetailedFileList({
   maxFilesReached,
   hasDataFiles
 }: DetailedFileListProps) {
-  // ✅ Фильтрация файлов по типам
   const dataFiles = files.filter(f => !f.isReference && !f.isHistory && !f.isPlan);
   const referenceFiles = files.filter(f => f.isReference);
   const historyFiles = files.filter(f => f.isHistory);
-  const planFiles = files.filter(f => f.isPlan);  // ✅ Файлы плана
+  const planFiles = files.filter(f => f.isPlan);
 
   const handleSlotClick = (e: React.MouseEvent) => {
     if (isBlocked || processing || maxFilesReached) return;
@@ -118,7 +117,7 @@ export default function DetailedFileList({
         </div>
       </div>
 
-      {/* ✅ === План — новый слот (по аналогии с историей) === */}
+      {/* === План === */}
       <div 
         className={`file-slot file-slot--plan ${!isBlocked && !processing && !maxFilesReached ? 'file-slot--clickable' : ''}`}
         onClick={handleSlotClick}
@@ -132,7 +131,7 @@ export default function DetailedFileList({
                 file={{ ...file, isPlan: true }}
                 onRemove={(e) => {
                   e.stopPropagation();
-                  onRemove(file.originalIndex, false, false, true);  // ✅ isPlan = true
+                  onRemove(file.originalIndex, false, false, true); 
                 }}
               />
             ))
@@ -186,7 +185,7 @@ function FileCard({ file, onRemove }: FileCardProps) {
     <div className={`uploaded-file-card 
       ${file.isReference ? 'uploaded-file-card--reference' : ''} 
       ${file.isHistory ? 'uploaded-file-card--history' : ''} 
-      ${file.isPlan ? 'uploaded-file-card--plan' : ''}  // ✅ Класс для плана
+      ${file.isPlan ? 'uploaded-file-card--plan' : ''} 
     `}>
       <div className="uploaded-file-card__name" title={file.name}>
         {file.name}

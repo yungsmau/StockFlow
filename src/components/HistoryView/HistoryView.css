@@ -203,7 +203,7 @@
   width: 100%;
   border-collapse: collapse;
   background: var(--bg-secondary);
-  user-select: none; /* ✅ Стандартный префикс вместо всех вендорных */
+  user-select: none;
   -webkit-touch-callout: none;
 }
 
