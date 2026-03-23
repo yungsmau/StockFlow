@@ -1,3 +1,4 @@
+// src/context/AnalysisContext.tsx
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { invoke } from "@tauri-apps/api/core";
 
@@ -16,6 +17,7 @@ interface UploadedFile {
   name: string;
   format: string;
   data: RowData[];
+  path?: string; // ✅ Для Tauri readFile (нужен для парсинга плана)
 }
 
 interface ReferenceItem {
@@ -53,6 +55,9 @@ interface ActualDataPoint {
   stock: number;
 }
 
+// ✅ Тип режима графика (включая "plan")
+type ChartMode = "comparison" | "actual" | "simulation" | "frequency" | "plan";
+
 interface AnalysisState {
   selectedProduct: string;
   initialStock: number;
@@ -65,7 +70,7 @@ interface AnalysisState {
   actualData: ActualDataPoint[];
   loading: boolean;
   errorMessage: { message: string; rawMessage: string } | null;
-  chartMode: "comparison" | "actual" | "simulation" | "frequency";
+  chartMode: ChartMode; // ✅ Используем объединённый тип
   dateFilter: DateFilter;
   availableDateRange: { min: string; max: string } | null;
 }
@@ -92,7 +97,7 @@ interface AnalysisContextType {
     minimalOrder?: number;
   }>) => void;
   retry: () => void;
-  setChartMode: (mode: "comparison" | "actual" | "simulation" | "frequency") => void;
+  setChartMode: (mode: ChartMode) => void; // ✅ Обновлён тип
   setDateFilter: (filter: DateFilter) => Promise<void>;
   recalculateCurrent: () => Promise<void>;
 }
@@ -135,7 +140,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     availableDateRange: null,
   });
 
-  const setChartMode = (mode: "comparison" | "actual" | "simulation" | "frequency") => {
+  // ✅ Обновлён тип параметра mode
+  const setChartMode = (mode: ChartMode) => {
     setState(prev => ({ ...prev, chartMode: mode }));
   };
 

@@ -1,4 +1,7 @@
-/* === Основной контейнер === */
+/* ════════════════════════════════════════════════════════
+   HISTORY VIEW — ОСНОВНОЙ МАКЕТ
+   ════════════════════════════════════════════════════════ */
+
 .history-view {
   padding: 24px;
   height: 100%;
@@ -6,7 +9,10 @@
   flex-direction: column;
 }
 
-/* === Заголовок с поиском === */
+/* ════════════════════════════════════════════════════════
+   ЗАГОЛОВОК (ОСТАВЛЕНО БЕЗ ИЗМЕНЕНИЙ)
+   ════════════════════════════════════════════════════════ */
+
 .history-header {
   display: flex;
   gap: 24px;
@@ -38,7 +44,10 @@
   font-weight: 200;
 }
 
-/* Действия в режиме редактирования */
+/* ════════════════════════════════════════════════════════
+   ДЕЙСТВИЯ И КНОПКИ
+   ════════════════════════════════════════════════════════ */
+
 .history-edit-actions {
   display: flex;
   gap: 8px;
@@ -52,29 +61,88 @@
   cursor: pointer;
   font-size: 12px;
   font-weight: 500;
+  background: #eceded;
+  color: whtie;
+  transition: background 0.1s ease;
 }
 
-.history-delete-btn {
-  background-color: #ff6b6b;
-  color: white;
+[data-theme="dark"] .history-action-btn {
+  background: #6c757d;
 }
 
-.history-export-btn {
-  background-color: #4ecdc4;
-  color: white;
+.history-delete-btn:hover {
+  background: rgba(255, 107, 107, 0.5);
 }
 
-.history-cancel-btn {
-  background-color: #6c757d;
-  color: white;
+.history-export-btn:hover {
+  background: rgba(78, 205, 196, 0.5);
 }
 
-.history-action-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.history-cancel-btn:hover {
+  background: rgba(98, 105, 112, 0.5);
 }
 
-/* === Пустое состояние === */
+.history-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.history-action-btn:disabled:hover { background: #eceded; }
+
+[data-theme="dark"] .history-action-btn:disabled:hover { background: #6c757d; }
+
+.history-actions-container {
+  margin-left: auto;
+}
+
+/* Кнопка "Изменить" — убраны дубликаты display:flex */
+.history-edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(100, 149, 237, 0.2), rgba(74, 144, 226, 0.15));
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.history-edit-btn:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(100, 149, 237, 0.3), rgba(74, 144, 226, 0.25));
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.history-edit-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.8;
+  fill: none;
+}
+
+.history-edit-btn path {
+  stroke: var(--text-primary);
+}
+
+[data-theme="dark"] .history-edit-btn {
+  background: linear-gradient(135deg, rgba(100, 149, 237, 0.25), rgba(74, 144, 226, 0.2));
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+@supports not (backdrop-filter: blur(12px)) {
+  .history-edit-btn {
+    background: rgba(100, 149, 237, 0.2);
+  }
+  [data-theme="dark"] .history-edit-btn {
+    background: rgba(100, 149, 237, 0.25);
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   ПУСТОЕ СОСТОЯНИЕ
+   ════════════════════════════════════════════════════════ */
+
 .history-empty {
   text-align: center;
   padding: 40px;
@@ -95,10 +163,12 @@
   cursor: pointer;
 }
 
-/* === Таблица === */
+/* ════════════════════════════════════════════════════════
+   ТАБЛИЦА
+   ════════════════════════════════════════════════════════ */
+
 .history-table-container {
   overflow-x: auto;
-  margin-bottom: 24px;
   flex: 1;
   min-height: 0;
 }
@@ -133,10 +203,7 @@
   width: 100%;
   border-collapse: collapse;
   background: var(--bg-secondary);
-  -webkit-user-select: none;
-     -moz-user-select: none;
-      -ms-user-select: none;
-          user-select: none;
+  user-select: none; /* ✅ Стандартный префикс вместо всех вендорных */
   -webkit-touch-callout: none;
 }
 
@@ -176,6 +243,10 @@
   border-bottom: none;
 }
 
+.history-table .history-table__header-nomenclature {
+  text-align: left;
+}
+
 /* Чекбоксы */
 .history-table__checkbox-header,
 .history-table__checkbox-cell {
@@ -189,19 +260,61 @@
   cursor: pointer;
 }
 
-/* === Эффективность === */
-.efficiency-positive {
-  color: #4caf50;
+/* ════════════════════════════════════════════════════════
+   СОРТИРОВКА ТАБЛИЦЫ
+   ════════════════════════════════════════════════════════ */
+
+.history-table__header {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 24px;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.efficiency-negative {
-  color: #f44336;
+.history-table__header.sorted,
+.history-table__header:hover {
+  background-color: rgb(242, 242, 242);
 }
 
-/* === Стили для селектора (переиспользуем из InventoryView) === */
-.product-search-card {
-  padding: 0;
+[data-theme="dark"] .history-table__header:hover {
+  background-color: rgb(62, 62, 62);
 }
+
+[data-theme="dark"] .history-table__header.sorted {
+  background-color: rgb(62, 62, 62);
+}
+
+.history-table__header .sort-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+}
+
+.history-table__header:hover .sort-icon {
+  opacity: 1;
+}
+
+.history-table__header.sorted .sort-icon {
+  opacity: 1;
+}
+
+/* ════════════════════════════════════════════════════════
+   ЭФФЕКТИВНОСТЬ (ЦВЕТА)
+   ════════════════════════════════════════════════════════ */
+
+.efficiency-positive { color: #4caf50; }
+.efficiency-negative { color: #f44336; }
+.efficiency-neutral { color: var(--text-secondary); }
+
+/* ════════════════════════════════════════════════════════
+   SELECT (react-select)
+   ════════════════════════════════════════════════════════ */
+
+.product-search-card { padding: 0; }
 
 .product-select__control {
   background: var(--bg-secondary);
@@ -215,17 +328,9 @@
   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
 
-.product-select__value-container {
-  padding: 4px 12px;
-}
-
-.product-select__indicators {
-  padding-right: 8px;
-}
-
-.product-select__indicator-separator {
-  display: none;
-}
+.product-select__value-container { padding: 4px 12px; }
+.product-select__indicators { padding-right: 8px; }
+.product-select__indicator-separator { display: none; }
 
 .product-select__menu {
   background: var(--bg-secondary);
@@ -235,9 +340,7 @@
   z-index: 100;
 }
 
-.product-select__menu-list {
-  padding: 4px 0;
-}
+.product-select__menu-list { padding: 4px 0; }
 
 .product-select__option {
   padding: 8px 12px;
@@ -253,17 +356,10 @@
   background: rgba(74, 144, 226, 0.1);
 }
 
-/* Темная тема для селектора */
-[data-theme="dark"] .product-select__control {
-  background: var(--bg-primary);
-}
+/* ════════════════════════════════════════════════════════
+   МОДАЛЬНЫЕ ОКНА
+   ════════════════════════════════════════════════════════ */
 
-[data-theme="dark"] .product-select__menu {
-  background: var(--bg-primary);
-  border-color: var(--border-color);
-}
-
-/* === Модальные окна === */
 .history-confirm-overlay {
   position: fixed;
   top: 0;
@@ -284,6 +380,9 @@
   width: 90%;
   max-width: 400px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .history-confirm-modal h3 {
@@ -303,7 +402,6 @@
   font-weight: 200;
 }
 
-/* Кнопки подтверждения */
 .history-confirm-buttons {
   display: flex;
   gap: 12px;
@@ -322,7 +420,7 @@
 }
 
 .history-confirm-cancel {
-  background: var(--bg-tertiary);
+  background: rgb(62, 62, 62);
   color: var(--text-primary);
 }
 
@@ -345,11 +443,12 @@
   cursor: not-allowed;
 }
 
-/* Модальное окно экспорта */
+/* Экспорт */
 .history-export-options {
   display: flex;
   gap: 12px;
   margin: 20px 0;
+  width: 100%;
 }
 
 .history-export-option {
@@ -359,7 +458,8 @@
   border-radius: 8px;
   background: rgba(74, 144, 226, 0.1);
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 200;
+  text-align: center;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -379,17 +479,89 @@
 }
 
 .history-export-cancel {
-  width: 100%;
+  width: 50%;
   padding: 8px;
-  background: #6c757d;
+  background-color: #6c757d;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   margin-top: 10px;
+  text-align: center;
+  transition: background 0.2s ease;
 }
 
-/* === Адаптивность === */
+.history-export-cancel:hover {
+  background: rgba(255, 107, 107, 0.5);
+}
+
+/* ════════════════════════════════════════════════════════
+   СЕКЦИИ
+   ════════════════════════════════════════════════════════ */
+
+.history-section {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+}
+
+.history-section--external {
+  border: 1px dashed var(--warning-color, #F5A623);
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(245, 166, 35, 0.03);
+}
+
+.history-external-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.history-external-actions__header {
+  align-self: center;
+  font-size: 16px;
+  font-weight: 300;
+  
+}
+
+/* === Кнопка "Сохранить" === */
+.history-save-btn {
+  padding: 6px 12px;
+  color: (--text-primary);
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.history-save-btn:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.history-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ════════════════════════════════════════════════════════
+   АДАПТИВ
+   ════════════════════════════════════════════════════════ */
+
+@media (max-width: 1400px) {
+  .history-table__header {
+    padding-right: 20px;
+    font-size: 11px;
+  }
+  
+  .history-table__header .sort-icon {
+    width: 12px;
+    height: 12px;
+    right: 4px;
+  }
+}
+
 @media (max-width: 768px) {
   .history-header {
     flex-direction: column;
@@ -426,118 +598,31 @@
   }
 }
 
-/* Темная тема для модального окна */
+/* ════════════════════════════════════════════════════════
+   ТЁМНАЯ ТЕМА
+   ════════════════════════════════════════════════════════ */
+
 [data-theme="dark"] .history-confirm-modal {
   border-color: #444;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Кнопка "Изменить" */
-.history-edit-btn {
-  display: flex;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 6px;
-  padding: 6px 8px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-primary);
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.history-actions-container {
-  margin-left: auto;
-}
-
-/* Светлая тема — мягкий акцент */
-.history-edit-btn {
-  background: linear-gradient(
-    135deg,
-    rgba(100, 149, 237, 0.2),
-    rgba(74, 144, 226, 0.15)
-  );
-}
-
-/* Темная тема — более насыщенный акцент */
-[data-theme="dark"] .history-edit-btn {
-  background: linear-gradient(
-    135deg,
-    rgba(100, 149, 237, 0.25),
-    rgba(74, 144, 226, 0.2)
-  );
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.history-edit-btn svg {
-  height: 14px;
-  width: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-}
-
-.history-edit-btn path {
-  stroke: var(--text-primary);
-}
-
-.history-edit-btn:hover {
-  transform: translateY(-1px);
-  background: linear-gradient(
-    135deg,
-    rgba(100, 149, 237, 0.3),
-    rgba(74, 144, 226, 0.25)
-  );
-  border-color: rgba(255, 255, 255, 0.35);
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-/* Фолбэк без backdrop-filter */
-@supports not (backdrop-filter: blur(12px)) {
-  .history-edit-btn {
-    background: rgba(100, 149, 237, 0.2);
-    backdrop-filter: none;
-  }
-
-  [data-theme="dark"] .history-edit-btn {
-    background: rgba(100, 149, 237, 0.25);
-  }
-}
-
-.history-table .history-table__header-nomenclature {
-  text-align: left;
-}
-
-/* === Разделение секций === */
-.history-section {
-  margin-bottom: 32px;
-  padding-bottom: 24px;
-}
-
-.history-section:last-child {
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-/* === Внешняя история — рамка + фон === */
-.history-section--external {
-  border: 1px dashed var(--warning-color, #F5A623);
-  border-radius: 8px;
-  padding: 8px;
-  background: rgba(245, 166, 35, 0.03);
-}
-
-/* === Тёмная тема === */
 [data-theme="dark"] .history-section--external {
   background: rgba(245, 166, 35, 0.08);
   border-color: var(--warning-color, #F5A623);
+}
+
+[data-theme="dark"] .product-select__control,
+[data-theme="dark"] .product-select__menu {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .efficiency-positive { color: #4ade80; }
+[data-theme="dark"] .efficiency-negative { color: #f87171; }
+
+
+.history-table__checkbox-header input[type="checkbox"],
+.history-table__checkbox-cell input[type="checkbox"] {
+  accent-color: var(--back-button-hover);
 }

@@ -22,13 +22,11 @@ interface ValueFrequencyResult {
 interface ValueFrequencyPlotProps {
   data: ValueFrequencyResult;
   product?: string;
-  heightPercent?: number;
 }
 
 export default function ValueFrequencyPlot({
   data,
   product,
-  heightPercent = 30
 }: ValueFrequencyPlotProps) {
   const { theme, colors } = useTheme();
 
@@ -124,7 +122,7 @@ export default function ValueFrequencyPlot({
 
   if (!data || data.bins.length === 0) {
     return (
-      <div className="plot-container" style={{ height: `${heightPercent}vh` }}>
+      <div className="plot-container">
         <div className="plot-loading" style={{ color: colors.textPrimary }}>
           Нет данных для отображения
         </div>
@@ -133,7 +131,7 @@ export default function ValueFrequencyPlot({
   }
 
   return (
-    <div className="plot-container" style={{ height: `${heightPercent}vh` }}>
+    <div className="plot-container">
       <Plot
         key={plotKey}
         data={plotData}
@@ -161,7 +159,7 @@ export default function ValueFrequencyPlot({
             ticklabelposition: 'inside top',
             zeroline: false
           },
-          paper_bgcolor: colors.bgPrimary,
+          paper_bgcolor: colors.bgSecondary,
           plot_bgcolor: colors.bgSecondary,
           font: {
             family: '"Helvetica", sans-serif',
@@ -178,7 +176,7 @@ export default function ValueFrequencyPlot({
           
           shapes: avgLineShape,
           
-          margin: { l: 30, r: 30, t: 40, b: 0 },
+          margin: { l: 0, r: 0, t: 0, b: 0 },
           hovermode: "x unified"
         }}
         config={{

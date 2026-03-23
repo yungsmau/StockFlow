@@ -1,3 +1,4 @@
+// src/App.tsx
 import { useState, useEffect } from "react";
 
 import FileUploadSection from "./components/FileUpload/FileUploadSection";
@@ -12,7 +13,7 @@ import AboutModal from "./components/modals/AboutModal/AboutModal";
 import { useUpdateCheck } from "./hooks/useUpdateCheck";
 import { AnalysisProvider, useAnalysis } from "./context/AnalysisContext";
 
-import type { HistoryItem } from "./utils/fileParsers";
+import type { HistoryItem, PlanItem } from "./utils/fileParsers"; // ✅ Добавлен PlanItem
 
 import "./App.css";
 import "./styles/theme.css";
@@ -33,8 +34,16 @@ function AppContent() {
   const [uploadedHistoryFiles, setUploadedHistoryFiles] = useState<
     { name: string; format: string }[]
   >([]);
+  
+  // ✅ Новый стейт для файлов плана (по аналогии с историей)
+  const [uploadedPlanFiles, setUploadedPlanFiles] = useState<
+    { name: string; format: string }[]
+  >([]);
 
   const [externalHistory, setExternalHistory] = useState<HistoryItem[]>([]);
+  
+  // ✅ Новый стейт для данных плана (по аналогии с externalHistory)
+  const [externalPlan, setExternalPlan] = useState<PlanItem[]>([]);
 
   const { uploadedFiles, setUploadedFiles, setReferenceData, updateParameter } =
     useAnalysis();
@@ -60,7 +69,7 @@ function AppContent() {
     }
   };
 
-  const handleHistoryDataAdd = (data: HistoryItem[], fileName: string, format: string) => {
+  const handleHistoryDataAdd = ( data: HistoryItem[], fileName: string, format: string) => {
     const dataWithSource = data.map(item => ({
       ...item,
       source: 'external' as const,
@@ -80,6 +89,32 @@ function AppContent() {
     if (fileName) {
       setExternalHistory(prev => prev.filter(item => {
         const itemWithSource = item as HistoryItem & { _sourceFile?: string };
+        return itemWithSource._sourceFile !== fileName;
+      }));
+    }
+  };
+
+  // ✅ Обработчик для добавления файла плана (по аналогии с историей)
+  const handlePlanDataAdd = ( data: PlanItem[], fileName: string, format: string) => {
+    const dataWithSource = data.map(item => ({
+      ...item,
+      _sourceFile: fileName
+    }));
+    
+    setExternalPlan(prev => [...prev, ...dataWithSource]);
+    setUploadedPlanFiles(prev => [...prev, { name: fileName, format }]);
+  };
+
+  // ✅ Обработчик для удаления файла плана (по аналогии с историей)
+  const handleRemovePlanFile = (index: number) => {
+    const fileName = uploadedPlanFiles[index]?.name;
+    
+    const newFiles = uploadedPlanFiles.filter((_, i) => i !== index);
+    setUploadedPlanFiles(newFiles);
+
+    if (fileName) {
+      setExternalPlan(prev => prev.filter(item => {
+        const itemWithSource = item as PlanItem & { _sourceFile?: string };
         return itemWithSource._sourceFile !== fileName;
       }));
     }
@@ -140,6 +175,7 @@ function AppContent() {
             uploadedFiles={uploadedFiles}
             uploadedReferenceFiles={uploadedReferenceFiles}
             uploadedHistoryFiles={uploadedHistoryFiles}
+            uploadedPlanFiles={uploadedPlanFiles} // ✅ Передаём файлы плана
             onFileAdd={(file) => {
               setUploadedFiles([...uploadedFiles, file]);
             }}
@@ -148,6 +184,7 @@ function AppContent() {
               setUploadedReferenceFiles([{ name: fileName, format }]);
             }}
             onHistoryDataAdd={handleHistoryDataAdd}
+            onPlanDataAdd={handlePlanDataAdd} // ✅ Передаём обработчик для плана
             onRemoveFile={(index) => {
               setUploadedFiles(
                 uploadedFiles.filter((_, i: number) => i !== index),
@@ -155,12 +192,15 @@ function AppContent() {
             }}
             onRemoveReferenceFile={handleRemoveReferenceFile}
             onRemoveHistoryFile={handleRemoveHistoryFile}
+            onRemovePlanFile={handleRemovePlanFile} // ✅ Передаём обработчик удаления плана
             onCancelAll={() => {
               setUploadedFiles([]);
               setUploadedReferenceFiles([]);
               setUploadedHistoryFiles([]);
+              setUploadedPlanFiles([]); // ✅ Очищаем файлы плана
               setReferenceData(new Map());
               setExternalHistory([]);
+              setExternalPlan([]); // ✅ Очищаем данные плана
             }}
             onAnalyzeClick={() => {
               if (uploadedFiles.length > 0) {
@@ -178,6 +218,8 @@ function AppContent() {
         ) : currentPage === "analysis" ? (
           <AnalysisView
             uploadedFiles={uploadedFiles}
+            // ✅ Опционально: передаём данные плана, если нужно
+            externalPlan={externalPlan}
           />
         ) : (
           <HistoryView

@@ -23,6 +23,20 @@ export type ReferenceItem = {
   minimalOrder?: number;
 };
 
+// === Типы для файла плана ===
+export type PlanItem = {
+  nomenclature: string;
+  month: string; // "январь 2025"
+  monthDate: Date; // 2025-01-01 (для сортировки/расчётов)
+  plannedExpense: number;
+};
+
+export type DailyPlanItem = {
+  nomenclature: string;
+  date: string; // "2025-01-01"
+  planned_expense: number;
+};
+
 function toStringSafe(value: any): string {
   if (value === null || value === undefined) return "";
   if (value instanceof Date) return value.toISOString().split("T")[0];
@@ -749,4 +763,273 @@ export function detectFileType(
   }
 
   return "data";
+}
+
+// ✅ Парсинг русского месяца в полном формате: "январь 2025" → Date
+export function parseRussianMonthFull(monthStr: string): Date | null {
+  try {
+    const normalized = monthStr.trim().toLowerCase();
+    const monthMap: Record<string, number> = {
+      январь: 0,
+      февраль: 1,
+      март: 2,
+      апрель: 3,
+      май: 4,
+      июнь: 5,
+      июль: 6,
+      август: 7,
+      сентябрь: 8,
+      октябрь: 9,
+      ноябрь: 10,
+      декабрь: 11,
+    };
+
+    let monthIndex: number | null = null;
+    for (const [name, index] of Object.entries(monthMap)) {
+      if (normalized.includes(name)) {
+        monthIndex = index;
+        break;
+      }
+    }
+    if (monthIndex === null) return null;
+
+    const yearMatch = normalized.match(/(20\d{2}|\d{2})$/);
+    if (!yearMatch) return null;
+
+    let year = parseInt(yearMatch[1], 10);
+    if (year < 100) year = year >= 50 ? 1900 + year : 2000 + year;
+
+    // ✅ Создаём дату в UTC (не локальное время!)
+    return new Date(Date.UTC(year, monthIndex, 1));
+  } catch {
+    return null;
+  }
+}
+
+// ✅ Валидация заголовков для файла плана
+function validatePlanHeaders(headers: string[]): {
+  valid: boolean;
+  error?: string;
+  headerMap: Record<string, string>;
+} {
+  const normalized = headers.map((h) => h.trim().toLowerCase());
+
+  // Обязательные колонки
+  const required = ["номенклатура", "плановый расход"];
+  const hasDate = normalized.some(
+    (h) =>
+      h.includes("дата") ||
+      h.includes("месяц") ||
+      h.includes("date") ||
+      h.includes("month"),
+  );
+
+  if (!hasDate) {
+    return {
+      valid: false,
+      error: "Требуется колонка с датой/месяцем",
+      headerMap: {},
+    };
+  }
+
+  const missing = required.filter(
+    (req) => !normalized.some((h) => h.includes(req)),
+  );
+
+  if (missing.length > 0) {
+    return {
+      valid: false,
+      error: `Отсутствуют обязательные колонки: ${missing.join(", ")}`,
+      headerMap: {},
+    };
+  }
+
+  const headerMap: Record<string, string> = {};
+  const mappings: Record<string, string[]> = {
+    month: ["дата", "месяц", "период", "date", "month", "period"],
+    nomenclature: [
+      "номенклатура",
+      "товар",
+      "продукт",
+      "nomenclature",
+      "product",
+      "item",
+    ],
+    plannedExpense: [
+      "плановый расход",
+      "план расход",
+      "план",
+      "расход план",
+      "planned expense",
+      "planned_consumption",
+      "plan",
+      "forecast",
+    ],
+  };
+
+  for (const [field, possibleNames] of Object.entries(mappings)) {
+    const found = normalized.find((header) =>
+      possibleNames.some((name) => header.includes(name)),
+    );
+    if (found) {
+      const originalHeader = headers[normalized.indexOf(found)];
+      headerMap[originalHeader] = field;
+    }
+  }
+
+  return { valid: true, headerMap };
+}
+
+// ✅ Парсер Excel для файла плана
+export async function parsePlanExcel(file: File): Promise<PlanItem[]> {
+  const buffer = await file.arrayBuffer();
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+
+  const worksheet = workbook.worksheets[0];
+  if (!worksheet) throw new Error("Файл не содержит листов");
+
+  const rows: PlanItem[] = [];
+  const headerRow = worksheet.getRow(1);
+  const headers = Array.isArray(headerRow.values)
+    ? headerRow.values.slice(1).map(String)
+    : [];
+
+  const validation = validatePlanHeaders(headers);
+  if (!validation.valid) throw new Error(validation.error);
+
+  const headerMap = validation.headerMap;
+  const normalizedHeaders = headers.map((h) => h.trim().toLowerCase());
+
+  const indices: Record<string, number> = {};
+  Object.entries(headerMap).forEach(([originalHeader, field]) => {
+    const idx = normalizedHeaders.findIndex(
+      (h) => h === originalHeader.toLowerCase(),
+    );
+    if (idx !== -1) {
+      indices[field] = idx;
+    }
+  });
+
+  worksheet.eachRow((row, idx) => {
+    if (idx === 1) return;
+
+    const valuesArray = Array.isArray(row.values) ? row.values.slice(1) : [];
+
+    const monthRaw = toStringSafe(valuesArray[indices["month"]]);
+    const nomenclature = toStringSafe(valuesArray[indices["nomenclature"]]);
+    const plannedExpense = toNumberSafe(valuesArray[indices["plannedExpense"]]);
+
+    if (!monthRaw || !nomenclature) return;
+
+    const monthDate = parseRussianMonthFull(monthRaw);
+
+    if (monthDate) {
+      rows.push({
+        nomenclature,
+        month: monthRaw,
+        monthDate,
+        plannedExpense,
+      });
+    }
+  });
+
+  if (rows.length === 0) {
+    throw new Error("Файл плана не содержит данных");
+  }
+
+  // Сортируем по дате
+  return rows.sort((a, b) => a.monthDate.getTime() - b.monthDate.getTime());
+}
+
+// ✅ Парсер CSV для файла плана
+export async function parsePlanCSV(file: File): Promise<PlanItem[]> {
+  return new Promise((resolve, reject) => {
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      encoding: "UTF-8",
+      dynamicTyping: false,
+      complete: (results) => {
+        if (results.errors.length > 0) {
+          const criticalErrors = results.errors.filter(
+            (e) => e.type !== "FieldMismatch",
+          );
+          if (criticalErrors.length > 0) {
+            reject(
+              new Error(`Ошибка парсинга CSV: ${criticalErrors[0].message}`),
+            );
+            return;
+          }
+        }
+
+        const headers = results.meta.fields || [];
+        if (headers.length === 0) {
+          reject(new Error("Файл CSV не содержит заголовков"));
+          return;
+        }
+
+        const validation = validatePlanHeaders(headers);
+        if (!validation.valid) {
+          reject(new Error(validation.error));
+          return;
+        }
+
+        const headerMap = validation.headerMap;
+        const data: PlanItem[] = [];
+
+        for (const row of results.data as any[]) {
+          try {
+            const monthRaw = toStringSafe(
+              row[
+                Object.keys(headerMap).find((k) => headerMap[k] === "month")!
+              ],
+            );
+            const nomenclature = toStringSafe(
+              row[
+                Object.keys(headerMap).find(
+                  (k) => headerMap[k] === "nomenclature",
+                )!
+              ],
+            );
+            const plannedExpense = toNumberSafe(
+              row[
+                Object.keys(headerMap).find(
+                  (k) => headerMap[k] === "plannedExpense",
+                )!
+              ],
+            );
+
+            if (!monthRaw || !nomenclature) continue;
+
+            const monthDate = parseRussianMonthFull(monthRaw);
+
+            if (monthDate) {
+              data.push({
+                nomenclature,
+                month: monthRaw,
+                monthDate,
+                plannedExpense,
+              });
+            }
+          } catch (e) {
+            reject(new Error(`Ошибка обработки строки плана: ${e}`));
+            return;
+          }
+        }
+
+        if (data.length === 0) {
+          reject(new Error("Файл плана не содержит данных"));
+          return;
+        }
+
+        resolve(
+          data.sort((a, b) => a.monthDate.getTime() - b.monthDate.getTime()),
+        );
+      },
+      error: (error) => {
+        reject(new Error(`Ошибка чтения CSV: ${error.message}`));
+      },
+    });
+  });
 }
