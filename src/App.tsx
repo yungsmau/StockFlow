@@ -1,4 +1,3 @@
-// src/App.tsx
 import { useState, useEffect } from "react";
 
 import FileUploadSection from "./components/FileUpload/FileUploadSection";
@@ -53,6 +52,10 @@ function AppContent() {
   const closeModal = () => setActiveModal(null);
 
   const isUploadBlocked = update?.isMajorUpdate || false;
+
+  useEffect(() => {
+    console.log('🔥 App.tsx: isUploadBlocked changed to:', isUploadBlocked);
+  }, [isUploadBlocked]);
 
   const handleRemoveReferenceFile = (index: number) => {
     if (index === -1) {
@@ -168,6 +171,7 @@ function AppContent() {
         {currentPage === "upload" ? (
           <FileUploadSection
             isBlocked={isUploadBlocked}
+            isMajorUpdateAvailable={isUploadBlocked}
             uploadedFiles={uploadedFiles}
             uploadedReferenceFiles={uploadedReferenceFiles}
             uploadedHistoryFiles={uploadedHistoryFiles}
@@ -237,7 +241,6 @@ function AppContent() {
       <NotificationsModal
         isOpen={activeModal === "notifications"}
         onClose={closeModal}
-        updateNotification={update}
       />
       <AboutModal isOpen={activeModal === "about"} onClose={closeModal} />
     </div>
