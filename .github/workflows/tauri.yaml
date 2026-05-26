@@ -1,13 +1,11 @@
 name: Build & Release Tauri App
 
 on:
+  push:
+    branches: [master]
   pull_request:
     branches: [master]
     types: [closed]
-
-  push:
-    branches: [master]
-
   workflow_dispatch:
 
 permissions:
@@ -15,17 +13,12 @@ permissions:
 
 jobs:
   build-tauri:
-    # 🛡️ Защита: запускать только при реальном мерже, пуше или ручном старте
-    if: github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
-
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ${{ matrix.platform }}
     strategy:
       fail-fast: false
       matrix:
         platform: [macos-latest, windows-latest]
-
-    runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
 
@@ -44,11 +37,9 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: v__VERSION__
-          releaseName: "StockFlow v__VERSION__"
-          releaseBody: "See the assets to download this version."
+          releaseName: "App v__VERSION__"
+          releaseBody: "Автоматическая сборка после мержа."
           releaseDraft: true
           prerelease: false
