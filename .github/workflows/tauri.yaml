@@ -2,10 +2,13 @@ name: Build & Release Tauri App
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
+
   pull_request:
-    branches: [master]
-    types: [closed]
+    branches:
+      - master
+
   workflow_dispatch:
 
 permissions:
@@ -13,33 +16,35 @@ permissions:
 
 jobs:
   build-tauri:
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ${{ matrix.platform }}
+
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, windows-latest]
-    steps:
-      - uses: actions/checkout@v4
+        platform:
+          - windows-latest
+          - macos-latest
 
-      - name: Setup Node.js
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Rust stable
+      - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         run: npm install
 
-      - name: Build the app
+      - name: Build app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__
-          releaseName: "App v__VERSION__"
-          releaseBody: "Автоматическая сборка после мержа."
+          tagName: app-v__VERSION__
+          releaseName: "Release v__VERSION__"
           releaseDraft: true
-          prerelease: false
