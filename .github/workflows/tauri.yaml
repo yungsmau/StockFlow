@@ -1,13 +1,25 @@
-name: Build Tauri App
+name: Build & Release Tauri App
+
 on:
+  pull_request:
+    branches: [master]
+    types: [closed]
+
   push:
     branches: [master]
+
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   build-tauri:
+    # 🛡️ Защита: запускать только при реальном мерже, пуше или ручном старте
+    if: github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+
     strategy:
       fail-fast: false
       matrix:
@@ -15,21 +27,15 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Rust
+      - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-20.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Install frontend dependencies
         run: npm install
