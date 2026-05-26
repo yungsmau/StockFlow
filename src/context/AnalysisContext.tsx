@@ -1,4 +1,3 @@
-// src/context/AnalysisContext.tsx
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { invoke } from "@tauri-apps/api/core";
 
@@ -65,6 +64,8 @@ interface AnalysisState {
   unitCost: number;
   optimalOrder?: number;
   minimalOrder?: number;
+  enableOverlapping: boolean;
+  overlapCount: number;
   result: ComputeResponse | null;
   actualData: ActualDataPoint[];
   loading: boolean;
@@ -94,6 +95,8 @@ interface AnalysisContextType {
     unitCost: number;
     optimalOrder?: number;
     minimalOrder?: number;
+    enableOverlapping: boolean;
+    overlapCount: number;
   }>) => void;
   retry: () => void;
   setChartMode: (mode: ChartMode) => void; 
@@ -111,9 +114,11 @@ const getCacheKey = (
   threshold: number,
   deliveryDays: number,
   unitCost: number,
+  enableOverlapping: boolean,
+  overlapCount: number,
   dateFrom?: string,
   dateTo?: string
-) => `${product}|${initialStock}|${threshold}|${deliveryDays}|${unitCost}|${dateFrom || 'all'}|${dateTo || 'all'}`;
+) => `${product}|${initialStock}|${threshold}|${deliveryDays}|${unitCost}|${enableOverlapping}|${overlapCount}|${dateFrom || 'all'}|${dateTo || 'all'}`;
 
 export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -130,6 +135,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     unitCost: 1,
     optimalOrder: undefined,
     minimalOrder: undefined,
+    enableOverlapping: false,
+    overlapCount: 1,
     result: null,
     actualData: [],
     loading: false,
@@ -151,13 +158,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       threshold: number;
       deliveryDays: number;
       unitCost: number;
+      enableOverlapping?: boolean;
+      overlapCount?: number;
       dateFrom?: string;
       dateTo?: string;
     }
   ): Promise<ComputeResponse> => {
     const cacheKey = getCacheKey(
       params.product, params.initialStock, params.threshold,
-      params.deliveryDays, params.unitCost, params.dateFrom, params.dateTo
+      params.deliveryDays, params.unitCost, params.enableOverlapping ?? false, params.overlapCount ?? 1, params.dateFrom, params.dateTo
     );
 
     if (calculationCache.has(cacheKey)) {
@@ -172,6 +181,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         threshold: params.threshold,
         delivery_days: params.deliveryDays,
         unit_cost: params.unitCost,
+        enable_overlapping: params.enableOverlapping ?? state.enableOverlapping,
+        overlap_count: params.overlapCount ?? state.overlapCount,
       }
     });
 
@@ -205,6 +216,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       threshold: number;
       deliveryDays: number;
       unitCost: number;
+      enableOverlapping?: boolean;
+      overlapCount?: number; 
     },
     dateRange?: { from: string; to: string } | null
   ) => {
@@ -272,6 +285,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     unitCost: number;
     optimalOrder?: number;
     minimalOrder?: number;
+    enableOverlapping: boolean;
+    overlapCount: number;
   }>) => {
     if (updates.selectedProduct && Object.keys(updates).length === 1) {
       const product = updates.selectedProduct;
@@ -299,7 +314,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           initialStock: updates.initialStock ?? state.initialStock,
           threshold: updates.threshold ?? state.threshold,
           deliveryDays: updates.deliveryDays ?? state.deliveryDays,
-          unitCost: updates.unitCost ?? state.unitCost
+          unitCost: updates.unitCost ?? state.unitCost,
+          enableOverlapping: updates.enableOverlapping ?? state.enableOverlapping,
+          overlapCount: updates.overlapCount ?? state.overlapCount 
         };
         computeForProduct(product, newParams);
       }

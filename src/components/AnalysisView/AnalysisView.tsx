@@ -212,7 +212,9 @@ export default function AnalysisView({ uploadedFiles, externalPlan }: AnalysisVi
           undefined,
           undefined,
           state.result.total_price,
-          state.result.efficiency_abs
+          state.result.efficiency_abs,
+          state.enableOverlapping,
+          state.overlapCount
         );
         console.log("Результат сохранен в историю");
       } catch (error) {

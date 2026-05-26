@@ -14,9 +14,38 @@ const CREATE_TABLE_SQL = `
     actual_avg_stock REAL NOT NULL,
     stock_value REAL,
     efficiency_abs REAL,
+    enable_overlapping INTEGER DEFAULT 0,
+    overlap_count INTEGER DEFAULT 1,
     processed_at TEXT DEFAULT CURRENT_TIMESTAMP
   )
 `;
+
+const migrateDatabase = async (db: Database): Promise<void> => {
+  try {
+    // Получаем список существующих колонок
+    const columns = await db.select<{ name: string }[]>(
+      "PRAGMA table_info(processed_items)",
+    );
+    const columnNames = columns.map((c) => c.name);
+
+    if (!columnNames.includes("enable_overlapping")) {
+      await db.execute(
+        "ALTER TABLE processed_items ADD COLUMN enable_overlapping INTEGER DEFAULT 0",
+      );
+      console.log("🔄 Migrated: added enable_overlapping column");
+    }
+
+    if (!columnNames.includes("overlap_count")) {
+      await db.execute(
+        "ALTER TABLE processed_items ADD COLUMN overlap_count INTEGER DEFAULT 1",
+      );
+      console.log("🔄 Migrated: added overlap_count column");
+    }
+  } catch (error) {
+    // Если что-то пошло не так — не ломаем приложение, просто логируем
+    console.warn("⚠️ Migration skipped (columns likely exist):", error);
+  }
+};
 
 // Интерфейс для данных истории (snake_case - как в БД)
 export interface HistoryItem {
@@ -31,6 +60,8 @@ export interface HistoryItem {
   actual_avg_stock: number;
   stock_value?: number;
   efficiency_abs?: number;
+  enable_overlapping: boolean;
+  overlap_count: number;
   processed_at: string;
 }
 
@@ -47,6 +78,8 @@ export interface ExportHistoryItem {
   actualAvgStock: number;
   stockValue?: number;
   efficiencyAbs?: number;
+  enableOverlapping: boolean;
+  overlapCount: number;
   processedAt: string;
 }
 
@@ -63,6 +96,8 @@ export const dbToHistoryItem = (dbItem: HistoryItem): ExportHistoryItem => ({
   actualAvgStock: dbItem.actual_avg_stock,
   stockValue: dbItem.stock_value,
   efficiencyAbs: dbItem.efficiency_abs,
+  enableOverlapping: Boolean(dbItem.enable_overlapping),
+  overlapCount: dbItem.overlap_count ?? 1,
   processedAt: dbItem.processed_at,
 });
 
@@ -70,6 +105,7 @@ export const dbToHistoryItem = (dbItem: HistoryItem): ExportHistoryItem => ({
 const getDatabase = async (): Promise<Database> => {
   const db = await Database.load("sqlite:stockflow.db");
   await db.execute(CREATE_TABLE_SQL);
+  await migrateDatabase(db);
   return db;
 };
 
@@ -83,10 +119,12 @@ export const saveHistoryItem = async (
   efficiency: number,
   avgStock: number,
   actualAvgStock: number,
-  _minimalOrder?: number, // ← Эти параметры не сохраняются в историю
-  _optimalOrder?: number, // ← Эти параметры не сохраняются в историю
+  _minimalOrder?: number,
+  _optimalOrder?: number,
   stockValue?: number,
   efficiencyAbs?: number,
+  enableOverlapping: boolean = false,
+  overlapCount: number = 1,
 ): Promise<void> => {
   const db = await getDatabase();
 
@@ -94,8 +132,9 @@ export const saveHistoryItem = async (
     `INSERT INTO processed_items (
       product, initial_stock, threshold, delivery_days,
       unit_cost, efficiency, avg_stock, actual_avg_stock,
-      stock_value, efficiency_abs
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      stock_value, efficiency_abs,
+      enable_overlapping, overlap_count
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     ON CONFLICT(product) DO UPDATE SET
       initial_stock = excluded.initial_stock,
       threshold = excluded.threshold,
@@ -106,6 +145,8 @@ export const saveHistoryItem = async (
       actual_avg_stock = excluded.actual_avg_stock,
       stock_value = excluded.stock_value,
       efficiency_abs = excluded.efficiency_abs,
+      enable_overlapping = excluded.enable_overlapping,
+      overlap_count = excluded.overlap_count,
       processed_at = CURRENT_TIMESTAMP`,
     [
       product,
@@ -118,6 +159,8 @@ export const saveHistoryItem = async (
       actualAvgStock,
       stockValue,
       efficiencyAbs,
+      enableOverlapping ? 1 : 0, // SQLite: boolean → 0/1
+      overlapCount,
     ],
   );
 };

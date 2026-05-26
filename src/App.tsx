@@ -229,6 +229,8 @@ function AppContent() {
                 threshold: params.threshold,
                 deliveryDays: params.deliveryDays,
                 unitCost: params.unitCost,
+                enableOverlapping: params.enableOverlapping,
+                overlapCount: params.overlapCount,
               });
               setCurrentPage("analysis");
             }}

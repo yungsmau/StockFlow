@@ -99,6 +99,22 @@ const getEfficiencyClass = (value: number): string => {
   return 'efficiency-neutral';
 };
 
+// ✅ НОВОЕ: Компонент бейджа режима
+const ModeBadge = ({ enableOverlapping, overlapCount }: { enableOverlapping: boolean; overlapCount: number }) => {
+  if (enableOverlapping && overlapCount >= 2) {
+    return (
+      <span className="mode-badge mode-badge--overlapping" title={`Режим наложения: ${overlapCount} параллельных заказа`}>
+        🔄 ×{overlapCount}
+      </span>
+    );
+  }
+  return (
+    <span className="mode-badge mode-badge--standard" title="Стандартный режим (1 заказ в пути)">
+      ✓
+    </span>
+  );
+};
+
 export default function HistoryTable({
   items,
   isEditMode,
@@ -179,7 +195,7 @@ export default function HistoryTable({
                 onClick={() => handleSort('processedAt')}
                 className={getHeaderClass('processedAt')}
               >
-                <span>Дата обработки</span>
+                <span>Дата</span>
                 <SortIcon direction={getSortDirection('processedAt')} />
               </th>
               <th 
@@ -193,57 +209,48 @@ export default function HistoryTable({
                 onClick={() => handleSort('initialStock')}
                 className={getHeaderClass('initialStock')}
               >
-                <span>Поставка, ед.</span>
+                <span>Поставка</span>
                 <SortIcon direction={getSortDirection('initialStock')} />
               </th>
               <th 
                 onClick={() => handleSort('threshold')}
                 className={getHeaderClass('threshold')}
               >
-                <span>Порог, ед.</span>
+                <span>Порог</span>
                 <SortIcon direction={getSortDirection('threshold')} />
-              </th>
-              <th 
-                onClick={() => handleSort('unitCost')}
-                className={getHeaderClass('unitCost')}
-              >
-                <span>Цена, руб./ед.</span>
-                <SortIcon direction={getSortDirection('unitCost')} />
               </th>
               <th 
                 onClick={() => handleSort('deliveryDays')}
                 className={getHeaderClass('deliveryDays')}
               >
-                <span>Срок поставки, дни</span>
+                <span>Срок, дн.</span>
                 <SortIcon direction={getSortDirection('deliveryDays')} />
               </th>
               <th 
                 onClick={() => handleSort('avgStock')}
                 className={getHeaderClass('avgStock')}
               >
-                <span>Ср. дневной остаток, ед.</span>
+                <span>Ср. остаток, ед.</span>
                 <SortIcon direction={getSortDirection('avgStock')} />
               </th>
               <th 
                 onClick={() => handleSort('stockValue')}
                 className={getHeaderClass('stockValue')}
               >
-                <span>Ср. дневной остаток, руб.</span>
+                <span>Ср. остаток, руб.</span>
                 <SortIcon direction={getSortDirection('stockValue')} />
               </th>
               <th 
                 onClick={() => handleSort('efficiency')}
                 className={getHeaderClass('efficiency')}
               >
-                <span>Эффективность, %</span>
+                <span>Эффективность</span>
                 <SortIcon direction={getSortDirection('efficiency')} />
               </th>
-              <th 
-                onClick={() => handleSort('efficiencyAbs')}
-                className={getHeaderClass('efficiencyAbs')}
-              >
-                <span>Эффективность, руб.</span>
-                <SortIcon direction={getSortDirection('efficiencyAbs')} />
+              
+              {/* ✅ НОВОЕ: Колонка "Режим" */}
+              <th className="history-table__header-mode">
+                <span>Режим</span>
               </th>
               
               {isEditMode && (
@@ -269,7 +276,6 @@ export default function HistoryTable({
                 <td className="history-table__header-nomenclature">{item.product}</td>
                 <td>{formatNumber(item.initialStock)}</td>
                 <td>{formatNumber(item.threshold)}</td>
-                <td>{formatCurrency(item.unitCost)}</td>
                 <td>{formatNumber(item.deliveryDays)}</td>
                 <td>{formatNumber(Math.round(item.avgStock))}</td>
                 <td>{item.stockValue !== undefined ? formatCurrency(item.stockValue) : '—'}</td>
@@ -278,10 +284,10 @@ export default function HistoryTable({
                     {item.efficiency.toFixed(1)}%
                   </span>
                 </td>
-                <td>
-                  <span className={getEfficiencyClass(item.efficiency)}>
-                    {item.efficiencyAbs !== undefined ? formatCurrency(item.efficiencyAbs) : '-'}
-                  </span> 
+                
+                {/* ✅ НОВОЕ: Ячейка с бейджем режима */}
+                <td className="history-table__cell-mode">
+                  <ModeBadge enableOverlapping={item.enableOverlapping} overlapCount={item.overlapCount} />
                 </td>
                 
                 {isEditMode && (

@@ -54,6 +54,11 @@ export default function FiltersPanel({ uploadedFiles }: FiltersPanelProps) {
           minimalOrder={state.minimalOrder}
           avgExpense={state.result?.avg_expense}
           recommendedThreshold={state.result?.recommended_threshold}
+          enableOverlapping={state.enableOverlapping}
+          overlapCount={state.overlapCount}
+          onOverlappingChange={(enable, count) => 
+            updateParameter({ enableOverlapping: enable, overlapCount: count })
+          }
           onChange={handleModelChange}
         />
       </div>

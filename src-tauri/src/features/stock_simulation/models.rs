@@ -15,6 +15,12 @@ pub struct UploadedFile {
     pub data: Vec<RowData>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PendingOrder {
+    pub arrival_date: String,
+    pub quantity: i32,
+}
+
 #[derive(Deserialize, Clone, Debug)]
 pub struct ComputeRequest {
     pub product: String,
@@ -23,6 +29,10 @@ pub struct ComputeRequest {
     pub threshold: i32,
     pub delivery_days: i32,
     pub unit_cost: Option<f64>,
+    #[serde(default)]
+    pub enable_overlapping: bool,
+    #[serde(default)]
+    pub overlap_count: u32,
 }
 
 #[derive(Serialize, Debug)]
