@@ -5,7 +5,7 @@
 }
 
 .help-modal__heading {
-  margin: 12px 0 10px;
+  margin: 0 0 10px;
   color: var(--text-primary);
   font-size: 0.95rem;
   font-weight: 400;
@@ -15,12 +15,21 @@
   background-clip: text;
 }
 
+.help-modal__heading.file-download {
+  margin-top: 0;
+}
+
+.file-download {
+  margin-top: 10px;
+}
+
 .help-modal__instructions {
-  margin: 0 20px 16px;
+  margin: 0 20px 0;
   padding-left: 20px;
   font-size: 12px;
   font-weight: 300;
   line-height: 1.4;
+  color: var(--text-secondary);
 }
 
 .help-modal__instructions li {
@@ -39,6 +48,7 @@
   align-items: center;
   justify-content: center;
   padding: 8px 16px;
+  margin-bottom: 15px;
   width: 100%;
   height: 35px;
   border-radius: 8px;
@@ -174,7 +184,8 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
   color: var(--text-primary);
-  font-weight: 300;
+  font-weight: 200;
+  font-size: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -201,7 +212,6 @@
 .help-modal__menu-btn:hover {
   background: rgba(100, 149, 237, 0.35);
   border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(100, 149, 237, 0.25);
 }
 
@@ -211,7 +221,8 @@
 
 .help-modal__param {
   margin-bottom: 3px;
-  padding: 5px;
+  padding: 10px 5px;
+  border-top: 1px solid var(--text-secondary);
 }
 
 .help-modal__param-title {
@@ -223,4 +234,51 @@
   font-size: 12px;
   line-height: 1.4;
   font-weight: 300;
+  color: var(--text-secondary);
+}
+
+.help-modal .modal-header {
+  margin-bottom: 20px;
+}
+
+/* Скроллируемый контейнер */
+.help-modal__scrollable {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 8px; /* компенсация ширины скроллбара */
+}
+
+/* Кастомный скроллбар (опционально) */
+.help-modal__scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.help-modal__scrollable::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.help-modal__scrollable::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.help-modal__scrollable::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Темные темы */
+[data-theme="dark"] .help-modal__scrollable::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb-dark);
+}
+
+[data-theme="dark"] .help-modal__scrollable::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover-dark);
+}
+
+/* Остальной существующий CSS без изменений */
+.help-modal__content {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }

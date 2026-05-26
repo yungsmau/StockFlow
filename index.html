@@ -4,11 +4,103 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri + React + Typescript</title>
+
+    <style id="theme-styles">
+      :root {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8f9fa;
+        --text-primary: #000000;
+        --text-secondary: rgba(0, 0, 0, 0.6);
+        --border-color: rgba(0, 0, 0, 0.25);
+        --primary-color: #4a90e2;
+      }
+
+      /* Темная тема */
+      [data-theme="dark"] {
+        --bg-primary: #1a1a1a;
+        --bg-secondary: #2d2d2d;
+        --text-primary: #ffffff;
+        --text-secondary: rgba(255, 255, 255, 0.7);
+        --border-color: rgba(255, 255, 255, 0.3);
+        --primary-color: #6495ed;
+      }
+
+      body {
+        background: var(--bg-primary);
+      }
+
+      .app-skeleton {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        color: var(--text-primary);
+        transition: opacity 0.3s ease;
+      }
+
+      .app-skeleton__logo {
+        margin-bottom: 15px;
+      }
+
+      .app-skeleton__logo img {
+        width: 165px;
+        height: 165px;
+        object-fit: contain;
+      }
+
+      .app-skeleton__spinner {
+        width: 24px;
+        height: 24px;
+        border: 2px solid var(--border-color);
+        border-top: 2px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+
+    <script>
+      const savedTheme = localStorage.getItem("theme");
+      const systemPrefersDark =
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+      let theme = "light";
+      if (savedTheme === "dark" || savedTheme === "light") {
+        theme = savedTheme;
+      } else if (systemPrefersDark) {
+        theme = "dark";
+      }
+
+      if (theme === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+
+      window.INITIAL_THEME = theme;
+    </script>
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="app-skeleton">
+        <div class="app-skeleton__logo">
+          <img src="/icon.svg" alt="Иконка приложения" />
+        </div>
+        <div class="app-skeleton__loading">
+          <div class="app-skeleton__spinner"></div>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

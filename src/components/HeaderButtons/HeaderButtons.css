@@ -1,7 +1,6 @@
 .header-buttons {
   position: absolute;
   right: 24px;
-  top: 21px;
   display: flex;
   gap: 12px;
   width: auto;
@@ -87,4 +86,45 @@
 
 .notification-indicator--major {
   background: var(--notif-red);
+}
+
+.toggle-switch__thumb {
+  filter: invert(1);
+}
+
+.header-buttons__theme-toggle {
+  display: flex;
+  align-items: center;
+}
+
+/* Адаптив для хедера */
+@media (max-width: 768px) {
+  .header-buttons {
+    gap: 4px;
+  }
+  
+  .header-buttons__theme-toggle {
+    margin-left: 4px;
+  }
+  
+  /* Уменьшенная версия ToggleSwitch на мобильных */
+  .header-buttons__theme-toggle .toggle-switch {
+    width: 40px;
+    height: 24px;
+    border-radius: 12px;
+  }
+  
+  .header-buttons__theme-toggle .toggle-switch__thumb {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .header-buttons__theme-toggle .toggle-switch--on .toggle-switch__thumb {
+    transform: translateX(16px);
+  }
+  
+  .header-buttons__theme-toggle .toggle-switch__icon svg {
+    width: 12px;
+    height: 12px;
+  }
 }

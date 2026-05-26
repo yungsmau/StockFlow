@@ -13,19 +13,17 @@ interface ComputeResponse {
 interface StockSimulationPlotProps {
   data: ComputeResponse;
   product: string;
-  heightPercent?: number;
 }
 
 const StockSimulationPlot = ({ 
   data, 
   product,
-  heightPercent = 50 
 }: StockSimulationPlotProps) => {
   const { theme, colors } = useTheme();
 
   if (!data || data.dates.length === 0) {
     return (
-      <div className="plot-container" style={{ height: `${heightPercent}vh` }}>
+      <div className="plot-container">
         <div className="plot-loading">
           Загрузка данных...
         </div>
@@ -33,17 +31,23 @@ const StockSimulationPlot = ({
     );
   }
 
-  const bgColor = colors.bgPrimary;
   const plotBgColor = colors.bgSecondary;
   const textColor = colors.textPrimary;
   const gridColor = colors.borderColor;
   const tooltipBg = theme === 'dark' ? '#2d2d2d' : '#ffffff';
   const tooltipBorder = theme === 'dark' ? '#444' : '#ddd';
 
+  const expenseColors = data.spent.map((spent, i) => {
+    if (spent > 0 && data.starting_stock[i] === 0) {
+      return '#dc3545';
+    }
+    return 'orange';
+  });
+
   const plotKey = `${theme}-${product}-${data.threshold}-${data.dates.length}-${data.dates[0]}-${data.dates[data.dates.length - 1]}`;
 
   return (
-    <div className="plot-container" style={{ height: `${heightPercent}vh` }}>
+    <div className="plot-container">
       <Plot
         key={plotKey}
         data={[
@@ -69,7 +73,7 @@ const StockSimulationPlot = ({
             text: data.spent.map(v => v > 0 ? v.toString() : ''),
             type: "bar",
             name: "Расход",
-            marker: { color: "orange" },
+            marker: { color: expenseColors },
             textposition: "outside",
             hovertemplate: `Расход: %{text}`,
             hoverlabel: { 
@@ -117,7 +121,7 @@ const StockSimulationPlot = ({
             tickfont: { color: textColor },
             spikemode: 'across',
             spikecolor: textColor,
-            spikedash: 'solid' 
+            spikedash: 'solid',
           },
           yaxis: {
             tickfont: { size: 10, color: textColor },
@@ -125,7 +129,7 @@ const StockSimulationPlot = ({
             gridcolor: gridColor,
             zeroline: false 
           },
-          paper_bgcolor: bgColor,
+          paper_bgcolor: plotBgColor,
           plot_bgcolor: plotBgColor,
           font: {
             family: '"Helvetica", sans-serif',
@@ -134,19 +138,21 @@ const StockSimulationPlot = ({
           legend: {
             font: { color: textColor, size: 10 },
             orientation: "h",
-            yanchor: "bottom",
-            x: 0,
+            x: 0.5,
             y: 1,
-            xanchor: "left"
+            yanchor: "bottom",
+            xanchor: "center",
+            bgcolor: plotBgColor,
           },
-          margin: { l: 30, r: 30, t: 20, b: 0 },
+          margin: { l: 0, r: 0, t: 0, b: 0 },
           hovermode: "x unified"
         }}
         config={{ 
           responsive: true,
           displaylogo: false,
-          doubleClick: 'reset'
+          doubleClick: 'reset',
         }}
+        useResizeHandler={true}
         style={{ width: "100%", height: "100%" }}
       />
     </div>

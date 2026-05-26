@@ -1,4 +1,4 @@
-use crate::errors::detailed_error::DetailedError;
+use crate::shared::errors::detailed_error::DetailedError;
 use chrono::NaiveDate;
 
 pub fn parse_date_safe(

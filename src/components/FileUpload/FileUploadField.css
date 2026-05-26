@@ -3,12 +3,11 @@
   flex-direction: column;
   align-items: center;
   padding: 0;
-  gap: 24px;
+  gap: 8px;
   position: absolute;
   width: 578px;
-  height: 400px;
   left: calc(50% - 578px / 2);
-  top: calc(50% - 400px / 2 + 23px);
+  top: calc(38% - 400px / 2 + 23px);
 }
 
 .upload-field__loading-state {
@@ -57,9 +56,9 @@
   justify-content: center;
   align-items: center;
   padding: 24px;
-  gap: 16px;
+  gap: 24px;
   width: 580px;
-  height: 400px;
+  min-height: 400px;
   border-radius: 10px;
   position: relative;
   background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.2));
@@ -119,7 +118,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 24px;
+  gap: 12px;
 }
 
 .upload-field__description {
@@ -161,6 +160,7 @@
   align-items: center;
   padding: 8px 12px;
   min-height: 40px;
+  width: auto;
   font-size: 14px;
   font-weight: 200;
   background: var(--bg-secondary);
@@ -178,7 +178,7 @@
 }
 
 .uploaded-file-card__format {
-  padding: 2px 6px;
+  padding: 4px 10px;
   border-radius: 4px;
   font-size: 11px;
   font-weight: 400; 
@@ -231,4 +231,140 @@
   [data-theme="dark"] .upload-field {
     background: rgba(30, 30, 30, 0.85);
   }
+}
+
+/* === Блоки-слоты для файлов === */
+.file-slot__name {
+  display: flex;
+  justify-content: left;
+  width: 460px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 200;
+  align-content: center;
+  margin-bottom: 5px;
+}
+
+.file-slot__content {
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-color);
+  border-style: dashed;
+  width: 500px;
+  min-height: 60px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Подсказки в пустых слотах */
+.file-slot__placeholder {
+  min-height: 20px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .file-slot__content {
+    padding: 8px;
+  }
+  
+  .file-slot__placeholder {
+    font-size: 12px;
+  }
+}
+
+/* === Интерактивные слоты === */
+.file-slot--clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.file-slot--clickable:hover {
+  transform: translateY(-2px);
+}
+
+.file-slot--clickable:hover .file-slot__placeholder {
+  color: var(--primary-color);
+}
+
+/* Цвета при наведении */
+.file-slot--data.file-slot--clickable .file-slot__content:hover {
+  border-color: #4A90E2;
+  background: rgba(74, 144, 226, 0.08);
+}
+
+.file-slot--reference.file-slot--clickable .file-slot__content:hover {
+  border-color: #6495ED;
+  background: rgba(100, 149, 237, 0.08);
+}
+
+.file-slot--history.file-slot--clickable .file-slot__content:hover {
+  border-color: #6495ED;
+  background: rgba(100, 149, 237, 0.08);
+}
+
+.file-slot--plan.file-slot--clickable .file-slot__content:hover {
+  border-color: #6495ED;
+  background: rgba(100, 149, 237, 0.08);
+}
+
+/* Отключаем курсор при заблокированном состоянии */
+.file-slot.file-slot--clickable:disabled,
+.file-slot[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.file-slot--clickable:disabled:hover,
+.file-slot[aria-disabled="true"]:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* === Контейнер переключателя === */
+.view-mode-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.view-mode-toggle__label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* === Адаптив === */
+@media (max-width: 768px) {
+  .view-mode-toggle-container {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* === Простой режим списка файлов === */
+.file-list--simple {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.file-list__simple-items {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.file-list--simple .uploaded-file-card__format {
+  padding: 4px 10px;
 }

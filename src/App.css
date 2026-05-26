@@ -131,8 +131,8 @@ body {
   justify-content: center;
   align-items: center;
   padding: 10px 24px;
-  background-color: var(--header-bg);
-  border-bottom: 1px solid var(--header-border);
+  /* background-color: var(--header-bg);
+  border-bottom: 1px solid var(--header-border); */
 }
 
 .app-main {
@@ -168,14 +168,14 @@ body {
 }
 
 .main-navigation button {
-  padding: 5px 80px;
+  padding: 5px 60px;
   border: 1px solid var(--border-color);
   background: transparent;
   color: var(--text-primary);
   cursor: pointer;
   font-size: 13px;
   font-weight: 400;
-  transition: all 0.2s ease;
+  transition: border-color 0.3s ease;
   white-space: nowrap;
   position: relative;
   margin: 0;
@@ -217,14 +217,14 @@ body {
   border-color: transparent;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1500px) {
   .main-navigation {
     margin: 0 12px;
     padding: 2px;
   }
   
   .main-navigation button {
-    padding: 8px 12px;
+    padding: 8px 18px;
     font-size: 12px;
   }
 }

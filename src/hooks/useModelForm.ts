@@ -1,12 +1,17 @@
 import { useState } from "react";
+import useDeepCompareEffect from "use-deep-compare-effect";
 import { modelSchema, ModelData } from "../model/modelSchema";
-import { ZodNumber } from "zod";
 
 export function useModelForm(initialValues: ModelData) {
   const [values, setValues] = useState<ModelData>(initialValues);
   const [errors, setErrors] = useState<
     Partial<Record<keyof ModelData, string>>
   >({});
+
+  useDeepCompareEffect(() => {
+    setValues(initialValues);
+    setErrors({});
+  }, [initialValues]);
 
   const updateField = (key: keyof ModelData, raw: string) => {
     if (raw.trim() === "") {
@@ -20,24 +25,35 @@ export function useModelForm(initialValues: ModelData) {
       return;
     }
 
-    const fieldSchema = modelSchema.shape[key] as ZodNumber;
-    const result = fieldSchema.safeParse(parsed);
+    const tempValues = { ...values, [key]: parsed };
+    const result = modelSchema.safeParse(tempValues);
 
     if (!result.success) {
-      setErrors((prev) => ({
-        ...prev,
-        [key]: result.error.issues[0].message,
-      }));
+      const newErrors: Partial<Record<keyof ModelData, string>> = {};
+      result.error.issues.forEach((issue) => {
+        const path = issue.path[0] as keyof ModelData;
+        newErrors[path] = issue.message;
+      });
+      setErrors(newErrors);
       return;
     }
 
-    setErrors((prev) => ({ ...prev, [key]: undefined }));
-    setValues((prev) => ({ ...prev, [key]: parsed }));
+    setValues(tempValues);
+    setErrors({});
   };
 
-  // НОВЫЙ метод для коммита
   const commit = (callback: (data: ModelData) => void) => {
-    callback(values);
+    const result = modelSchema.safeParse(values);
+    if (result.success) {
+      callback(values);
+    } else {
+      const newErrors: Partial<Record<keyof ModelData, string>> = {};
+      result.error.issues.forEach((issue) => {
+        const path = issue.path[0] as keyof ModelData;
+        newErrors[path] = issue.message;
+      });
+      setErrors(newErrors);
+    }
   };
 
   return {

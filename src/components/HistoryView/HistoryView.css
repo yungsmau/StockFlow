@@ -1,0 +1,686 @@
+/* ════════════════════════════════════════════════════════
+   HISTORY VIEW — ОСНОВНОЙ МАКЕТ
+   ════════════════════════════════════════════════════════ */
+
+.history-view {
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ════════════════════════════════════════════════════════
+   ЗАГОЛОВОК (ОСТАВЛЕНО БЕЗ ИЗМЕНЕНИЙ)
+   ════════════════════════════════════════════════════════ */
+
+.history-header {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.history-header__title {
+  width: 20%;
+  min-width: 0;
+}
+
+.history-selector {
+  width: 60%;
+  min-width: 0;
+}
+
+.history-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--text-primary);
+}
+
+.history-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 200;
+}
+
+/* ════════════════════════════════════════════════════════
+   ДЕЙСТВИЯ И КНОПКИ
+   ════════════════════════════════════════════════════════ */
+
+.history-edit-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.history-action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  background: #eceded;
+  color: whtie;
+  transition: background 0.1s ease;
+}
+
+[data-theme="dark"] .history-action-btn {
+  background: #6c757d;
+}
+
+.history-delete-btn:hover {
+  background: rgba(255, 107, 107, 0.5);
+}
+
+.history-export-btn:hover {
+  background: rgba(78, 205, 196, 0.5);
+}
+
+.history-cancel-btn:hover {
+  background: rgba(98, 105, 112, 0.5);
+}
+
+.history-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.history-action-btn:disabled:hover { background: #eceded; }
+
+[data-theme="dark"] .history-action-btn:disabled:hover { background: #6c757d; }
+
+.history-actions-container {
+  margin-left: auto;
+}
+
+/* Кнопка "Изменить" — убраны дубликаты display:flex */
+.history-edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(100, 149, 237, 0.2), rgba(74, 144, 226, 0.15));
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.history-edit-btn:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(100, 149, 237, 0.3), rgba(74, 144, 226, 0.25));
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.history-edit-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.8;
+  fill: none;
+}
+
+.history-edit-btn path {
+  stroke: var(--text-primary);
+}
+
+[data-theme="dark"] .history-edit-btn {
+  background: linear-gradient(135deg, rgba(100, 149, 237, 0.25), rgba(74, 144, 226, 0.2));
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+@supports not (backdrop-filter: blur(12px)) {
+  .history-edit-btn {
+    background: rgba(100, 149, 237, 0.2);
+  }
+  [data-theme="dark"] .history-edit-btn {
+    background: rgba(100, 149, 237, 0.25);
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   ПУСТОЕ СОСТОЯНИЕ
+   ════════════════════════════════════════════════════════ */
+
+.history-empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+}
+
+.history-empty p {
+  margin: 0 0 16px 0;
+}
+
+.history-empty button {
+  margin-top: 16px;
+  padding: 8px 16px;
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ════════════════════════════════════════════════════════
+   ТАБЛИЦА
+   ════════════════════════════════════════════════════════ */
+
+.history-table-container {
+  overflow-x: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.history-table-wrapper {
+  height: 100%;
+  overflow-y: auto;
+  border-radius: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--button-bg) var(--bg-secondary);
+}
+
+.history-table-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.history-table-wrapper::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+.history-table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--button-bg);
+  border-radius: 4px;
+}
+
+.history-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--upload-hover-bg);
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-secondary);
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.history-table th,
+.history-table td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 12px;
+}
+
+.history-table th {
+  background: var(--bg-primary);
+  font-weight: 400;
+  color: var(--text-primary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.history-table td {
+  font-family: 'Rubik';
+  font-weight: 200;
+}
+
+.history-table th:not(:last-child),
+.history-table td:not(:last-child) {
+  border-right: 1px solid rgba(210, 208, 208, 0.544);
+}
+
+.history-table tr:hover {
+  background: var(--upload-hover-bg);
+  cursor: pointer;
+}
+
+.history-table tr:last-child td {
+  border-bottom: none;
+}
+
+.history-table .history-table__header-nomenclature {
+  text-align: left;
+}
+
+/* Чекбоксы */
+.history-table__checkbox-header,
+.history-table__checkbox-cell {
+  width: 40px;
+  text-align: center;
+}
+
+.history-table__checkbox-header input,
+.history-table__checkbox-cell input {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+/* ════════════════════════════════════════════════════════
+   СОРТИРОВКА ТАБЛИЦЫ
+   ════════════════════════════════════════════════════════ */
+
+.history-table__header {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 24px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.history-table__header.sorted,
+.history-table__header:hover {
+  background-color: rgb(242, 242, 242);
+}
+
+[data-theme="dark"] .history-table__header:hover {
+  background-color: rgb(62, 62, 62);
+}
+
+[data-theme="dark"] .history-table__header.sorted {
+  background-color: rgb(62, 62, 62);
+}
+
+.history-table__header .sort-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+}
+
+.history-table__header:hover .sort-icon {
+  opacity: 1;
+}
+
+.history-table__header.sorted .sort-icon {
+  opacity: 1;
+}
+
+/* ════════════════════════════════════════════════════════
+   ЭФФЕКТИВНОСТЬ (ЦВЕТА)
+   ════════════════════════════════════════════════════════ */
+
+.efficiency-positive { color: #4caf50; }
+.efficiency-negative { color: #f44336; }
+.efficiency-neutral { color: var(--text-secondary); }
+
+/* ════════════════════════════════════════════════════════
+   SELECT (react-select)
+   ════════════════════════════════════════════════════════ */
+
+.product-search-card { padding: 0; }
+
+.product-select__control {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  min-height: 36px;
+}
+
+.product-select__control--is-focused {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.product-select__value-container { padding: 4px 12px; }
+.product-select__indicators { padding-right: 8px; }
+.product-select__indicator-separator { display: none; }
+
+.product-select__menu {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  margin-top: 4px;
+  z-index: 100;
+}
+
+.product-select__menu-list { padding: 4px 0; }
+
+.product-select__option {
+  padding: 8px 12px;
+  color: var(--text-primary);
+}
+
+.product-select__option--is-selected {
+  background: rgba(74, 144, 226, 0.15);
+  color: var(--text-primary);
+}
+
+.product-select__option--is-focused {
+  background: rgba(74, 144, 226, 0.1);
+}
+
+/* ════════════════════════════════════════════════════════
+   МОДАЛЬНЫЕ ОКНА
+   ════════════════════════════════════════════════════════ */
+
+.history-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.history-confirm-modal {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.history-confirm-modal h3 {
+  margin: 0 0 16px 0;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.history-confirm-modal p {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 24px 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-size: 14px;
+  font-weight: 200;
+}
+
+.history-confirm-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.history-confirm-cancel,
+.history-confirm-confirm {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  font-weight: 500;
+}
+
+.history-confirm-cancel {
+  background: rgb(62, 62, 62);
+  color: var(--text-primary);
+}
+
+.history-confirm-cancel:hover:not(:disabled) {
+  background: var(--upload-hover-bg);
+}
+
+.history-confirm-confirm {
+  background: #dc3545;
+  color: white;
+}
+
+.history-confirm-confirm:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.history-confirm-cancel:disabled,
+.history-confirm-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Экспорт */
+.history-export-options {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+  width: 100%;
+}
+
+.history-export-option {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #4A90E2;
+  border-radius: 8px;
+  background: rgba(74, 144, 226, 0.1);
+  color: var(--text-primary);
+  font-weight: 200;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.history-export-option:hover {
+  background: rgba(74, 144, 226, 0.2);
+  transform: translateY(-2px);
+}
+
+.history-export-xlsx {
+  border-color: #217346;
+  background: rgba(33, 115, 70, 0.1);
+}
+
+.history-export-xlsx:hover {
+  background: rgba(33, 115, 70, 0.2);
+}
+
+.history-export-cancel {
+  width: 50%;
+  padding: 8px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+  text-align: center;
+  transition: background 0.2s ease;
+}
+
+.history-export-cancel:hover {
+  background: rgba(255, 107, 107, 0.5);
+}
+
+/* ════════════════════════════════════════════════════════
+   СЕКЦИИ
+   ════════════════════════════════════════════════════════ */
+
+.history-section {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+}
+
+.history-section--external {
+  border: 1px dashed var(--warning-color, #F5A623);
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(245, 166, 35, 0.03);
+}
+
+.history-external-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.history-external-actions__header {
+  align-self: center;
+  font-size: 16px;
+  font-weight: 300;
+  
+}
+
+/* === Кнопка "Сохранить" === */
+.history-save-btn {
+  padding: 6px 12px;
+  color: (--text-primary);
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.history-save-btn:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.history-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ════════════════════════════════════════════════════════
+   АДАПТИВ
+   ════════════════════════════════════════════════════════ */
+
+@media (max-width: 1400px) {
+  .history-table__header {
+    padding-right: 20px;
+    font-size: 11px;
+  }
+  
+  .history-table__header .sort-icon {
+    width: 12px;
+    height: 12px;
+    right: 4px;
+  }
+}
+
+@media (max-width: 768px) {
+  .history-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .history-header__title,
+  .history-selector {
+    width: 100%;
+  }
+  
+  .history-edit-actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .history-table {
+    font-size: 12px;
+  }
+  
+  .history-table th,
+  .history-table td {
+    padding: 6px;
+  }
+  
+  .history-confirm-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .history-confirm-cancel,
+  .history-confirm-confirm {
+    width: 100%;
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   ТЁМНАЯ ТЕМА
+   ════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] .history-confirm-modal {
+  border-color: #444;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .history-section--external {
+  background: rgba(245, 166, 35, 0.08);
+  border-color: var(--warning-color, #F5A623);
+}
+
+[data-theme="dark"] .product-select__control,
+[data-theme="dark"] .product-select__menu {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .efficiency-positive { color: #4ade80; }
+[data-theme="dark"] .efficiency-negative { color: #f87171; }
+
+
+.history-table__checkbox-header input[type="checkbox"],
+.history-table__checkbox-cell input[type="checkbox"] {
+  accent-color: var(--back-button-hover);
+}
+
+
+/* === Колонка режима === */
+.history-table__header-mode {
+  width: 80px;
+  text-align: center;
+  padding: 12px 8px;
+}
+
+.history-table__cell-mode {
+  text-align: center;
+  padding: 12px 8px;
+}
+
+/* === Бейдж режима симуляции === */
+.mode-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.mode-badge--standard {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.mode-badge--overlapping {
+  background: rgba(74, 144, 226, 0.15);
+  color: #4A90E2;
+  border: 1px solid rgba(74, 144, 226, 0.3);
+}
+
+/* Тёмная тема */
+[data-theme="dark"] .mode-badge--standard {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+[data-theme="dark"] .mode-badge--overlapping {
+  background: rgba(74, 144, 226, 0.2);
+  border-color: rgba(74, 144, 226, 0.4);
+}
+
+/* Адаптив */
+@media (max-width: 1024px) {
+  .history-table__header-mode,
+  .history-table__cell-mode {
+    display: none; /* Скрываем на маленьких экранах */
+  }
+}

@@ -1,6 +1,6 @@
 {
   "productName": "StockFlow",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "identifier": "com.aleksejsmolic.stockflow",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -25,6 +25,7 @@
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": [
       "msi",
       "dmg",
@@ -42,6 +43,23 @@
     "dialog": null,
     "fs": {
       "requireLiteralLeadingDot": true
+    },
+    "shell": {
+      "open": true
+    },
+    "sql": {
+      "migrationsPath": "../migrations",
+      "preload": [
+        "sqlite:stockflow.db"
+      ]
+    },
+    "updater": {
+      "active": true,
+      "dialog": false,
+      "endpoints": [
+        "https://github.com/yungsmau/StockFlow/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdDNEI4MDY3MzVBMTUyMDEKUldRQlVxRTFaNEJMZkVJaFd1aE9uS25kUS9jUThhZU9FTEZ2eWRwUml5aXBMbUF3UzB2REIxbUYK"
     }
   }
 }

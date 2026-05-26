@@ -13,6 +13,27 @@
     "dialog:default",
     "fs:write-files",
     "fs:allow-write-file",
-    "fs:read-files"
+    "fs:read-files",
+    "sql:default",
+    "sql:default",
+    "sql:allow-execute",
+    "sql:allow-select",
+    "opener:default",
+    "updater:default",
+    "process:default",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        {
+          "url": "https://github.com/yungsmau/StockFlow"
+        },
+        {
+          "url": "https://github.com/yungsmau/StockFlow/releases"
+        },
+        {
+          "url": "https://github.com/yungsmau/StockFlow/issues"
+        }
+      ]
+    }
   ]
 }
