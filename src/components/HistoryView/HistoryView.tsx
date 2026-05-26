@@ -20,6 +20,8 @@ interface HistoryViewProps {
     threshold: number;
     deliveryDays: number;
     unitCost: number;
+    enableOverlapping: boolean;
+    overlapCount: number;
   }) => void;
   externalHistory?: HistoryItem[];
 }
@@ -38,6 +40,8 @@ function mapExternalToExportItem(item: HistoryItem, index: number): ExportHistor
     stockValue: item.avgStockRub,
     efficiency: item.efficiencyPercent,
     efficiencyAbs: item.efficiencyRub,
+    enableOverlapping: false,
+    overlapCount: 1
   };
 }
 
@@ -184,7 +188,9 @@ export default function HistoryView({
           undefined,
           undefined,
           item.stockValue || 0,
-          item.efficiencyAbs || 0
+          item.efficiencyAbs || 0,
+          item.enableOverlapping,
+          item.overlapCount 
         );
       }
       
@@ -206,7 +212,9 @@ export default function HistoryView({
         initialStock: item.initialStock,
         threshold: item.threshold,
         deliveryDays: item.deliveryDays,
-        unitCost: item.unitCost
+        unitCost: item.unitCost,
+        enableOverlapping: item.enableOverlapping,
+        overlapCount: item.overlapCount
       });
     }
   };

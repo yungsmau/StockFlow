@@ -21,13 +21,12 @@
 .notifications-modal__update {
   display: flex;
   flex-direction: column;
-  padding: 12px;
+  padding: 16px;
   border-radius: 6px;
   background: var(--upload-hover-bg);
 }
 
 .notifications-modal__update--major {
-  border-left-color: #e53e3e;
   background: rgba(229, 62, 62, 0.1);
 }
 
@@ -71,6 +70,8 @@
   font-size: 10px;
   font-weight: 600;
   transition: opacity 0.2s ease;
+  border: none;
+  cursor: pointer;
 }
 
 .notifications-modal__update-link:hover {
@@ -84,6 +85,161 @@
   font-style: italic;
 }
 
+/* ======================================== */
+/* НОВЫЕ СТИЛИ ДЛЯ АВТОМАТИЧЕСКОГО ОБНОВЛЕНИЯ */
+/* ======================================== */
+
+.notifications-modal__update-description {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+.notifications-modal__update-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+/* Кнопки действий */
+.notifications-modal__update-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.notifications-modal__update-button--primary {
+  background: var(--button-bg);
+  color: var(--button-text);
+  margin-bottom: 15px;
+}
+
+.notifications-modal__update-button--primary:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.notifications-modal__update-button--secondary {
+  background: var(--bg-tertiary, var(--upload-hover-bg));
+  color: var(--text-primary);
+  border: 1px solid var(--border-color, rgba(0,0,0,0.1));
+}
+
+.notifications-modal__update-button--secondary:hover:not(:disabled) {
+  background: var(--upload-hover-bg);
+}
+
+.notifications-modal__update-button--cancel {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color, rgba(0,0,0,0.1));
+  margin-top: 6px;
+}
+
+.notifications-modal__update-button--cancel:hover:not(:disabled) {
+  background: var(--bg-tertiary, var(--upload-hover-bg));
+  color: var(--text-primary);
+}
+
+.notifications-modal__update-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Прогресс загрузки */
+.notifications-modal__download-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 0;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-tertiary, rgba(0,0,0,0.05));
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--button-bg, #4A90E2), #357ABD);
+  transition: width 0.3s ease;
+}
+
+.progress-bar__text {
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Готово к установке */
+.notifications-modal__ready-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(34, 197, 94, 0.1);
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.ready-icon {
+  flex-shrink: 0;
+}
+
+.notifications-modal__ready-message span {
+  color: #22c55e;
+  font-weight: 500;
+  font-size: 11px;
+}
+
+/* Установка */
+.notifications-modal__installing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0;
+  text-align: center;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: var(--button-bg, #4A90E2);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.notifications-modal__installing p {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 11px;
+}
+
+.installing-note {
+  font-size: 9px !important;
+  color: var(--text-secondary) !important;
+}
+
+/* ======================================== */
+/* АДАПТИВНОСТЬ */
+/* ======================================== */
+
 @media (max-width: 480px) {
   .help-modal,
   .notifications-modal,
@@ -91,4 +247,30 @@
     width: 280px;
     right: 16px;
   }
+  
+  .notifications-modal__update-button {
+    padding: 7px 12px;
+    font-size: 10px;
+  }
+}
+
+/* ======================================== */
+/* ТЁМНАЯ ТЕМА */
+/* ======================================== */
+
+[data-theme="dark"] .notifications-modal__update--major {
+  border-left-color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+}
+
+[data-theme="dark"] .notifications-modal__update-badge {
+  background: #f87171;
+}
+
+[data-theme="dark"] .progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .notifications-modal__ready-message {
+  background: rgba(34, 197, 94, 0.15);
 }

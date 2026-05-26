@@ -10,6 +10,9 @@ interface Props extends ModelData {
   optimalOrder?: number;
   minimalOrder?: number;
   onChange: (data: ModelData) => void;
+  enableOverlapping: boolean;
+  overlapCount: number;
+  onOverlappingChange: (enable: boolean, count: number) => void;
 }
 
 export default function ModelParameters({
@@ -22,6 +25,9 @@ export default function ModelParameters({
   optimalOrder,
   minimalOrder,
   onChange,
+  enableOverlapping,
+  overlapCount,
+  onOverlappingChange,
 }: Props) {
   const { values, errors, updateField, commit } = useModelForm({
     initialStock,
@@ -80,6 +86,16 @@ export default function ModelParameters({
       unitCost: newValue
     });
   };
+
+  const handleOverlappingToggle = (checked: boolean) => {
+    onOverlappingChange(checked, checked ? Math.max(overlapCount, 2) : 1);
+  }
+
+  const handleOverlapCountChange = (value: string) => {
+    const num = parseInt(value) || 2;
+    const clamped = Math.max(2, Math.min(10, num));
+    onOverlappingChange(true, clamped)
+  }
 
   return (
     <>
@@ -160,6 +176,47 @@ export default function ModelParameters({
           type="integer"
         />
       )}
+
+      <div className="model-section overlapping-section">
+        <h4 className="section-title">Стратегия закупок</h4>
+        
+        {/* Переключатель */}
+        <label className="toggle-label">
+          <input
+            type="checkbox"
+            checked={enableOverlapping}
+            onChange={(e) => handleOverlappingToggle(e.target.checked)}
+            className="toggle-input"
+          />
+          <span className="toggle-text">Наложение поставок</span>
+        </label>
+
+        {/* Контрол количества заказов (показывается только если включено) */}
+        {enableOverlapping && (
+          <div className="overlap-control">
+            <label className="overlap-label">
+              <span className="overlap-label-text">Параллельных заказов:</span>
+              <input
+                type="number"
+                min="2"
+                max="10"
+                value={overlapCount}
+                onChange={(e) => handleOverlapCountChange(e.target.value)}
+                className="overlap-input"
+              />
+            </label>
+            
+            {/* Подсказка с расчётом интервала */}
+            <div className="overlap-hint">
+              Интервал заказа: ~<strong>{Math.floor(deliveryDays / overlapCount)}</strong> дн.
+              {overlapCount > 1 && (
+                <span className="hint-note"> (из {deliveryDays} / {overlapCount})</span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
     </>
   );
 }

@@ -38,6 +38,7 @@ interface ExtendedFileItem {
 
 interface FileUploadSectionProps {
   isBlocked?: boolean;
+  isMajorUpdateAvailable?: boolean; // ✅ Новый проп
   uploadedFiles: { name: string; format: string }[];
   uploadedReferenceFiles: { name: string; format: string }[];
   uploadedHistoryFiles: { name: string; format: string }[];
@@ -63,6 +64,7 @@ const TOGGLE_STORAGE_KEY = 'uploadViewMode';
 
 export default function FileUploadSection({
   isBlocked = false,
+  isMajorUpdateAvailable = false, // ✅ По умолчанию false
   uploadedFiles,
   uploadedReferenceFiles,
   uploadedHistoryFiles,
@@ -120,8 +122,12 @@ export default function FileUploadSection({
     return name.endsWith('.csv') || name.endsWith('.xls') || name.endsWith('.xlsx');
   };
 
+  // ✅ Объединяем блокировку от обновлений и общую блокировку
+  const isUploadDisabled = isBlocked || isMajorUpdateAvailable;
+
   const handleFilePath = async (filePaths: string[]) => {
-    if (isBlocked || processing) return;
+    // ✅ Блокируем обработку, если есть мажорное обновление
+    if (isUploadDisabled || processing) return;
 
     const totalFiles = uploadedFiles.length + uploadedReferenceFiles.length + uploadedHistoryFiles.length + uploadedPlanFiles.length;
     if (totalFiles + filePaths.length > MAX_FILES) {
@@ -259,7 +265,8 @@ export default function FileUploadSection({
   };
 
   const handleSelectClick = async () => {
-    if (isBlocked || processing) return;
+    // ✅ Блокируем выбор файла, если есть мажорное обновление
+    if (isUploadDisabled || processing) return;
 
     try {
       const { open } = await import('@tauri-apps/plugin-dialog');
@@ -278,6 +285,8 @@ export default function FileUploadSection({
   };
 
   const handleRemove = (index: number, isReference: boolean, isHistory?: boolean, isPlan?: boolean) => {
+    // ✅ Можно разрешить удаление файлов даже при обновлении, или запретить. 
+    // Обычно удаление безопасно, но загрузка новых файлов запрещена.
     if (isPlan) {
       onRemovePlanFile?.(index);
     } else if (isHistory) {
@@ -330,11 +339,12 @@ export default function FileUploadSection({
           enabled={viewMode === 'detailed'}
           onChange={(enabled) => setViewMode(enabled ? 'detailed' : 'simple')}
           title={viewMode === 'detailed' ? 'Подробный режим' : 'Простой режим'}
+          disabled={isMajorUpdateAvailable} // ✅ Блокируем переключатель режима
         />
       </div>
 
       <UploadArea
-        isBlocked={isBlocked}
+        isBlocked={isUploadDisabled} // ✅ Передаем комбинированный флаг блокировки
         processing={processing}
         onFileDrop={handleFilePath}
       >
@@ -370,7 +380,7 @@ export default function FileUploadSection({
                 onFileSelect={handleSelectClick}
                 onAnalyzeClick={onAnalyzeClick}
                 onCancelAll={onCancelAll}
-                isBlocked={isBlocked}
+                isBlocked={isUploadDisabled} // ✅ Блокируем список
                 processing={processing}
                 maxFilesReached={maxFilesReached}
                 hasDataFiles={hasDataFiles}
@@ -382,7 +392,7 @@ export default function FileUploadSection({
                 onFileSelect={handleSelectClick}
                 onAnalyzeClick={onAnalyzeClick}
                 onCancelAll={onCancelAll}
-                isBlocked={isBlocked}
+                isBlocked={isUploadDisabled} // ✅ Блокируем список
                 processing={processing}
                 maxFilesReached={maxFilesReached}
                 hasDataFiles={hasDataFiles}
@@ -391,7 +401,7 @@ export default function FileUploadSection({
             
             {allFiles.length === 0 && (
               <UploadPlaceholder
-                isBlocked={isBlocked}
+                isBlocked={isUploadDisabled} // ✅ Блокируем плейсхолдер
                 onFileSelect={handleSelectClick}
                 maxFilesReached={maxFilesReached}
               />

@@ -207,3 +207,142 @@
 .param-reset-btn:active {
   color: var(--button-bg-green);
 }
+
+/* === Стратегия наложения доставок === */
+.overlapping-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+}
+
+.section-title {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Переключатель (чекбокс) */
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 12px;
+}
+
+.toggle-input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--button-bg, #4A90E2);
+}
+
+.toggle-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.toggle-text {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+/* Контрол количества параллельных заказов */
+.overlap-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg-secondary, rgba(0, 0, 0, 0.03));
+  border-radius: 6px;
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+}
+
+.overlap-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.overlap-label-text {
+  flex: 1;
+}
+
+.overlap-input {
+  width: 70px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+  border-radius: 4px;
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary);
+  font-size: 13px;
+  text-align: center;
+  transition: border-color 0.2s ease;
+}
+
+.overlap-input:focus {
+  outline: none;
+  border-color: var(--button-bg, #4A90E2);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.overlap-input:disabled {
+  background: var(--bg-tertiary, rgba(0, 0, 0, 0.05));
+  cursor: not-allowed;
+}
+
+/* Подсказка с интервалом */
+.overlap-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  padding-left: 2px;
+  line-height: 1.4;
+}
+
+.overlap-hint strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.hint-note {
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+
+/* Тёмная тема */
+[data-theme="dark"] .overlapping-section {
+  border-top-color: var(--border-color, rgba(255, 255, 255, 0.1));
+}
+
+[data-theme="dark"] .overlap-control {
+  background: var(--bg-tertiary, rgba(255, 255, 255, 0.05));
+  border-color: var(--border-color, rgba(255, 255, 255, 0.1));
+}
+
+[data-theme="dark"] .overlap-input {
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.1));
+  border-color: var(--border-color, rgba(255, 255, 255, 0.1));
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .overlap-input:focus {
+  border-color: var(--button-bg, #4A90E2);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
+}
+
+/* Адаптив */
+@media (max-width: 480px) {
+  .overlap-label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  
+  .overlap-input {
+    width: 100%;
+  }
+}
