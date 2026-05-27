@@ -343,6 +343,7 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
     let mut starting_stock = vec![];
     let mut spent = vec![];
     let mut incoming = vec![];
+    let mut order_created = vec![];
 
     let mut current_stock: i64 = 0;
     let mut all_dates: Vec<NaiveDate> = date_to_spent.keys().cloned().collect();
@@ -425,31 +426,25 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
         spent.push(spent_today as i32);
         incoming.push(incoming_amount as i32);
 
+        // ✅ ВАЖНО: Пушим 0 заранее, но будем обновлять его ниже, если заказ создастся
+        order_created.push(0);
+
         // 🟢 4. СОЗДАНИЕ ЗАКАЗОВ (ТОЛЬКО в пределах исторических данных!)
         if today <= last_historical_date {
             if req.enable_overlapping && req.overlap_count >= 2 {
                 let trigger_interval = req.delivery_days as u32 / req.overlap_count;
 
-                // ✅ ПРОВЕРКА 1: Сработал ли порог?
                 let threshold_triggered = current_stock <= req.threshold as i64;
-
-                // ✅ ПРОВЕРКА 2: Есть ли место в очереди?
                 let queue_has_space = pending_orders.len() < req.overlap_count as usize;
 
-                // ✅ ПРОВЕРКА 3: Прошло ли достаточно времени с последнего создания заказа?
-                // Это предотвращает создание заказов "пачкой" (кластеризацию)
                 let can_create_by_time = match last_order_creation_date {
                     Some(last_date) => {
                         let days_since_last = today.signed_duration_since(last_date).num_days();
                         days_since_last >= trigger_interval as i64
                     }
-                    None => true, // Первый заказ всегда можно создавать
+                    None => true,
                 };
 
-                // 🚀 СОЗДАЕМ ЗАКАЗ, ЕСЛИ:
-                // 1. Порог пробит
-                // 2. Есть место в пути
-                // 3. Прошло достаточно времени с предыдущего заказа (защита от кластеризации)
                 if threshold_triggered && queue_has_space && can_create_by_time {
                     let arrival_date = today + Duration::days(req.delivery_days as i64);
 
@@ -463,10 +458,13 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
                         quantity: req.initial_stock,
                     });
 
-                    // ✅ Запоминаем дату создания этого заказа для следующей проверки
                     last_order_creation_date = Some(today);
 
-                    // Добавляем дату прибытия в таймлайн, чтобы симуляция "дожила" до него
+                    // ✅ ОБНОВЛЯЕМ последнюю запись в order_created на 1
+                    if let Some(last) = order_created.last_mut() {
+                        *last = 1;
+                    }
+
                     if !date_to_spent.contains_key(&arrival_date) {
                         date_to_spent.insert(arrival_date, 0);
                         if let Err(pos) = all_dates.binary_search(&arrival_date) {
@@ -475,11 +473,16 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
                     }
                 }
             } else {
-                // 🔵 СТАРАЯ ЛОГИКА (без наложения)
+                // 🔵 СТАРАЯ ЛОГИКА
                 let has_future_delivery = deliveries.keys().any(|&d| d > today);
                 if current_stock <= req.threshold as i64 && !has_future_delivery {
                     let arrival_date = today + Duration::days(req.delivery_days as i64);
                     deliveries.insert(arrival_date, req.initial_stock);
+
+                    // ✅ Для старой логики тоже помечаем создание заказа
+                    if let Some(last) = order_created.last_mut() {
+                        *last = 1;
+                    }
 
                     if !date_to_spent.contains_key(&arrival_date) {
                         date_to_spent.insert(arrival_date, 0);
@@ -548,6 +551,7 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
         recommended_threshold,
         avg_delivery_interval_actual,
         avg_delivery_interval_model,
+        order_created,
     })
 }
 

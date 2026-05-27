@@ -8,6 +8,7 @@ interface ComputeResponse {
   incoming: number[];
   spent: number[];
   threshold: number;
+  order_created?: number[]; 
 }
 
 interface StockSimulationPlotProps {
@@ -43,6 +44,16 @@ const StockSimulationPlot = ({
     }
     return 'orange';
   });
+
+  // ✅ Подготовка данных для маркеров создания заказа
+  // Показываем точку (уровень порога) только если order_created[i] === 1
+  const orderMarkersY = data.order_created 
+    ? data.order_created.map((val) => val === 1 ? data.threshold : null)
+    : [];
+  
+  const orderMarkersText = data.order_created
+    ? data.order_created.map((val) => val === 1 ? 'Заказ создан' : '')
+    : [];
 
   const plotKey = `${theme}-${product}-${data.threshold}-${data.dates.length}-${data.dates[0]}-${data.dates[data.dates.length - 1]}`;
 
@@ -106,6 +117,28 @@ const StockSimulationPlot = ({
             name: "Порог",
             line: { color: "red", dash: "dash", width: 2 },
             hovertemplate: `Порог: %{y}`,
+            hoverlabel: { 
+              bgcolor: tooltipBg, 
+              bordercolor: tooltipBorder, 
+              font: { color: textColor, size: 12 },
+              namelength: 0
+            }
+          },
+          // ✅ НОВОЕ: Серия данных для отображения звездочек (моментов создания заказа)
+          {
+            x: data.dates,
+            y: orderMarkersY,
+            text: orderMarkersText,
+            type: "scatter",
+            mode: "markers",
+            name: "Заказ создан",
+            marker: { 
+              color: "lightpurple", // Золотой цвет
+              size: 5,
+              symbol: "circle",   // Форма звезды
+              line: { color: 'black', width: 0.3 } // Обводка для контраста
+            },
+            hovertemplate: `%{text}<extra></extra>`,
             hoverlabel: { 
               bgcolor: tooltipBg, 
               bordercolor: tooltipBorder, 
