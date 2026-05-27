@@ -55,6 +55,8 @@ pub struct ComputeResponse {
     pub recommended_threshold: i32,
     pub avg_delivery_interval_actual: f64,
     pub avg_delivery_interval_model: f64,
+    #[serde(default)]
+    pub order_created: Vec<i32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

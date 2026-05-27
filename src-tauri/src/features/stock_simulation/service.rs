@@ -343,142 +343,15 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
     let mut starting_stock = vec![];
     let mut spent = vec![];
     let mut incoming = vec![];
+    let mut order_created = vec![];
 
     let mut current_stock: i64 = 0;
     let mut all_dates: Vec<NaiveDate> = date_to_spent.keys().cloned().collect();
     all_dates.sort();
 
-    // let mut pending_orders = Vec::new();
-    // let mut last_trigger_day: Option<String> = None;
-
-    // // Запоминаем последнюю историческую дату ДО начала симуляции
-    // let last_historical_date = all_dates.last().copied().unwrap_or(start_date);
-
-    // // Для проверки другого способа расчета первой наложенной поставки TEST
-    // let mut first_overlap_placed = false;
-
-    // let mut i = 0;
-    // while i < all_dates.len() {
-    //     let today = all_dates[i];
-
-    //     // 🟢 1. ОБЪЕДИНЁННЫЙ ПРИХОД (старая + новая система)
-    //     let mut incoming_amount: i64 = 0;
-
-    //     // Из старой системы (BTreeMap)
-    //     if let Some(amount) = deliveries.remove(&today) {
-    //         incoming_amount += amount as i64;
-    //     }
-
-    //     // Из новой системы (очередь pending_orders)
-    //     if req.enable_overlapping && req.overlap_count >= 2 {
-    //         pending_orders.retain(
-    //             |order: &crate::features::stock_simulation::models::PendingOrder| {
-    //                 if let Ok(arrival) =
-    //                     chrono::NaiveDate::parse_from_str(&order.arrival_date, "%Y-%m-%d")
-    //                 {
-    //                     if arrival == today {
-    //                         incoming_amount += order.quantity as i64;
-    //                         return false; // удалить из очереди
-    //                     }
-    //                 }
-    //                 true
-    //             },
-    //         );
-    //     }
-
-    //     current_stock += incoming_amount;
-
-    //     // 🟢 2. РАСХОД (для будущих дат равен 0)
-    //     let spent_today = date_to_spent.get(&today).copied().unwrap_or(0) as i64;
-    //     current_stock = (current_stock - spent_today).max(0);
-
-    //     // 🟢 3. ЗАПИСЬ МЕТРИК (график видит все приходы)
-    //     result_dates.push(today.format("%Y-%m-%d").to_string());
-    //     starting_stock.push(current_stock as i32);
-    //     spent.push(spent_today as i32);
-    //     incoming.push(incoming_amount as i32);
-
-    //     // 🟢 4. СОЗДАНИЕ ЗАКАЗОВ (ТОЛЬКО в пределах исторических данных!)
-    //     if today <= last_historical_date {
-    //         if req.enable_overlapping && req.overlap_count >= 2 {
-    //             let trigger_interval = req.delivery_days as u32 / req.overlap_count;
-    //             let threshold_triggered = current_stock <= req.threshold as i64;
-
-    //             let mut timer_triggered = false;
-
-    //             // ✅ ПРАВИЛО ДЛЯ ПЕРВОГО НАЛОЖЕННОГО ЗАКАЗА (игнорирует last_trigger_day)
-    //             if !first_overlap_placed {
-    //                 let days_from_start =
-    //                     today.signed_duration_since(all_dates[0]).num_days() as u32;
-    //                 if days_from_start >= trigger_interval {
-    //                     timer_triggered = true;
-    //                     first_overlap_placed = true; // Больше не сработает
-    //                 }
-    //             }
-    //             // ✅ СТАНДАРТНАЯ ЛОГИКА ДЛЯ ПОСЛЕДУЮЩИХ ЗАКАЗОВ
-    //             else {
-    //                 timer_triggered = match &last_trigger_day {
-    //                     Some(last_day_str) => {
-    //                         if let (Ok(last_day), Ok(today_parsed)) = (
-    //                             chrono::NaiveDate::parse_from_str(last_day_str, "%Y-%m-%d"),
-    //                             chrono::NaiveDate::parse_from_str(
-    //                                 &today.format("%Y-%m-%d").to_string(),
-    //                                 "%Y-%m-%d",
-    //                             ),
-    //                         ) {
-    //                             today_parsed.signed_duration_since(last_day).num_days() as u32
-    //                                 >= trigger_interval
-    //                         } else {
-    //                             false
-    //                         }
-    //                     }
-    //                     None => true,
-    //                 };
-    //             }
-
-    //             let queue_has_space = pending_orders.len() < req.overlap_count as usize;
-
-    //             if queue_has_space && (threshold_triggered || timer_triggered) {
-    //                 let arrival_date = today + Duration::days(req.delivery_days as i64);
-
-    //                 pending_orders.push(crate::features::stock_simulation::models::PendingOrder {
-    //                     arrival_date: arrival_date.format("%Y-%m-%d").to_string(),
-    //                     quantity: req.initial_stock,
-    //                 });
-
-    //                 last_trigger_day = Some(today.format("%Y-%m-%d").to_string());
-
-    //                 // ✅ Возвращаем безопасное добавление даты в таймлайн
-    //                 if !date_to_spent.contains_key(&arrival_date) {
-    //                     date_to_spent.insert(arrival_date, 0);
-    //                     if let Err(pos) = all_dates.binary_search(&arrival_date) {
-    //                         all_dates.insert(pos, arrival_date);
-    //                     }
-    //                 }
-    //             }
-    //         } else {
-    //             // 🔵 СТАРАЯ ЛОГИКА
-    //             let has_future_delivery = deliveries.keys().any(|&d| d > today);
-    //             if current_stock <= req.threshold as i64 && !has_future_delivery {
-    //                 let arrival_date = today + Duration::days(req.delivery_days as i64);
-    //                 deliveries.insert(arrival_date, req.initial_stock);
-
-    //                 if !date_to_spent.contains_key(&arrival_date) {
-    //                     date_to_spent.insert(arrival_date, 0);
-    //                     if let Err(pos) = all_dates.binary_search(&arrival_date) {
-    //                         all_dates.insert(pos, arrival_date);
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     i += 1;
-    // }
-
     // === ИНИЦИАЛИЗАЦИЯ (перед циклом while) ===
     let mut pending_orders = Vec::new();
-    let mut last_trigger_day: Option<String> = None;
+    // let mut last_trigger_day: Option<String> = None;
 
     // Запоминаем последнюю историческую дату
     let last_historical_date = all_dates.last().copied().unwrap_or(start_date);
@@ -502,15 +375,21 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
                 all_dates.insert(pos, phantom_arrival);
             }
         }
-        // ❌ НЕ обновляем last_trigger_day — фантом не должен влиять на таймер реальных заказов
     }
 
     // === ЦИКЛ СИМУЛЯЦИИ ===
+    let mut last_order_creation_date: Option<NaiveDate> = None;
+
+    // Если есть фантом, считаем, что "последний заказ" был создан в день старта минус интервал,
+    // чтобы первый реальный заказ мог создаться сразу, если порог пробит,
+    // но не раньше, чем позволит логика.
+    // Для простоты оставим None — первый заказ всегда пройдет проверку времени.
+
     let mut i = 0;
     while i < all_dates.len() {
         let today = all_dates[i];
 
-        // 🟢 1. ОБЪЕДИНЁННЫЙ ПРИХОД
+        // 🟢 1. ОБЪЕДИНЁННЫЙ ПРИХОД (старая + новая система)
         let mut incoming_amount: i64 = 0;
 
         // Из старой системы (BTreeMap)
@@ -518,7 +397,7 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
             incoming_amount += amount as i64;
         }
 
-        // Из новой системы (очередь)
+        // Из новой системы (очередь pending_orders)
         if req.enable_overlapping && req.overlap_count >= 2 {
             pending_orders.retain(
                 |order: &crate::features::stock_simulation::models::PendingOrder| {
@@ -530,62 +409,62 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
                             return false; // удалить из очереди
                         }
                     }
-                    true // оставить ждать
+                    true
                 },
             );
         }
 
         current_stock += incoming_amount;
 
-        // 🟢 2. РАСХОД
+        // 🟢 2. РАСХОД (для будущих дат равен 0)
         let spent_today = date_to_spent.get(&today).copied().unwrap_or(0) as i64;
         current_stock = (current_stock - spent_today).max(0);
 
-        // 🟢 3. ЗАПИСЬ МЕТРИК
+        // 🟢 3. ЗАПИСЬ МЕТРИК (график видит все приходы)
         result_dates.push(today.format("%Y-%m-%d").to_string());
         starting_stock.push(current_stock as i32);
         spent.push(spent_today as i32);
         incoming.push(incoming_amount as i32);
 
-        // 🟢 4. СОЗДАНИЕ ЗАКАЗОВ (только в пределах исторических данных)
+        // ✅ ВАЖНО: Пушим 0 заранее, но будем обновлять его ниже, если заказ создастся
+        order_created.push(0);
+
+        // 🟢 4. СОЗДАНИЕ ЗАКАЗОВ (ТОЛЬКО в пределах исторических данных!)
         if today <= last_historical_date {
             if req.enable_overlapping && req.overlap_count >= 2 {
                 let trigger_interval = req.delivery_days as u32 / req.overlap_count;
+
                 let threshold_triggered = current_stock <= req.threshold as i64;
-
-                // ✅ ПРОСТАЯ ЛОГИКА ТАЙМЕРА (только для реальных заказов)
-                let timer_triggered = match &last_trigger_day {
-                    Some(last_day_str) => {
-                        if let (Ok(last_day), Ok(today_parsed)) = (
-                            chrono::NaiveDate::parse_from_str(last_day_str, "%Y-%m-%d"),
-                            chrono::NaiveDate::parse_from_str(
-                                &today.format("%Y-%m-%d").to_string(),
-                                "%Y-%m-%d",
-                            ),
-                        ) {
-                            let days_diff =
-                                today_parsed.signed_duration_since(last_day).num_days() as u32;
-                            days_diff >= trigger_interval
-                        } else {
-                            false
-                        }
-                    }
-                    None => false, // Нет реальных заказов — таймер молчит
-                };
-
                 let queue_has_space = pending_orders.len() < req.overlap_count as usize;
 
-                if queue_has_space && (threshold_triggered || timer_triggered) {
+                let can_create_by_time = match last_order_creation_date {
+                    Some(last_date) => {
+                        let days_since_last = today.signed_duration_since(last_date).num_days();
+                        days_since_last >= trigger_interval as i64
+                    }
+                    None => true,
+                };
+
+                if threshold_triggered && queue_has_space && can_create_by_time {
                     let arrival_date = today + Duration::days(req.delivery_days as i64);
+
+                    eprintln!(
+                        "🚚 Order created on {} (Stock: {}), arrives {}. Interval check: OK",
+                        today, current_stock, arrival_date
+                    );
 
                     pending_orders.push(crate::features::stock_simulation::models::PendingOrder {
                         arrival_date: arrival_date.format("%Y-%m-%d").to_string(),
                         quantity: req.initial_stock,
                     });
 
-                    last_trigger_day = Some(today.format("%Y-%m-%d").to_string());
+                    last_order_creation_date = Some(today);
 
-                    // Добавляем дату прибытия в таймлайн
+                    // ✅ ОБНОВЛЯЕМ последнюю запись в order_created на 1
+                    if let Some(last) = order_created.last_mut() {
+                        *last = 1;
+                    }
+
                     if !date_to_spent.contains_key(&arrival_date) {
                         date_to_spent.insert(arrival_date, 0);
                         if let Err(pos) = all_dates.binary_search(&arrival_date) {
@@ -594,11 +473,16 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
                     }
                 }
             } else {
-                // 🔵 СТАРАЯ ЛОГИКА (без изменений)
+                // 🔵 СТАРАЯ ЛОГИКА
                 let has_future_delivery = deliveries.keys().any(|&d| d > today);
                 if current_stock <= req.threshold as i64 && !has_future_delivery {
                     let arrival_date = today + Duration::days(req.delivery_days as i64);
                     deliveries.insert(arrival_date, req.initial_stock);
+
+                    // ✅ Для старой логики тоже помечаем создание заказа
+                    if let Some(last) = order_created.last_mut() {
+                        *last = 1;
+                    }
 
                     if !date_to_spent.contains_key(&arrival_date) {
                         date_to_spent.insert(arrival_date, 0);
@@ -667,6 +551,7 @@ pub fn calculate_stock(req: ComputeRequest) -> Result<ComputeResponse, String> {
         recommended_threshold,
         avg_delivery_interval_actual,
         avg_delivery_interval_model,
+        order_created,
     })
 }
 
