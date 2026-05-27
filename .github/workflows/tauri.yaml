@@ -1,10 +1,16 @@
 name: Build Tauri App
+
 on:
   push:
     branches: [master]
+  workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-tauri:
@@ -14,33 +20,45 @@ jobs:
         platform: [macos-latest, windows-latest]
 
     runs-on: ${{ matrix.platform }}
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: "npm"
 
-      - name: Install Rust
+      - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-20.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
 
       - name: Install frontend dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build the app
+      - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: v__VERSION__
-          releaseName: "App v__VERSION__"
-          releaseBody: "See the assets to download this version."
+          releaseName: "StockFlow v__VERSION__"
+          releaseBody: |
+            ## Что нового в этой версии
+            Автоматическая сборка из ветки `master`.
+
+            ### Установщики:
+            - 🍎 macOS (Apple Silicon & Intel)
+            - 🪟 Windows (.msi)
+
+            Полный список изменений: ${{ github.server_url }}/${{ github.repository }}/compare/v__VERSION__...HEAD
           releaseDraft: true
           prerelease: false
